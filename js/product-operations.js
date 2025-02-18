@@ -410,9 +410,9 @@ export async function guardarInventario() {
             categoria: producto.categoria,
             marca: producto.marca,
             lote: lote,
-            tipoQuantidad: producto.unidad || "Pz",
+            tipoquantidad: producto.unidad || "Pz",
             cantidad: parseInt(cantidad),
-            fechaCaducidad: new Date(fechaCaducidad).toISOString(),
+            fechacaducidad: new Date(fechaCaducidad).toISOString(),
             comentarios: comentarios
         };
 

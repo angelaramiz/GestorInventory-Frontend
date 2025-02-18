@@ -1,0 +1,1 @@
+# GestorInventory-Frontend

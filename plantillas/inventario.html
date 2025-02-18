@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario</title>
+    <link href="../librerías/tailwind.min.css" rel="stylesheet">
+    <script src="../librerías/sweetalert2@11.js"></script>
+    <script src="../librerías/jspdf.umd.min.js"></script>
+</head>
+
+<body class="bg-gray-100">
+    <div id="inventario" class="container mx-auto mt-8 p-4">
+        <h1 class="text-3xl font-bold mb-6">Inventario</h1>
+
+        <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
+
+        <div class="mb-4">
+            <label for="codigo" class="block mb-2">Código/PLU:</label>
+            <div class="flex">
+                <input type="text" id="codigo" class="border p-2 w-full">
+                <button id="escanearBtn" class="bg-blue-500 text-white px-4 py-2 ml-2">Escanear Código</button>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="nombreInventario" class="block mb-2">Nombre:</label>
+            <input type="text" id="nombreInventario" class="border p-2 w-full">
+        </div>
+
+        <div class="mb-4">
+            <label for="marcaInventario" class="block mb-2">Marca:</label>
+            <input type="text" id="marcaInventario" class="border p-2 w-full">
+        </div>
+
+        <button id="buscarInventario" class="bg-green-500 text-white px-4 py-2 mb-4">Buscar Producto</button>
+
+        <div id="resultadosInventario" class="mt-4" style="display: none;">
+            <!-- Los resultados de la búsqueda se mostrarán aquí -->
+        </div>
+
+        <div id="datosInventario" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" style="display: none;">
+            <div class="mb-4">
+                <label for="nombreProductoInventario" class="block mb-2">Nombre del Producto:</label>
+                <input type="text" id="nombreProductoInventario" class="border p-2 w-full" readonly>
+            </div>
+
+            <div class="mb-4">
+                <label for="unidadProducto" class="block mb-2" >Unidad:</label>
+                <input type="text" id="unidadProducto" class="border p-2 w-full" readonly>
+                <!-- Mostrar la unidad como texto -->
+            </div>
+
+            <div class="mb-4">
+                <label for="cantidad" class="block mb-2">Cantidad:</label>
+                <input type="number" id="cantidad" class="border p-2 w-full">
+            </div>
+
+            <div class="mb-4">
+                <label for="fechaCaducidad" class="block mb-2">Fecha de Caducidad:</label>
+                <input type="date" id="fechaCaducidad" class="border p-2 w-full">
+            </div>
+
+            <div class="mb-6">
+                <label for="comentarios" class="block mb-2">Comentarios:</label>
+                <textarea id="comentarios" class="border p-2 w-full"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <button id="guardarInventario" class="bg-blue-500 text-white px-4 py-2">Guardar Inventario</button>
+            </div>
+        </div>
+
+        <div id="mensaje" class="mt-4"></div>
+
+        <div id="scanner-container-inventario" class="mt-4" style="display: none;">
+            <div id="reader-consulta" class="w-full max-w-lg mx-auto"></div>
+            <button id="cerrarEscanerConsulta" class="...">Cerrar Escáner</button>
+        </div>
+
+        <button id="generarHojaInventario" class="bg-purple-500 text-white px-4 py-2 mt-4">Generar Hoja de
+            Inventario</button>
+    </div>
+
+    <script src="../librerías/html5-qrcode.min.js"></script>
+    <script type="module" src="../js/main.js"></script>
+</body>
+
+</html>

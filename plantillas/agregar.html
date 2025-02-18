@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Nuevo Producto - Sistema de Gestión de Productos</title>
+    <link rel="stylesheet" href="../librerías/tailwind.min.css">
+    <script src="../librerías/html5-qrcode.min.js"></script>
+    <script src="../librerías/sweetalert2@11.js"></script>
+</head>
+
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-8 p-4">
+        <h1 class="text-3xl font-bold mb-6">Agregar Nuevo Producto</h1>
+
+        <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
+
+        <form id="formAgregarProducto" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="codigo">
+                    Código/PLU:
+                </label>
+                <div class="flex">
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        placeholder="Codigo" id="codigoAgregar" type="text" required>
+                    <button type="button" id="escanearBtnAgregar"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
+                        Escanear Código
+                    </button>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="nombre">
+                    Nombre:
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="nombre" type="text" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="categoria">
+                    Categoría:
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="categoria" type="text" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="marca">
+                    Marca/Proveedor:
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="marca" type="text" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="marca">
+                    Unidad:
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="unidad" type="text" required>
+            </div>
+            <div class="flex items-center justify-between">
+                <button
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    type="submit">
+                    Agregar Producto
+                </button>
+            </div>
+        </form>
+
+        <div id="mensaje" class="mt-4"></div>
+
+        <div id="scanner-container-agregar" class="mt-4" style="display: none;">
+            <div id="reader-consulta" class="w-full max-w-lg mx-auto"></div>
+            <button id="cerrarEscanerConsulta" class="...">Cerrar Escáner</button>
+        </div>
+    </div>
+
+    <script type="module" src="../js/main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Producto - Sistema de Gestión de Productos</title>
+    <script src="../librerías/html5-qrcode.min.js"></script>
+    <link rel="stylesheet" href="../librerías/tailwind.min.css">
+    <script src="../librerías/sweetalert2@11.js"></script>
+</head>
+
+<body class="bg-gray-100">
+    <div id="editar" class="container mx-auto mt-8 p-4">
+        <h1 class="text-3xl font-bold mb-6">Editar Producto</h1>
+
+        <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
+
+        <form id="formEditarProducto" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="codigoEditar">
+                    Código/PLU:
+                </label>
+                <div class="flex">
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="codigoEditar" type="text" required>
+                    <button type="button" id="escanearBtnEditar"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
+                        Escanear Código de Barras
+                    </button>
+                </div>
+            </div>
+            <div class="mb-4">
+                <button id="buscarEditar"
+                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    type="button">
+                    Buscar
+                </button>
+            </div>
+            <div id="formularioEdicion" style="display: none;">
+                <!-- Campo de código editable -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="codigo">
+                        Código
+                    </label>
+                    <input type="text" id="codigo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="nombreEditar">
+                        Nombre:
+                    </label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="nombreEditar" type="text" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="categoriaEditar">
+                        Categoría:
+                    </label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="categoriaEditar" type="text" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="marcaEditar">
+                        Marca/Proveedor:
+                    </label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="marcaEditar" type="text" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2
+                         " for="unidadEditar">
+                        Unidad:
+                    </label>
+                    <input type="text" id="unidadEditar" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+                        " required>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button id="guardarCambios"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        type="button">
+                        Guardar Cambios
+                    </button>
+                    <button id="eliminarProducto"
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        type="button">
+                        Eliminar Producto
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div id="scanner-container-editar" class="mt-4" style="display: none;">
+            <div id="reader-consulta" class="w-full max-w-lg mx-auto"></div>
+            <button id="cerrarEscanerConsulta" class="...">Cerrar Escáner</button>
+        </div>
+    </div>
+
+    <script type="module" src="../js/main.js"></script>
+</body>
+
+</html>

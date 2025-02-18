@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Producto - Sistema de Gestión de Productos</title>
+    <!-- Cambiamos Quagga por Html5QrCode -->
+    <link rel="stylesheet" href="../librerías/tailwind.min.css">
+    <script src="../librerías/html5-qrcode.min.js"></script>
+    <script src="../librerías/sweetalert2@11.js"></script>
+</head>
+
+<body class="bg-gray-100">
+    <div id="consulta" class="container mx-auto mt-8 p-4">
+        <h1 class="text-3xl font-bold mb-6">Consulta de Producto</h1>
+
+        <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
+
+        <form id="formConsultaProducto" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="codigoConsulta">
+                    Código/PLU:
+                </label>
+                <div class="flex">
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="codigoConsulta" type="text">
+                    <button type="button" id="escanearBtnConsulta"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
+                        Escanear Código de Barras
+                    </button>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="nombreConsulta">
+                    Nombre:
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="nombreConsulta" type="text">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="categoriaConsulta">
+                    Categoría:
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="categoriaConsulta" type="text">
+            </div>
+            <div class="flex items-center justify-between">
+                <button id="buscarConsulta"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    type="button">
+                    Buscar Producto
+                </button>
+            </div>
+        </form>
+
+        <div id="resultados" class="mt-4"></div>
+
+        <!-- Modificamos el contenedor del escáner -->
+        <!-- En plantillas/consulta.html -->
+        <div id="scanner-container-consulta" class="mt-4" style="display: none;">
+            <div id="reader-consulta" class="w-full max-w-lg mx-auto"></div>
+            <button id="cerrarEscanerConsulta" class="...">Cerrar Escáner</button>
+        </div>
+    </div>
+
+    <script type="module" src="../js/main.js"></script>
+</body>
+
+</html>

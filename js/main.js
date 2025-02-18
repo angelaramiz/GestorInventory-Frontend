@@ -1,5 +1,5 @@
 // Importaciones
-import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV,sincronizarProductosDesdeBackend } from './db-operations.js';
+import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
@@ -105,16 +105,25 @@ async function init() {
         if (botonBuscarInventario) {
             botonBuscarInventario.addEventListener("click", buscarProductoInventario);
         }
-        // Event listener para el botón de sincronizar
-        const esPaginaArchivos = window.location.href.includes('archivos.html'); // ✅
+
+        // Event listeners para los botones de sincronización
+        const esPaginaArchivos = window.location.href.includes('archivos.html');
 
         if (esPaginaArchivos) {
-            const botonSincronizar = document.getElementById("sync-btn");
-            if (botonSincronizar) {
-            botonSincronizar.addEventListener("click", async () => {
-                mostrarMensaje("Sincronizando productos...", "info");
-                await sincronizarProductosDesdeBackend();
-            });
+            const botonSincronizarBajada = document.getElementById("sync-down-btn");
+            if (botonSincronizarBajada) {
+                botonSincronizarBajada.addEventListener("click", async () => {
+                    mostrarMensaje("Sincronizando productos en bajada...", "info");
+                    await sincronizarProductosDesdeBackend();
+                });
+            }
+
+            const botonSincronizarSubida = document.getElementById("sync-up-btn");
+            if (botonSincronizarSubida) {
+                botonSincronizarSubida.addEventListener("click", async () => {
+                    mostrarMensaje("Sincronizando productos en subida...", "info");
+                    await subirProductosAlBackend();
+                });
             }
         }
     } catch (error) {

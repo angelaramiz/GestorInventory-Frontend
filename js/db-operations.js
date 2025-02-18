@@ -554,6 +554,70 @@ export async function sincronizarProductosDesdeBackend() {
     }
 }
 
+// Llamar a sincronizarDatos cuando se cargue la página
+export async function subirProductosAlBackend() {
+    try {
+        // Verificar autenticación
+        const token = localStorage.getItem('supabase.auth.token');
+        if (!token) {
+            mostrarMensaje("Debes iniciar sesión para sincronizar", "error");
+            return false;
+        }
+
+        // Obtener el ID del usuario autenticado
+        const userId = localStorage.getItem('usuario_id');
+        if (!userId) {
+            mostrarMensaje("No se encontró el ID del usuario", "error");
+            return false;
+        }
+
+        // Obtener todos los productos de IndexedDB
+        const productos = await new Promise((resolve, reject) => {
+            const transaction = db.transaction(["productos"], "readonly");
+            const objectStore = transaction.objectStore("productos");
+            const request = objectStore.getAll();
+
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject("Error al obtener productos locales");
+        });
+
+        // Verificar si hay productos para subir
+        if (!productos || productos.length === 0) {
+            mostrarMensaje("No hay productos para subir", "info");
+            return false;
+        }
+
+        // Enviar productos al backend
+        const response = await fetch("https://gestorinventory-backend-production.up.railway.app/productos/actualizar-usuario-producto", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                productos: productos,
+                usuario_id: userId // Asegurar que el usuario_id se envía
+            })
+        });
+
+        // Manejar errores HTTP
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+
+        // Mostrar resultado al usuario
+        mostrarMensaje("✅ Productos subidos exitosamente", "exito");
+        return true;
+
+    } catch (error) {
+        console.error("Error subiendo productos:", error);
+        mostrarMensaje(`🚨 Error: ${error.message || "Verifica tu conexión"}`, "error");
+        return false;
+    }
+}
 //  Función para cargar  datos en la tabla de la página de archivos
 export function cargarDatosInventarioEnTablaPlantilla() {
     const transaction = dbInventario.transaction(["inventario"], "readonly");

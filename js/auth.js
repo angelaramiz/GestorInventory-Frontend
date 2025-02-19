@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
-            console.log(`Respuesta del backend:`, data); // <-- Muestra en consola qué devuelve
 
             if (data.success) {
                 // Guardar token JWT
@@ -24,10 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('usuario_id', data.user.user.id); // ✅ Guarda el ID del usuario
 
                 mostrarMensaje('Inicio de sesión exitoso', 'exito');
-                // console.log('datos obtenidos', data.user.user.id);
                 setTimeout(() => {
                     window.location.href = './plantillas/main.html'; // Redirigir al login después del registro
-                }, 1000);
+                }, 500);
             } else {
                 mostrarMensaje(data.error, 'error');
             }

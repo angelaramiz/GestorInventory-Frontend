@@ -588,7 +588,7 @@ export async function subirProductosAlBackend() {
         }
 
         // Enviar productos al backend
-        const response = await fetch("https://gestorinventory-backend-production.up.railway.app/productos/actualizar-usuario-producto", {
+        const response = await fetch("https://gestorinventory-backend-production.up.railway.app/productos/actualizar-usuario-productos", {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
@@ -596,7 +596,6 @@ export async function subirProductosAlBackend() {
             },
             body: JSON.stringify({
                 productos: productos,
-                usuario_id: userId // Asegurar que el usuario_id se envía
             })
         });
 

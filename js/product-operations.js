@@ -12,23 +12,27 @@ export function mostrarResultados(resultados) {
 
     if (resultados && resultados.length > 0) {
         resultados.forEach(producto => {
-            const productoDiv = document.createElement("div");
-            productoDiv.classList.add(
-                "bg-white",
-                "rounded-lg",
-                "shadow-md",
-                "p-6",
-                "mb-4",
-                "border",
-                "border-gray-200"
-            );
-            productoDiv.innerHTML = `
-                <h3 class="text-xl font-semibold mb-2">${producto.nombre}</h3>
-                <p><strong>Código/PLU:</strong> ${producto.codigo}</p>
-                <p><strong>Categoría:</strong> ${producto.categoria}</p>
-                <p><strong>Marca:</strong> ${producto.marca}</p>
-            `;
-            resultadoDiv.appendChild(productoDiv);
+            if (producto) { // Verificar que producto no sea undefined
+                const productoDiv = document.createElement("div");
+                productoDiv.classList.add(
+                    "bg-white",
+                    "rounded-lg",
+                    "shadow-md",
+                    "p-6",
+                    "mb-4",
+                    "border",
+                    "border-gray-200"
+                );
+                productoDiv.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-2">${producto.nombre}</h3>
+                    <p><strong>Código/PLU:</strong> ${producto.codigo}</p>
+                    <p><strong>Categoría:</strong> ${producto.categoria}</p>
+                    <p><strong>Marca:</strong> ${producto.marca}</p>
+                `;
+                resultadoDiv.appendChild(productoDiv);
+            } else {
+                mostrarMensaje("Error al buscar en la base de datos", "error");
+            }
         });
     } else {
         resultadoDiv.innerHTML =
@@ -189,7 +193,15 @@ export function buscarProducto() {
     if (codigo) {
         const request = objectStore.get(codigo);
         request.onsuccess = event => {
-            mostrarResultados([event.target.result]);
+            const producto = event.target.result;
+            if (producto) {
+                mostrarResultados([producto]);
+            } else {
+                mostrarMensaje("Producto no encontradoooo", "error");
+            }
+        };
+        request.onerror = () => {
+            mostrarMensaje("Error al buscar en la base de datos", "error");
         };
     } else {
         const request = objectStore.getAll();
@@ -203,10 +215,12 @@ export function buscarProducto() {
             );
             mostrarResultados(resultados);
         };
+        request.onerror = () => {
+            mostrarMensaje("Error al buscar en la base de datos", "error");
+        };
     }
 }
 
-// Funciones para edición de producto
 export function buscarProductoParaEditar() {
     const codigo = document.getElementById("codigoEditar").value;
 
@@ -234,15 +248,6 @@ export function buscarProductoParaEditar() {
             mostrarMensaje("Producto no encontrado", "error");
         }
     };
-}
-
-function llenarFormularioEdicion(producto) {
-    document.getElementById("codigoEditar").value = producto.codigo;
-    document.getElementById("nombreEditar").value = producto.nombre;
-    document.getElementById("categoriaEditar").value = producto.categoria;
-    document.getElementById("marcaEditar").value = producto.marca;
-    document.getElementById("unidadEditar").value = producto.unidad;
-    document.getElementById("formularioEdicion").style.display = "block";
 }
 // Funciones para validar código único
 export function validarCodigoUnico(codigo) {

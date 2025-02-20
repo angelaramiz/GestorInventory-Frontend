@@ -150,7 +150,7 @@ export function buscarPorCodigoParcial(codigoParcial, callback) {
     };
 }
 
-export function agregarProducto(evento) {
+export async function agregarProducto(evento) {
     evento.preventDefault();
 
     const codigo = document.getElementById("codigoAgregar").value;
@@ -171,8 +171,19 @@ export function agregarProducto(evento) {
     const transaction = db.transaction(["productos"], "readwrite");
     const objectStore = transaction.objectStore("productos");
 
+    // Verificar si el código ya existe
+    const existe = await new Promise(resolve => {
+        const req = objectStore.get(codigo);
+        req.onsuccess = () => resolve(!!req.result);
+    });
+
+    if (existe) {
+        mostrarMensaje("El código ya existe", "error");
+        return;
+    }
+
     // Aquí asignamos request correctamente
-    const request = objectStore.put(productosanitizado)
+    const request = objectStore.put(productosanitizado);
 
     request.onerror = event => {
         console.error("Error al agregar producto", event.target.error);
@@ -351,9 +362,7 @@ export function eliminarProducto() {
     request.onsuccess = () => {
         mostrarMensaje("Producto eliminado correctamente", "exito");
         document.getElementById("formularioEdicion").style.display = "none";
-        if (document.getElementById("databaseBody")) {
-            cargarDatosEnTabla();
-        }
+        cargarDatosEnTabla();
     };
 
     request.onerror = () => {
@@ -475,7 +484,7 @@ export async function guardarInventario() {
                 const errorData = await supabaseResponse.json();
                 mostrarMensaje(
                     `Error de sincronización: ${errorData.error || "Contacta al soporte técnico"}`,
-                    "advertencia",
+                    "warning",
                     { timer: 3000 }
                 );
             }
@@ -497,7 +506,7 @@ export async function guardarInventario() {
         if (error.message.includes("servidor") || error.message.includes("sincronización")) {
             mostrarMensaje(
                 "Datos guardados localmente. Se sincronizarán cuando recuperes conexión",
-                "advertencia",
+                "warning",
                 { timer: 4000 }
             );
         }

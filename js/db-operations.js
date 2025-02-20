@@ -26,9 +26,12 @@ export async function procesarColaSincronizacion() {
     while (queue.length > 0) {
         const item = queue.shift();
         try {
-            await fetch('https://tu-backend.com/productos/inventario', {
+            await fetch('https://gestorinventory-backend-production.up.railway.app/productos/inventario', {
                 method: 'POST',
-                // ... mismos headers y body
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(item)
             });
             localStorage.setItem('syncQueue', JSON.stringify(queue));
         } catch (error) {
@@ -161,16 +164,16 @@ export function cargarCSV(event) {
     reader.onload = async function (e) { // Usar async aquí
         const csv = e.target.result;
         const lines = csv.split("\n");
-        const headers = lines[0].split(",").map(header => header.trim()); // Limpiar espacios
+        const headers = lines[0].split(",").map(header => header.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")); // Validar contra: ["codigo", "nombre", "categoria", "marca", "unidad"]
 
         // Validación del CSV
         if (
             headers.length !== 5 ||
-            !headers.includes("Código") ||
-            !headers.includes("Nombre") ||
-            !headers.includes("Categoría") ||
-            !headers.includes("Marca") ||
-            !headers.includes("Unidad")
+            !headers.includes("codigo") ||
+            !headers.includes("nombre") ||
+            !headers.includes("categoria") ||
+            !headers.includes("marca") ||
+            !headers.includes("unidad")
         ) {
             mostrarMensaje(
                 "El formato del archivo CSV no es correcto. Por favor, use la plantilla proporcionada.",
@@ -256,7 +259,7 @@ export function descargarCSV() {
 
         request.onsuccess = event => {
             const productos = event.target.result;
-            let csv = "Código,Nombre,Categoría,Marca,Unidad\n";
+            let csv = "\uFEFFCódigo,Nombre,Categoría,Marca,Unidad\n"; // Agregar BOM al inicio del CSV
             productos.forEach(producto => {
                 csv += `${producto.codigo},${producto.nombre},${producto.categoria},${producto.marca},${producto.unidad}\n`;
             });
@@ -503,7 +506,14 @@ export async function sincronizarProductosDesdeBackend() {
             },
         });
 
-        // Manejar errores HTTP (ej: 404, 500)
+        // Manejar errores HTTP (ej: 401, 404, 500)
+        if (response.status === 401) {
+            mostrarMensaje("Sesión expirada", "error");
+            localStorage.clear();
+            window.location.href = "../index.html";
+            return;
+        }
+
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Error ${response.status}: ${errorText}`);

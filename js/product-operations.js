@@ -354,7 +354,7 @@ export async function guardarCambios() {
 }
 // Funciones para eliminar producto
 export function eliminarProducto() {
-    const codigo = document.getElementById("codigoEditar").value;
+    const codigo = document.getElementById("codigoEditado").value;
     const transaction = db.transaction(["productos"], "readwrite");
     const objectStore = transaction.objectStore("productos");
     const request = objectStore.delete(codigo);

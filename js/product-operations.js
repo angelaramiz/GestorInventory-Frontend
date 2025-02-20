@@ -312,40 +312,24 @@ export async function guardarCambios() {
             return;
         }
 
-        // Validar que el nuevo código sea único
-        const codigoUnico = await validarCodigoUnico(productoSanitizado.codigo);
-        if (!codigoUnico && codigoAntiguo !== productoSanitizado.codigo) {
-            mostrarMensaje("El código ya está en uso. Por favor, elige otro.", "error");
-            return;
-        }
-
         // Iniciar transacción
         const transaction = db.transaction(["productos"], "readwrite");
         const objectStore = transaction.objectStore("productos");
 
-        // Eliminar el producto antiguo
-        const deleteRequest = objectStore.delete(codigoAntiguo);
-        deleteRequest.onsuccess = function () {
+        // Actualizar el producto
+        const updateRequest = objectStore.put(productoSanitizado);
+        updateRequest.onsuccess = function () {
+            mostrarMensaje(`Producto actualizado correctamente.\n `, "exito");
+            document.getElementById("formularioEdicion").style.display = "none";
 
-            // Agregar el producto con el nuevo código
-            const addRequest = objectStore.put(productoSanitizado);
-            addRequest.onsuccess = function () {
-                mostrarMensaje(`Producto actualizado correctamente.\n `, "exito");
-                document.getElementById("formularioEdicion").style.display = "none";
-
-                // Verificar si estamos en la página correcta antes de cargar la tabla
-                if (document.getElementById("databaseBody")) {
-                    cargarDatosEnTabla(); // Actualizar la tabla solo si existe databaseBody
-                }
-            };
-
-            addRequest.onerror = function () {
-                mostrarMensaje("Error al actualizar el producto.", "error");
-            };
+            // Verificar si estamos en la página correcta antes de cargar la tabla
+            if (document.getElementById("databaseBody")) {
+                cargarDatosEnTabla(); // Actualizar la tabla solo si existe databaseBody
+            }
         };
 
-        deleteRequest.onerror = function () {
-            mostrarMensaje("Error al eliminar el producto antiguo.", "error");
+        updateRequest.onerror = function () {
+            mostrarMensaje("Error al actualizar el producto.", "error");
         };
     } catch (error) {
         console.error("Error al editar el producto:", error);

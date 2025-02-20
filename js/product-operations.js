@@ -459,9 +459,7 @@ export async function guardarInventario() {
         });
 
         // Sincronizar con Supabase
-        const token = getToken();
-        console.log("Token enviado:", token); // 🛠 Verificar si el token es válido
-
+        const token = localStorage.getItem('supabase.auth.token');      
         const supabaseResponse = await fetch(
             'https://gestorinventory-backend-production.up.railway.app/productos/inventario',
             {

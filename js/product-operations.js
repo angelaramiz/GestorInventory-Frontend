@@ -204,7 +204,6 @@ export function buscarProducto() {
     const objectStore = transaction.objectStore("productos");
 
     if (codigo) {
-        console.log("Buscando por código:", codigo);
         const request = objectStore.get(codigo);
         request.onsuccess = event => {
             const result = event.target.result;

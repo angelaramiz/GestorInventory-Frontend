@@ -34,11 +34,12 @@ export function mostrarResultados(resultados) {
                 mostrarMensaje("Error al buscar en la base de datos", "error");
             }
         });
-    } else {
-        resultadoDiv.innerHTML =
-            '<p class="text-red-500">No se encontraron productos.</p>';
-    }
+            }else {
+            resultadoDiv.innerHTML =
+                '<p class="text-red-500">No se encontraron productos.</p>';
+        }
 }
+
 
 export function mostrarResultadosInventario(resultados) {
     const resultadosDiv = document.getElementById("resultadosInventario");
@@ -203,9 +204,15 @@ export function buscarProducto() {
     const objectStore = transaction.objectStore("productos");
 
     if (codigo) {
-        const request = objectStore.getAll;
+        console.log("Buscando por código:", codigo);
+        const request = objectStore.get(codigo);
         request.onsuccess = event => {
-            mostrarResultados([event.target.result]);
+            const result = event.target.result;
+            if (Array.isArray(result)) {
+                mostrarResultados(result);
+            } else {
+                mostrarResultados([result]);
+            }
         };
         request.onerror = () => {
             mostrarMensaje("Error al buscar en la base de datos", "error");

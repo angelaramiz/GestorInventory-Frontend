@@ -115,8 +115,8 @@ export function mostrarResultadosEdicion(resultados) {
 
 function llenarFormularioEdicion(producto) {
 
-    document.getElementById("codigoEditar").setAttribute("data-codigo-original", producto.codigo); // Guardar el código original
-    document.getElementById("codigo").value = producto.codigo;
+    //document.getElementById("codigoEditar").setAttribute("data-codigo-original", producto.codigo); // Guardar el código original
+    document.getElementById("codigoEditado").value = producto.codigo;
     document.getElementById("nombreEditar").value = producto.nombre;
     document.getElementById("categoriaEditar").value = producto.categoria;
     document.getElementById("marcaEditar").value = producto.marca;
@@ -282,7 +282,7 @@ export function validarCodigoUnico(codigo) {
 export async function guardarCambios() {
     try {
         const codigoAntiguo = document.getElementById("codigoEditar").getAttribute("data-codigo-original"); // Código original guardado
-        const codigoNuevo = document.getElementById("codigoEditar").value; // Nuevo código ingresado por el usuario
+        const codigoNuevo = document.getElementById("codigoEditado").value; // Nuevo código ingresado por el usuario
         const nombre = document.getElementById("nombreEditar").value;
         const categoria = document.getElementById("categoriaEditar").value;
         const marca = document.getElementById("marcaEditar").value;
@@ -351,7 +351,9 @@ export function eliminarProducto() {
     request.onsuccess = () => {
         mostrarMensaje("Producto eliminado correctamente", "exito");
         document.getElementById("formularioEdicion").style.display = "none";
-        cargarDatosEnTabla();
+        if (document.getElementById("databaseBody")) {
+            cargarDatosEnTabla();
+        }
     };
 
     request.onerror = () => {

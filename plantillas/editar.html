@@ -2,11 +2,11 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Editar Producto - Sistema de Gestión de Productos</title>
     <script src="../librerías/html5-qrcode.min.js"></script>
-    <link rel="stylesheet" href="../librerías/tailwind.min.css">
+    <link rel="stylesheet" href="../librerías/tailwind.min.css" />
     <script src="../librerías/sweetalert2@11.js"></script>
 </head>
 
@@ -24,7 +24,7 @@
                 <div class="flex">
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="codigoEditar" type="text" required>
+                        id="codigoEditar" type="text" required />
                     <button type="button" id="escanearBtnEditar"
                         class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
                         Escanear Código de Barras
@@ -38,13 +38,15 @@
                     Buscar
                 </button>
             </div>
-            <div id="formularioEdicion" style="display: none;">
+            <div id="formularioEdicion" style="display: none">
                 <!-- Campo de código editable -->
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="codigo">
                         Código
                     </label>
-                    <input type="text" id="codigo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required />
+                    <input type="text" id="codigo"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required />
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="nombreEditar">
@@ -52,7 +54,7 @@
                     </label>
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="nombreEditar" type="text" required>
+                        id="nombreEditar" type="text" required />
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="categoriaEditar">
@@ -60,7 +62,7 @@
                     </label>
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="categoriaEditar" type="text" required>
+                        id="categoriaEditar" type="text" required />
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="marcaEditar">
@@ -68,15 +70,15 @@
                     </label>
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="marcaEditar" type="text" required>
+                        id="marcaEditar" type="text" required />
                 </div>
                 <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2
-                         " for="unidadEditar">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="unidadEditar">
                         Unidad:
                     </label>
-                    <input type="text" id="unidadEditar" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-                        " required>
+                    <input type="text" id="unidadEditar"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required />
                 </div>
                 <div class="flex items-center justify-between">
                     <button id="guardarCambios"
@@ -92,8 +94,9 @@
                 </div>
             </div>
         </form>
+        <div id="resultados" class="mt-4"></div>
 
-        <div id="scanner-container-editar" class="mt-4" style="display: none;">
+        <div id="scanner-container-editar" class="mt-4" style="display: none">
             <div id="reader-consulta" class="w-full max-w-lg mx-auto"></div>
             <button id="cerrarEscanerConsulta" class="...">Cerrar Escáner</button>
         </div>

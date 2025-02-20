@@ -60,7 +60,7 @@ export function mostrarResultadosInventario(resultados) {
     // Mostrar múltiples resultados
     resultados.forEach(producto => {
         const productoDiv = document.createElement("div");
-        productoDiv.classList.add("bg-white", "p-4", "mb-2", "cursor-pointer", "hover:bg-gray-100");
+        productoDiv.classList.add("bg-white","rounded-lg","shadow-md","p-6","mb-4","border","border-gray-200");
         productoDiv.innerHTML = `
             <p><strong>Código:</strong> ${producto.codigo}</p>
             <p><strong>Nombre:</strong> ${producto.nombre}</p>
@@ -73,7 +73,7 @@ export function mostrarResultadosInventario(resultados) {
     resultadosDiv.style.display = "block";
     document.getElementById("datosInventario").style.display = "none";
 }
-
+// 
 export function mostrarFormularioInventario(producto) {
     document.getElementById("resultadosInventario").style.display = "none";
     document.getElementById("datosInventario").style.display = "block";
@@ -83,13 +83,14 @@ export function mostrarFormularioInventario(producto) {
     // Aquí puedes añadir lógica para cargar datos de inventario existentes si es necesario
 }
 export function mostrarResultadosEdicion(resultados) {
-    const resultadosDiv = document.createElement("div");
+    const resultadosDiv = document.getElementById("resultados");
     resultadosDiv.id = "resultadosEdicion";
-    resultadosDiv.innerHTML = "<h3>Seleccione un producto para editar:</h3>";
+    resultadosDiv.classList = "container mx-auto mt-4 p-4";
+    resultadosDiv.innerHTML = '<h3 class="text-xl font-semibold mb-2">Seleccione un producto para editar:</h3>';
 
     resultados.forEach(producto => {
         const productoDiv = document.createElement("div");
-        productoDiv.classList.add("bg-white", "p-4", "mb-2", "cursor-pointer", "hover:bg-gray-100");
+        productoDiv.classList.add("bg-white","rounded-lg","shadow-md","p-6","mb-4","border","border-gray-200");
         productoDiv.innerHTML = `
             <p><strong>Código:</strong> ${producto.codigo}</p>
             <p><strong>Nombre:</strong> ${producto.nombre}</p>
@@ -109,6 +110,17 @@ export function mostrarResultadosEdicion(resultados) {
     }
 
     document.body.appendChild(resultadosDiv);
+}
+
+function llenarFormularioEdicion(producto) {
+
+    document.getElementById("codigoEditar").setAttribute("data-codigo-original", producto.codigo); // Guardar el código original
+    document.getElementById("codigo").value = producto.codigo;
+    document.getElementById("nombreEditar").value = producto.nombre;
+    document.getElementById("categoriaEditar").value = producto.categoria;
+    document.getElementById("marcaEditar").value = producto.marca;
+    document.getElementById("unidadEditar").value = producto.unidad || "";
+    document.getElementById("formularioEdicion").style.display = "block";
 }
 // 
 export function buscarPorCodigoParcial(codigoParcial, callback) {
@@ -191,14 +203,9 @@ export function buscarProducto() {
     const objectStore = transaction.objectStore("productos");
 
     if (codigo) {
-        const request = objectStore.get(codigo);
+        const request = objectStore.getAll;
         request.onsuccess = event => {
-            const producto = event.target.result;
-            if (producto) {
-                mostrarResultados([producto]);
-            } else {
-                mostrarMensaje("Producto no encontradoooo", "error");
-            }
+            mostrarResultados([event.target.result]);
         };
         request.onerror = () => {
             mostrarMensaje("Error al buscar en la base de datos", "error");
@@ -599,7 +606,7 @@ export async function buscarProductoInventario() {
 
         // Primero buscar en la base de datos de productos
         const productosResultados = await buscarEnProductos(codigo, nombre, marca);
-        
+
         if (productosResultados.length === 0) {
             // Si no se encuentra el producto, preguntar si desea agregarlo
             agregarNuevoProductoDesdeInventario(codigo);
@@ -608,7 +615,7 @@ export async function buscarProductoInventario() {
 
         // Si encontramos productos, buscar en inventario
         const inventarioResultados = await buscarEnInventario(codigo, nombre, marca);
-        
+
         if (inventarioResultados.length > 0) {
             // Si existe en inventario, mostrar modal con opciones
             mostrarModalProductoExistente(productosResultados[0], inventarioResultados);

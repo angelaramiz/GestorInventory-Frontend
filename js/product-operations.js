@@ -792,6 +792,9 @@ function mostrarFormularioModificacion(productoInventario) {
     document.getElementById("cantidad").value = productoInventario.cantidad || "";
     document.getElementById("fechaCaducidad").value = productoInventario.caducidad || "";
     document.getElementById("comentarios").value = productoInventario.comentarios || "";
+    document.getElementById("botonguardar").style.display = "none";
+    document.getElementById("botonmodificar").style.display = "block";
+
 
     // Agregar lote como input oculto
     const loteInput = document.createElement("input");
@@ -817,53 +820,111 @@ function mostrarFormularioModificacion(productoInventario) {
     });
 }
 // Función para actualizar el inventario por código
-function actualizarInventarioPorModificacion(codigoAntiguo, codigoNuevo) {
-    return new Promise((resolve, reject) => {
-        const transaction = dbInventario.transaction(["inventario"], "readwrite");
-        const objectStore = transaction.objectStore("inventario");
-        const index = objectStore.index("codigo");
+export async function modificarInventario() {
+    const codigo = document.getElementById("codigoProductoInventario")?.value;
+    const lote = document.getElementById("loteInventario")?.value || "1";
+    const cantidad = document.getElementById("cantidad").value;
+    const comentarios = document.getElementById("comentarios").value;
+    const fechaCaducidad = document.getElementById("fechaCaducidad").value;
+    const unidad = document.getElementById("unidadProducto").value;
 
-        const getRequest = index.getAll(codigoAntiguo);
-        getRequest.onsuccess = async function () {
-            const registros = getRequest.result;
-            for (const registro of registros) {
-                registro.codigo = codigoNuevo; // Actualizar el código
-                await objectStore.put(registro); // Guardar el registro actualizado
+    try {
+        // Validación básica
+        if (!cantidad || !fechaCaducidad) {
+            mostrarMensaje("Cantidad y Fecha de Caducidad son Obligatorios", "error");
+            return;
+        }
 
-                // Sincronizar con el backend
-                const token = localStorage.getItem('supabase.auth.token');
-                const response = await fetch(
-                    `https://gestorinventory-backend-production.up.railway.app/productos/inventario/${registro.id}`,
-                    {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            ...registro,
-                            usuario_id: localStorage.getItem('usuario_id')
-                        })
-                    }
-                );
+        // Obtener datos del producto
+        const producto = await new Promise((resolve, reject) => {
+            const transaction = db.transaction(["productos"], "readonly");
+            const objectStore = transaction.objectStore("productos");
+            const request = objectStore.get(codigo);
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    mostrarMensaje(
-                        `Error de sincronización: ${errorData.error || "Contacta al soporte técnico"}`,
-                        "warning",
-                        { timer: 3000 }
-                    );
-                    reject("Error al sincronizar con el backend.");
-                    return;
-                }
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => {
+                mostrarMensaje("Error al obtener el producto", "error");
+                reject("Error en IndexedDB");
+            };
+        });
+
+        if (!producto) {
+            mostrarMensaje("Producto no encontrado en la base de datos", "error");
+            return;
+        }
+
+        // Construir objeto de inventario
+        const inventarioData = {
+            id: `${codigo}-${lote}`,
+            codigo: producto.codigo,
+            nombre: producto.nombre,
+            categoria: producto.categoria,
+            marca: producto.marca,
+            lote: lote,
+            unidad: unidad || "Pz",
+            cantidad: parseInt(cantidad),
+            caducidad: String(fechaCaducidad),
+            comentarios: comentarios || "N/A"
+        };
+
+        // Actualizar en IndexedDB
+        await new Promise((resolve, reject) => {
+            const transaction = dbInventario.transaction(["inventario"], "readwrite");
+            const objectStore = transaction.objectStore("inventario");
+            const request = objectStore.put(inventarioData);
+
+            request.onsuccess = () => resolve();
+            request.onerror = (e) => {
+                mostrarMensaje("Error al actualizar localmente", "error");
+                reject(e.target.error);
+            };
+        });
+
+        // Sincronizar con Supabase
+        const token = localStorage.getItem('supabase.auth.token');
+        const response = await fetch(
+            `https://gestorinventory-backend-production.up.railway.app/productos/inventario/${inventarioData.id}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    ...inventarioData,
+                    usuario_id: localStorage.getItem('usuario_id')
+                })
             }
+        );
 
-            resolve();
-        };
+        if (!response.ok) {
+            const errorData = await response.json();
+            mostrarMensaje(
+                `Error de sincronización: ${errorData.error || "Contacta al soporte técnico"}`,
+                "warning",
+                { timer: 3000 }
+            );
+            return;
+        }
 
-        getRequest.onerror = function () {
-            reject("Error al actualizar el inventario.");
-        };
-    });
+        // Éxito completo
+        mostrarMensaje(
+            "Inventario modificado y sincronizado correctamente ✓",
+            "success",
+            { timer: 2000, showConfirmButton: false }
+        );
+        limpiarFormularioInventario();
+
+    } catch (error) {
+        console.error('Error en modificarInventario:', error);
+
+        // Manejo específico de errores de sincronización
+        if (error.message.includes("servidor") || error.message.includes("sincronización")) {
+            mostrarMensaje(
+                "Datos actualizados localmente. Se sincronizarán cuando recuperes conexión",
+                "warning",
+                { timer: 4000 }
+            );
+        }
+    }
 }

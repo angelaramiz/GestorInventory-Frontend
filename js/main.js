@@ -1,7 +1,7 @@
 // Importaciones
 import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
-import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario } from './product-operations.js';
+import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
 
 // Función de inicialización
@@ -58,6 +58,10 @@ async function init() {
         const botonGuardarInventario = document.getElementById("guardarInventario");
         if (botonGuardarInventario) {
             botonGuardarInventario.addEventListener("click", guardarInventario);
+        }
+        const botonModificarInventario = document.getElementById("modificarInventario");
+        if (botonModificarInventario) {
+            botonModificarInventario.addEventListener("click", modificarInventario);
         }
 
         // Event listeners para la gestión de archivos

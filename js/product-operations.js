@@ -431,25 +431,40 @@ export async function guardarInventario() {
             comentarios: comentarios || "N/A"
         };
 
-        // Guardar en IndexedDB
-        await new Promise((resolve, reject) => {
-            const transaction = dbInventario.transaction(["inventario"], "readwrite");
+        // Verificar si el inventario ya existe en IndexedDB
+        const inventarioExistente = await new Promise((resolve, reject) => {
+            const transaction = dbInventario.transaction(["inventario"], "readonly");
             const objectStore = transaction.objectStore("inventario");
-            const request = objectStore.put(inventarioData);
+            const request = objectStore.get(inventarioData.id);
 
-            request.onsuccess = () => resolve();
-            request.onerror = (e) => {
-                mostrarMensaje("Error al guardar localmente", "error");
-                reject(e.target.error);
-            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject("Error al verificar inventario existente");
         });
 
+        if (inventarioExistente) {
+            // Si el inventario ya existe, actualizarlo
+            await actualizarInventarioPorModificacion(inventarioExistente.codigo, inventarioData.codigo);
+        } else {
+            // Guardar en IndexedDB
+            await new Promise((resolve, reject) => {
+                const transaction = dbInventario.transaction(["inventario"], "readwrite");
+                const objectStore = transaction.objectStore("inventario");
+                const request = objectStore.put(inventarioData);
+
+                request.onsuccess = () => resolve();
+                request.onerror = (e) => {
+                    mostrarMensaje("Error al guardar localmente", "error");
+                    reject(e.target.error);
+                };
+            });
+        }
+
         // Sincronizar con Supabase
-        const token = localStorage.getItem('supabase.auth.token');      
+        const token = localStorage.getItem('supabase.auth.token');
         const supabaseResponse = await fetch(
-            'https://gestorinventory-backend-production.up.railway.app/productos/inventario',
+            `https://gestorinventory-backend-production.up.railway.app/productos/inventario/${inventarioData.id}`,
             {
-                method: 'POST',
+                method: inventarioExistente ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}` // Asegurar que se usa correctamente
@@ -817,19 +832,47 @@ function mostrarFormularioModificacion(productoInventario) {
     });
 }
 // Función para actualizar el inventario por código
-export function actualizarInventarioPorCodigo(codigoAntiguo, codigoNuevo) {
+function actualizarInventarioPorModificacion(codigoAntiguo, codigoNuevo) {
     return new Promise((resolve, reject) => {
         const transaction = dbInventario.transaction(["inventario"], "readwrite");
         const objectStore = transaction.objectStore("inventario");
         const index = objectStore.index("codigo");
 
         const getRequest = index.getAll(codigoAntiguo);
-        getRequest.onsuccess = function () {
+        getRequest.onsuccess = async function () {
             const registros = getRequest.result;
-            registros.forEach(registro => {
+            for (const registro of registros) {
                 registro.codigo = codigoNuevo; // Actualizar el código
-                objectStore.put(registro); // Guardar el registro actualizado
-            });
+                await objectStore.put(registro); // Guardar el registro actualizado
+
+                // Sincronizar con el backend
+                const token = localStorage.getItem('supabase.auth.token');
+                const response = await fetch(
+                    `https://gestorinventory-backend-production.up.railway.app/productos/inventario/${registro.id}`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            ...registro,
+                            usuario_id: localStorage.getItem('usuario_id')
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    mostrarMensaje(
+                        `Error de sincronización: ${errorData.error || "Contacta al soporte técnico"}`,
+                        "warning",
+                        { timer: 3000 }
+                    );
+                    reject("Error al sincronizar con el backend.");
+                    return;
+                }
+            }
 
             resolve();
         };

@@ -80,6 +80,7 @@ export function mostrarFormularioInventario(producto) {
     document.getElementById("datosInventario").style.display = "block";
     document.getElementById("unidadProducto").value = producto.unidad || "";
     document.getElementById("nombreProductoInventario").value = producto.nombre;
+    document.getElementById("codigoProductoInventario").value = producto.codigo;
 
     // Aquí puedes añadir lógica para cargar datos de inventario existentes si es necesario
 }
@@ -115,7 +116,7 @@ export function mostrarResultadosEdicion(resultados) {
 
 function llenarFormularioEdicion(producto) {
 
-    //document.getElementById("codigoEditar").setAttribute("data-codigo-original", producto.codigo); // Guardar el código original
+    document.getElementById("codigoEditar").setAttribute("data-codigo-original", producto.codigo); // Guardar el código original
     document.getElementById("codigoEditado").value = producto.codigo;
     document.getElementById("nombreEditar").value = producto.nombre;
     document.getElementById("categoriaEditar").value = producto.categoria;
@@ -134,7 +135,7 @@ export function buscarPorCodigoParcial(codigoParcial, callback) {
 
         // Convertir códigos a string para evitar problemas con números
         const resultados = productos.filter(producto => {
-            const codigo = producto.codigo.toString();
+            const codigo = producto.codigo;
             return codigo.includes(codigoParcial);
         });
 
@@ -195,7 +196,7 @@ export async function agregarProducto(evento) {
 
     request.onsuccess = event => {
         console.log("Producto agregado exitosamente");
-        mostrarMensaje("Producto agregado exitosamente", "exito");
+        mostrarMensaje("Producto agregado exitosamente", "success");
         document.getElementById("formAgregarProducto").reset();
     };
 }
@@ -319,7 +320,7 @@ export async function guardarCambios() {
         // Actualizar el producto
         const updateRequest = objectStore.put(productoSanitizado);
         updateRequest.onsuccess = function () {
-            mostrarMensaje(`Producto actualizado correctamente.\n `, "exito");
+            mostrarMensaje(`Producto actualizado correctamente.\n `, "success");
             document.getElementById("formularioEdicion").style.display = "none";
 
             // Verificar si estamos en la página correcta antes de cargar la tabla
@@ -344,7 +345,7 @@ export function eliminarProducto() {
     const request = objectStore.delete(codigo);
 
     request.onsuccess = () => {
-        mostrarMensaje("Producto eliminado correctamente", "exito");
+        mostrarMensaje("Producto eliminado correctamente", "success");
         document.getElementById("formularioEdicion").style.display = "none";
         cargarDatosEnTabla();
     };
@@ -392,8 +393,8 @@ export async function guardarInventario() {
 
     try {
         // Validación básica
-        if (!codigo || !cantidad) {
-            mostrarMensaje("Código y cantidad son campos obligatorios", "error");
+        if (!codigo || !cantidad || !fechaCaducidad) {
+            mostrarMensaje(" Codigo, Cantidad y Fecha de Cadicodad son Obligatorios ", "error");
             return;
         }
 
@@ -423,7 +424,7 @@ export async function guardarInventario() {
             categoria: producto.categoria,
             marca: producto.marca,
             lote: lote,
-            tipoquantidad: producto.unidad || "Pz",
+            tipoquantidad: producto.tipoQuantidad || "Pz",
             cantidad: parseInt(cantidad),
             fechacaducidad: new Date(fechaCaducidad).toISOString(),
             comentarios: comentarios
@@ -476,7 +477,7 @@ export async function guardarInventario() {
         // Éxito completo
         mostrarMensaje(
             "Inventario guardado y sincronizado correctamente ✓",
-            "exito",
+            "success",
             { timer: 2000, showConfirmButton: false }
         );
         limpiarFormularioInventario();
@@ -533,7 +534,8 @@ function agregarNuevoProductoDesdeInventario(codigo) {
             '<input id="swal-codigo" class="swal2-input" placeholder="Código" value="' + codigo + '" readonly>' +
             '<input id="swal-nombre" class="swal2-input" placeholder="Nombre">' +
             '<input id="swal-categoria" class="swal2-input" placeholder="Categorí­a">' +
-            '<input id="swal-marca" class="swal2-input" placeholder="Marca">',
+            '<input id="swal-marca" class="swal2-input" placeholder="Marca">'+
+            '<input id="swal-Tunidad" class="swal2-input" placeholder="Tipo-Unidad">',
         focusConfirm: false,
         showCancelButton: true,
         confirmButtonText: 'Agregar',
@@ -543,7 +545,8 @@ function agregarNuevoProductoDesdeInventario(codigo) {
                 codigo: document.getElementById('swal-codigo').value,
                 nombre: document.getElementById('swal-nombre').value,
                 categoria: document.getElementById('swal-categoria').value,
-                marca: document.getElementById('swal-marca').value
+                marca: document.getElementById('swal-marca').value,
+                Tunidad: document.getElementById('swal-Tunidad').value
             }
         }
     }).then((result) => {
@@ -568,7 +571,7 @@ export function agregarProductoABaseDeDatos(producto) {
             timer: 1500,
             showConfirmButton: false
         }).then(() => {
-            // Continuar con la lÃ³gica del inventario
+            // Continuar con la logica del inventario
             mostrarFormularioInventario(producto);
         });
     };
@@ -682,7 +685,7 @@ function mostrarModalProductoExistente(productoOriginal, productosInventario) {
     const productosHTML = productosInventario.map(prod => `
         <div class="border p-2 mb-2">
             <p><strong>Lote:</strong> ${prod.lote || 'N/A'}</p>
-            <p><strong>Cantidad:</strong> ${prod.cantidad} ${prod.tipoQuantidad}</p>
+            <p><strong>Cantidad:</strong> ${prod.cantidad} - ${prod.tipoQuantidad}</p>
             <p><strong>Fecha de Caducidad:</strong> ${prod.fechaCaducidad}</p>
         </div>
     `).join('');
@@ -782,15 +785,11 @@ function mostrarFormularioModificacion(productoInventario) {
     document.getElementById("datosInventario").style.display = "block";
 
     // Establecer los valores del formulario con los datos del producto existente
-    document.getElementById("codigo").value = productoInventario.codigo;
+    document.getElementById("codigoProductoInventario").value = productoInventario.codigo;
     document.getElementById("nombreProductoInventario").value = productoInventario.nombre;
-
-    // Mostrar la unidad del producto
-    const unidadProductoElement = document.getElementById("unidadProducto");
-    unidadProductoElement.textContent = productoInventario.tipoQuantidad || "Pz"; // Valor por defecto si no hay unidad
-
-    document.getElementById("cantidad").value = productoInventario.cantidad;
-    document.getElementById("fechaCaducidad").value = productoInventario.fechaCaducidad;
+    document.getElementById("unidadProducto").value = productoInventario.tipoQuantidad || "Pz";
+    document.getElementById("cantidad").value = productoInventario.cantidad || "";
+    document.getElementById("fechaCaducidad").value = productoInventario.fechaCaducidad || "";
     document.getElementById("comentarios").value = productoInventario.comentarios || "";
 
     // Agregar lote como input oculto
@@ -812,7 +811,7 @@ function mostrarFormularioModificacion(productoInventario) {
         title: 'Modificar Inventario',
         text: `Modificando inventario de lote #${productoInventario.lote}`,
         icon: 'info',
-        timer: 2000,
+        timer: 1000,
         showConfirmButton: false
     });
 }

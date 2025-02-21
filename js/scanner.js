@@ -171,7 +171,7 @@ export function iniciarEscaneoConModal(inputId) {
                 //playTone(1000,50);
                 manejarCodigoEscaneado(decodedText, decodedResult); // Llamar con decodedResult
                 document.getElementById(inputId).value = decodedText;
-                mostrarMensaje(`Código detectado: ${decodedText}`, "exito", { timer: 1000 });
+                mostrarMensaje(`Código detectado: ${decodedText}`, "success", { timer: 1000 });
                 cerrarModalEscaneo(document.getElementById('scanner-modal'));
                 detenerEscaner()
 

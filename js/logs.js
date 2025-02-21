@@ -13,7 +13,7 @@ export function mostrarMensaje(mensaje, tipo, opciones = {}) {
         title: tipo.charAt(0).toUpperCase() + tipo.slice(1),
         text: mensaje,
         icon: icono,
-        timer: opciones.timer || 1000,
+        timer: opciones.timer || 2000,
         showConfirmButton: opciones.showConfirmButton || false,
         allowOutsideClick: opciones.allowOutsideClick || false,
         customClass: {
@@ -22,7 +22,10 @@ export function mostrarMensaje(mensaje, tipo, opciones = {}) {
             htmlContainer: "custom-alert-text"
         }
     };
-    Swal.fire({ ...defaultOptions, ...opciones });
+
+    const finalOptions = { ...defaultOptions, ...opciones };
+
+    Swal.fire(finalOptions);
 }
 
 // Mostrar resultado de carga con animación de progreso

@@ -135,7 +135,7 @@ export function resetearBaseDeDatos(database, storeName) {
         console.log(`Base de datos de ${storeName} limpiada correctamente`);
         mostrarMensaje(
             `Base de datos de ${storeName} reseteada correctamente`,
-            "exito"
+            "success"
         );
         if (storeName === "productos") {
             cargarDatosEnTabla();
@@ -550,7 +550,7 @@ export async function sincronizarProductosDesdeBackend() {
             };
         }
 
-        mostrarMensaje("Sincronización exitosa 🎉", "exito");
+        mostrarMensaje("Sincronización exitosa 🎉", "success");
 
         // Llamar a cargarDatosEnTabla para actualizar la tabla en la interfaz
         cargarDatosEnTabla();
@@ -618,7 +618,7 @@ export async function subirProductosAlBackend() {
         const data = await response.json();
 
         // Mostrar resultado al usuario
-        mostrarMensaje("✅ Productos subidos exitosamente", "exito");
+        mostrarMensaje("✅ Productos subidos exitosamente", "success");
         return true;
 
     } catch (error) {

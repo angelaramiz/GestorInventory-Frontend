@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('supabase.auth.refresh', data.user.refresh_token); // ✅ Guarda el token de refresco
                 localStorage.setItem('usuario_id', data.user.user.id); // ✅ Guarda el ID del usuario
 
-                mostrarMensaje('Inicio de sesión exitoso', 'exito');
+                mostrarMensaje('Inicio de sesión exitoso', 'success');
                 setTimeout(() => {
                     window.location.href = './plantillas/main.html'; // Redirigir al login después del registro
                 }, 500);
@@ -66,7 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Mostrar mensaje de éxito o error
             if (data.success) {
-                mostrarMensaje('Registro exitoso. Redirigiendo...', 'exito');
+                mostrarMensaje('Registro exitoso. Redirigiendo...', 'success');
+                Swal.fire({
+                    title: 'Registro exitoso',
+                    html: 'Por favor, verifica tu correo electrónico antes de iniciar sesión. Redirigiendo al inicio de sesión...',
+                    icon: 'success',
+                    timer: 4000,
+                    showConfirmButton: false
+                });
                 setTimeout(() => {
                     window.location.href = './index.html'; // Redirigir al login después del registro
                 }, 2000);
@@ -111,7 +118,7 @@ function isTokenExpired(token) {
                 if (data.success) {
                     localStorage.setItem('supabase.auth.token', JSON.stringify(data.user));
                     localStorage.setItem('usuario_id', data.user.id);
-                    mostrarMensaje('Inicio de sesión exitoso', 'exito');
+                    mostrarMensaje('Inicio de sesión exitoso', 'success');
                     window.location.reload(); // Recargar la página para aplicar el nuevo token
                 } else {
                     mostrarMensaje(data.error, 'error');

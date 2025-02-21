@@ -431,40 +431,25 @@ export async function guardarInventario() {
             comentarios: comentarios || "N/A"
         };
 
-        // Verificar si el inventario ya existe en IndexedDB
-        const inventarioExistente = await new Promise((resolve, reject) => {
-            const transaction = dbInventario.transaction(["inventario"], "readonly");
+        // Guardar en IndexedDB
+        await new Promise((resolve, reject) => {
+            const transaction = dbInventario.transaction(["inventario"], "readwrite");
             const objectStore = transaction.objectStore("inventario");
-            const request = objectStore.get(inventarioData.id);
+            const request = objectStore.put(inventarioData);
 
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject("Error al verificar inventario existente");
+            request.onsuccess = () => resolve();
+            request.onerror = (e) => {
+                mostrarMensaje("Error al guardar localmente", "error");
+                reject(e.target.error);
+            };
         });
 
-        if (inventarioExistente) {
-            // Si el inventario ya existe, actualizarlo
-            await actualizarInventarioPorModificacion(inventarioExistente.codigo, inventarioData.codigo);
-        } else {
-            // Guardar en IndexedDB
-            await new Promise((resolve, reject) => {
-                const transaction = dbInventario.transaction(["inventario"], "readwrite");
-                const objectStore = transaction.objectStore("inventario");
-                const request = objectStore.put(inventarioData);
-
-                request.onsuccess = () => resolve();
-                request.onerror = (e) => {
-                    mostrarMensaje("Error al guardar localmente", "error");
-                    reject(e.target.error);
-                };
-            });
-        }
-
         // Sincronizar con Supabase
-        const token = localStorage.getItem('supabase.auth.token');
+        const token = localStorage.getItem('supabase.auth.token');      
         const supabaseResponse = await fetch(
-            `https://gestorinventory-backend-production.up.railway.app/productos/inventario/${inventarioData.id}`,
+            'https://gestorinventory-backend-production.up.railway.app/productos/inventario',
             {
-                method: inventarioExistente ? 'PUT' : 'POST',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}` // Asegurar que se usa correctamente

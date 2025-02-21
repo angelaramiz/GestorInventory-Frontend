@@ -427,7 +427,7 @@ export async function guardarInventario() {
             lote: lote,
             unidad: unidad || "Pz",
             cantidad: parseInt(cantidad),
-            fechacaducidad: String(fechaCaducidad),
+            caducidad: String(fechaCaducidad),
             comentarios: comentarios || "N/A"
         };
         console.log(inventarioData);
@@ -548,7 +548,7 @@ function agregarNuevoProductoDesdeInventario(codigo) {
                 nombre: document.getElementById('swal-nombre').value,
                 categoria: document.getElementById('swal-categoria').value,
                 marca: document.getElementById('swal-marca').value,
-                Tunidad: document.getElementById('swal-Tunidad').value
+                unidad: document.getElementById('swal-Tunidad').value
             }
         }
     }).then((result) => {
@@ -687,8 +687,8 @@ function mostrarModalProductoExistente(productoOriginal, productosInventario) {
     const productosHTML = productosInventario.map(prod => `
         <div class="border p-2 mb-2">
             <p><strong>Lote:</strong> ${prod.lote || 'N/A'}</p>
-            <p><strong>Cantidad:</strong> ${prod.cantidad} - ${productoOriginal.tipoQuantidad}</p>
-            <p><strong>Fecha de Caducidad:</strong> ${prod.fechaCaducidad}</p>
+            <p><strong>Cantidad:</strong> ${prod.cantidad} - ${productoOriginal.unidad}</p>
+            <p><strong>Fecha de Caducidad:</strong> ${prod.caducidad}</p>
         </div>
     `).join('');
 
@@ -789,9 +789,9 @@ function mostrarFormularioModificacion(productoInventario) {
     // Establecer los valores del formulario con los datos del producto existente
     document.getElementById("codigoProductoInventario").value = productoInventario.codigo;
     document.getElementById("nombreProductoInventario").value = productoInventario.nombre;
-    document.getElementById("unidadProducto").value = productoInventario.tipoQuantidad || "Pz";
+    document.getElementById("unidadProducto").value = productoInventario.unidad || "Pz";
     document.getElementById("cantidad").value = productoInventario.cantidad || "";
-    document.getElementById("fechaCaducidad").value = productoInventario.fechaCaducidad || "";
+    document.getElementById("fechaCaducidad").value = productoInventario.caducidad || "";
     document.getElementById("comentarios").value = productoInventario.comentarios || "";
 
     // Agregar lote como input oculto

@@ -115,7 +115,7 @@ export function inicializarDBInventario() {
             objectStore.createIndex("marca", "marca", { unique: false });
             objectStore.createIndex("unidad", "unidad", { unique: false });
             objectStore.createIndex("cantidad", "cantidad", { unique: false });
-            objectStore.createIndex("fechaCaducidad", "fechaCaducidad", { unique: false });
+            objectStore.createIndex("caducidad", "caducidad", { unique: false });
             objectStore.createIndex("comentarios", "comentarios", { unique: false });
 
             // Crear índice compuesto para código y lote
@@ -298,7 +298,7 @@ export function descargarInventarioCSV() {
         let csv =
             "Código,Nombre,Categoría,Marca,Lote,Tipo de Cantidad,Cantidad,Fecha de Caducidad,Comentarios\n";
         inventario.forEach(item => {
-            csv += `${item.codigo},${item.nombre},${item.categoria},${item.marca},${item.lote},${item.tipoQuantidad},${item.cantidad},${item.fechaCaducidad},${item.comentarios}\n`;
+            csv += `${item.codigo},${item.nombre},${item.categoria},${item.marca},${item.lote},${item.tipoQuantidad},${item.cantidad},${item.caducidad},${item.comentarios}\n`;
         });
 
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -421,7 +421,7 @@ function generarPDFConOpciones(opciones) {
             doc.text(`Nombre: ${item.nombre}`, 10, yPos + 5);
             doc.text(`Cantidad: ${item.cantidad} ${item.tipoQuantidad}`, 10, yPos + 10);
             doc.text(`Marca: ${item.marca}`, 10, yPos + 15);
-            doc.text(`Fecha de Caducidad: ${item.fechaCaducidad}`, 10, yPos + 20);
+            doc.text(`Fecha de Caducidad: ${item.caducidad}`, 10, yPos + 20);
             doc.setFontSize(10);
             doc.text(`Comentarios: ${item.comentarios || 'N/A'}`, 10, yPos + 25);
 
@@ -450,19 +450,19 @@ function generarPDFConOpciones(opciones) {
 
 function filtrarInventario(inventario, opciones) {
     return inventario.filter(item => {
-        const fechaCaducidad = new Date(item.fechaCaducidad);
+        const caducidad = new Date(item.caducidad);
         const hoy = new Date();
 
         switch (opciones.filtroCaducidad) {
             case 'proximos':
                 const treintaDias = new Date();
                 treintaDias.setDate(treintaDias.getDate() + 30);
-                return fechaCaducidad <= treintaDias && fechaCaducidad >= hoy;
+                return caducidad <= treintaDias && caducidad >= hoy;
 
             case 'mes':
                 const mesSeleccionado = new Date(opciones.mesEspecifico);
-                return fechaCaducidad.getMonth() === mesSeleccionado.getMonth() &&
-                    fechaCaducidad.getFullYear() === mesSeleccionado.getFullYear();
+                return caducidad.getMonth() === mesSeleccionado.getMonth() &&
+                    caducidad.getFullYear() === mesSeleccionado.getFullYear();
 
             default:
                 return true; // Mostrar todos
@@ -474,7 +474,7 @@ function ordenarInventario(inventario, orden) {
     return inventario.sort((a, b) => {
         switch (orden) {
             case 'caducidad':
-                return new Date(a.fechaCaducidad) - new Date(b.fechaCaducidad);
+                return new Date(a.caducidad) - new Date(b.caducidad);
 
             case 'nombre':
                 return a.nombre.localeCompare(b.nombre);
@@ -644,9 +644,9 @@ export function cargarDatosInventarioEnTablaPlantilla() {
             row.insertCell().textContent = item.nombre;
             row.insertCell().textContent = item.categoria;
             row.insertCell().textContent = item.marca;
-            row.insertCell().textContent = item.tipoQuantidad;
+            row.insertCell().textContent = item.unidad;
             row.insertCell().textContent = item.cantidad;
-            row.insertCell().textContent = item.fechaCaducidad;
+            row.insertCell().textContent = item.caducidad;
             row.insertCell().textContent = item.comentarios;
         });
     };
@@ -672,7 +672,7 @@ export function generarPlantillaInventario() {
             "Código,Nombre,Lote,Tipo de Cantidad,Cantidad,Fecha de Caducidad,Comentarios\n";
         productos.forEach(producto => {
             const { inventario = {} } = producto;
-            csv += `${producto.codigo},${producto.nombre},1,${inventario.tipo || ""},${inventario.cantidad || ""},${inventario.fechaCaducidad || ""},${inventario.comentarios || ""}\n`;
+            csv += `${producto.codigo},${producto.nombre},1,${inventario.tipo || ""},${inventario.cantidad || ""},${inventario.caducidad || ""},${inventario.comentarios || ""}\n`;
         });
 
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });

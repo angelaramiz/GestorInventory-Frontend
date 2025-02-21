@@ -2,8 +2,7 @@
 import { db, dbInventario } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
 import { cargarDatosEnTabla } from './db-operations.js';
-import { sanitizarProducto } from './sanitizacion.js';
-import { getToken } from './auth.js';
+import { sanitizarProducto, sanitizarEntrada } from './sanitizacion.js';
 
 //  funciones 
 export function mostrarResultados(resultados) {
@@ -154,7 +153,7 @@ export function buscarPorCodigoParcial(codigoParcial, callback) {
 export async function agregarProducto(evento) {
     evento.preventDefault();
 
-    const codigo = document.getElementById("codigoAgregar").value;
+    const codigo = document.getElementById("codigo").value;
     const nombre = document.getElementById("nombre").value;
     const categoria = document.getElementById("categoria").value;
     const marca = document.getElementById("marca").value;
@@ -211,11 +210,30 @@ export function buscarProducto() {
         buscarPorCodigoParcial(codigo);
         return;  // Detener la ejecución aquí para evitar la búsqueda normal
     }
+    else if (codigo.length >= 13) {
+        const codigoSanitizado = sanitizarEntrada(codigo);
+        mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
+        console.log('codigo:',codigoSanitizado)
+        const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
-    const transaction = db.transaction(["productos"], "readonly");
-    const objectStore = transaction.objectStore("productos");
+        // Expresión regular para capturar los 4 dígitos después del primer "2"
+        const regex = /2(\d{4})/;
+        const match = codigoCorto.match(regex);
 
-    if (codigo) {
+        if (match) {
+            const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
+            mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
+            buscarPorCodigoParcial(codigoParcial);
+        }else
+        {
+            mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
+        }
+        return; // Detener la ejecución aquí para evitar la búsqueda normal
+    }else {
+        const transaction = db.transaction(["productos"], "readonly");
+        const objectStore = transaction.objectStore("productos");
+
+        if (codigo) {
         const request = objectStore.get(codigo);
         request.onsuccess = event => {
             const result = event.target.result;
@@ -224,11 +242,11 @@ export function buscarProducto() {
             } else {
                 mostrarResultados([result]);
             }
-        };
+            };
         request.onerror = () => {
             mostrarMensaje("Error al buscar en la base de datos", "error");
-        };
-    } else {
+            };
+        } else {
         const request = objectStore.getAll();
         request.onsuccess = event => {
             let resultados = event.target.result.filter(
@@ -243,6 +261,7 @@ export function buscarProducto() {
         request.onerror = () => {
             mostrarMensaje("Error al buscar en la base de datos", "error");
         };
+    }
     }
 }
 
@@ -928,3 +947,4 @@ export async function modificarInventario() {
         }
     }
 }
+

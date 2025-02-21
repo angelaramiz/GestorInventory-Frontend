@@ -195,11 +195,12 @@ export function iniciarEscaneoConModal(inputId) {
 }
 // Función para manejar el código escaneado
 export function manejarCodigoEscaneado(codigo, formato) {
-    const codigoSanitizado = sanitizarEntrada(codigo);
+    let codigoSanitizado = sanitizarEntrada(codigo);
     mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
 
     if (formato.result.format.formatName.toLowerCase() === "code_128") {
         // Eliminar ceros iniciales
+        console.log('codigo:',codigoSanitizado, formato.result.format.formatName.toLowerCase());
         codigo = codigoSanitizado.replace(/^0+/, '');
 
         // Expresión regular para capturar los 4 dígitos después del primer "2"
@@ -213,7 +214,8 @@ export function manejarCodigoEscaneado(codigo, formato) {
         } else {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
-    } 
+    }
+    
     if (formato.result.format.formatName.toLowerCase() === "upc_a") {
         codigo = codigoSanitizado.replace(/^0+/, '');
         return 

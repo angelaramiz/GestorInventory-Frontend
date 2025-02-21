@@ -430,7 +430,6 @@ export async function guardarInventario() {
             caducidad: String(fechaCaducidad),
             comentarios: comentarios || "N/A"
         };
-        console.log(inventarioData);
 
         // Guardar en IndexedDB
         await new Promise((resolve, reject) => {

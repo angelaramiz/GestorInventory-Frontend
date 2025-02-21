@@ -113,7 +113,7 @@ export function inicializarDBInventario() {
             objectStore.createIndex("nombre", "nombre", { unique: false });
             objectStore.createIndex("categoria", "categoria", { unique: false });
             objectStore.createIndex("marca", "marca", { unique: false });
-            objectStore.createIndex("tipoQuantidad", "tipoQuantidad", { unique: false });
+            objectStore.createIndex("unidad", "unidad", { unique: false });
             objectStore.createIndex("cantidad", "cantidad", { unique: false });
             objectStore.createIndex("fechaCaducidad", "fechaCaducidad", { unique: false });
             objectStore.createIndex("comentarios", "comentarios", { unique: false });

@@ -385,16 +385,17 @@ export function limpiarFormularioInventario() {
 // funcion para guardar productos en la base de datos para inventariar
 // Actualizar la función guardarInventario para manejar lote
 export async function guardarInventario() {
-    const codigo = document.getElementById("codigo").value;
+    const codigo = document.getElementById("codigoProductoInventario")?.value;
     const lote = document.getElementById("loteInventario")?.value || "1";
     const cantidad = document.getElementById("cantidad").value;
-    const fechaCaducidad = document.getElementById("fechaCaducidad").value;
     const comentarios = document.getElementById("comentarios").value;
+    const fechaCaducidad = document.getElementById("fechaCaducidad").value;
+    const unidad = document.getElementById("unidadProducto").value;
 
     try {
         // Validación básica
-        if (!codigo || !cantidad || !fechaCaducidad) {
-            mostrarMensaje(" Codigo, Cantidad y Fecha de Cadicodad son Obligatorios ", "error");
+        if (!cantidad || !fechaCaducidad) {
+            mostrarMensaje("Cantidad y Fecha de Caducidad son Obligatorios", "error");
             return;
         }
 
@@ -424,11 +425,12 @@ export async function guardarInventario() {
             categoria: producto.categoria,
             marca: producto.marca,
             lote: lote,
-            tipoquantidad: producto.tipoQuantidad || "Pz",
+            unidad: unidad || "Pz",
             cantidad: parseInt(cantidad),
-            fechacaducidad: new Date(fechaCaducidad).toISOString(),
-            comentarios: comentarios
+            fechacaducidad: String(fechaCaducidad),
+            comentarios: comentarios || "N/A"
         };
+        console.log(inventarioData);
 
         // Guardar en IndexedDB
         await new Promise((resolve, reject) => {
@@ -685,7 +687,7 @@ function mostrarModalProductoExistente(productoOriginal, productosInventario) {
     const productosHTML = productosInventario.map(prod => `
         <div class="border p-2 mb-2">
             <p><strong>Lote:</strong> ${prod.lote || 'N/A'}</p>
-            <p><strong>Cantidad:</strong> ${prod.cantidad} - ${prod.tipoQuantidad}</p>
+            <p><strong>Cantidad:</strong> ${prod.cantidad} - ${productoOriginal.tipoQuantidad}</p>
             <p><strong>Fecha de Caducidad:</strong> ${prod.fechaCaducidad}</p>
         </div>
     `).join('');

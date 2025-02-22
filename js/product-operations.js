@@ -229,11 +229,12 @@ export function buscarProducto() {
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
     }else {
+        const codigoSanitizado = sanitizarEntrada(codigo);
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
-
-        if (codigo) {
-        const request = objectStore.get(codigo);
+        const codigoM = codigoSanitizado.replace(/^0+/, '');
+        if (codigoM) {
+        const request = objectStore.get(codigoM);
         request.onsuccess = event => {
             const result = event.target.result;
             if (Array.isArray(result)) {
@@ -298,10 +299,11 @@ export function buscarProductoParaEditar() {
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
     }else {
-
+        const codigoSanitizado = sanitizarEntrada(codigo);
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
-        const request = objectStore.get(codigo);
+        const codigoM = codigoSanitizado.replace(/^0+/, '');
+        const request = objectStore.get(codigoM);
 
         request.onsuccess = event => {
             if (event.target.result) {
@@ -657,7 +659,8 @@ export async function buscarProductoInventario() {
                 const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
                 mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
                 buscarPorCodigoParcial(codigoParcial);
-            }else {
+            }
+        }else {
 
             // Primero buscar en la base de datos de productos
             const productosResultados = await buscarEnProductos(codigo, nombre, marca);
@@ -679,8 +682,7 @@ export async function buscarProductoInventario() {
             mostrarResultadosInventario(productosResultados);
             }
         }
-        }
-    }catch (error) {
+        }catch (error) {
         console.error("Error en la búsqueda:", error);
         Swal.fire({
             title: "Error",
@@ -690,6 +692,7 @@ export async function buscarProductoInventario() {
         });
     }
 }
+
 
 // Función para buscar en la base de datos de productos
 function buscarEnProductos(codigo, nombre, marca) {

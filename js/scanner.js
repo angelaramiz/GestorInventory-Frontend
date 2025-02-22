@@ -217,6 +217,7 @@ export function manejarCodigoEscaneado(codigo, formato) {
     }
     
     if (formato.result.format.formatName.toLowerCase() === "upc_a") {
+        console.log('codigo:',codigoSanitizado, formato.result.format.formatName.toLowerCase());
         codigo = codigoSanitizado.replace(/^0+/, '');
         return 
     }

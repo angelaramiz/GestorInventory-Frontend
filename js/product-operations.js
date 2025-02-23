@@ -134,7 +134,7 @@ export function buscarPorCodigoParcial(codigoParcial, callback) {
 
         // Convertir códigos a string para evitar problemas con números
         const resultados = productos.filter(producto => {
-            const codigo = producto.codigo;
+            const codigo = String(producto.codigo);
             return codigo.includes(codigoParcial);
         });
 

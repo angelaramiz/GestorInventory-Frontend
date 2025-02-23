@@ -53,7 +53,6 @@ export function mostrarResultadosInventario(resultados) {
 
     if (resultados.length === 1) {
         // Si solo hay un resultado, mostrar directamente el formulario de inventario
-        mostrarFormularioInventario(resultados[0]);
         return; // Detener la ejecución aquí para evitar la lista de resultados
     }
 
@@ -658,7 +657,7 @@ export async function buscarProductoInventario() {
             buscarPorCodigoParcial(codigo, "inventario", async (resultados) => {
                 if (resultados.length > 0) {
                     const inventarioResultados = await buscarEnInventario(resultados[0].codigo);
-
+                    console.log('si hay productos existentes')
                     if (inventarioResultados.length > 0) {
                         // Si existe en inventario, mostrar modal con opciones
                         mostrarModalProductoExistente(resultados[0], inventarioResultados);
@@ -783,8 +782,8 @@ function buscarEnInventario(codigo, nombre, marca) {
 function mostrarModalProductoExistente(productoOriginal, productosInventario) {
     const ultimoLote = obtenerUltimoLote(productosInventario);
 
-    const productosHTML = productosInventario.map(prod => `
-        <div class="border p-2 mb-2">
+    const productosHTML = productosInventario.map((prod, index) => `
+        <div class="border p-2 mb-2 producto-opcion" data-index="${index}">
             <p><strong>Lote:</strong> ${prod.lote || 'N/A'}</p>
             <p><strong>Cantidad:</strong> ${prod.cantidad} - ${productoOriginal.unidad}</p>
             <p><strong>Fecha de Caducidad:</strong> ${prod.caducidad}</p>
@@ -810,8 +809,8 @@ function mostrarModalProductoExistente(productoOriginal, productosInventario) {
         cancelButtonText: 'Buscar otro'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Modificar producto existente
-            mostrarFormularioModificacion(productosInventario[0]);
+            // Habilitar selección de opciones existentes
+            habilitarSeleccionOpciones(productosInventario);
         } else if (result.isDenied) {
             // Crear nuevo lote
             mostrarFormularioNuevoLote(productoOriginal, ultimoLote + 1);
@@ -819,6 +818,38 @@ function mostrarModalProductoExistente(productoOriginal, productosInventario) {
             // Buscar otro producto
             reiniciarBusqueda();
         }
+    });
+}
+
+function habilitarSeleccionOpciones(productosInventario) {
+    const productosHTML = productosInventario.map((prod, index) => `
+        <div class="border p-2 mb-2 producto-opcion cursor-pointer hover:bg-gray-200" data-index="${index}">
+            <p><strong>Lote:</strong> ${prod.lote || 'N/A'}</p>
+            <p><strong>Cantidad:</strong> ${prod.cantidad} - ${prod.unidad}</p>
+            <p><strong>Fecha de Caducidad:</strong> ${prod.caducidad}</p>
+        </div>
+    `).join('');
+
+    Swal.fire({
+        title: 'Selecciona una opción',
+        html: `
+            <div class="mb-4">
+                <h3 class="text-lg font-bold">Detalles del producto:</h3>
+                <h3 class="text-lg font-bold mt-4">Lotes existentes:</h3>
+                ${productosHTML}
+            </div>
+        `,
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar'
+    });
+
+    const opciones = document.querySelectorAll('.producto-opcion');
+    opciones.forEach(opcion => {
+        opcion.addEventListener('click', () => {
+            const index = opcion.getAttribute('data-index');
+            mostrarFormularioModificacion(productosInventario[index]);
+            Swal.close(); // Cerrar el modal después de seleccionar una opción
+        });
     });
 }
 

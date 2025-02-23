@@ -20,7 +20,8 @@ export function mostrarMensaje(mensaje, tipo, opciones = {}) {
             popup: "custom-alert",
             title: "custom-alert-title",
             htmlContainer: "custom-alert-text"
-        }
+        } // Clases personalizadas para el contenedor de mensajes
+
     };
 
     const finalOptions = { ...defaultOptions, ...opciones };

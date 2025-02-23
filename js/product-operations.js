@@ -33,10 +33,10 @@ export function mostrarResultados(resultados) {
                 mostrarMensaje("Error al buscar en la base de datos", "error");
             }
         });
-            }else {
-            resultadoDiv.innerHTML =
-                '<p class="text-red-500">No se encontraron productos.</p>';
-        }
+    } else {
+        resultadoDiv.innerHTML =
+            '<p class="text-red-500">No se encontraron productos.</p>';
+    }
 }
 
 
@@ -54,13 +54,13 @@ export function mostrarResultadosInventario(resultados) {
     if (resultados.length === 1) {
         // Si solo hay un resultado, mostrar directamente el formulario de inventario
         mostrarFormularioInventario(resultados[0]);
-        return;
+        return; // Detener la ejecución aquí para evitar la lista de resultados
     }
 
     // Mostrar múltiples resultados
     resultados.forEach(producto => {
         const productoDiv = document.createElement("div");
-        productoDiv.classList.add("bg-white","rounded-lg","shadow-md","p-6","mb-4","border","border-gray-200");
+        productoDiv.classList.add("bg-white", "rounded-lg", "shadow-md", "p-6", "mb-4", "border", "border-gray-200");
         productoDiv.innerHTML = `
             <p><strong>Código:</strong> ${producto.codigo}</p>
             <p><strong>Nombre:</strong> ${producto.nombre}</p>
@@ -91,7 +91,7 @@ export function mostrarResultadosEdicion(resultados) {
 
     resultados.forEach(producto => {
         const productoDiv = document.createElement("div");
-        productoDiv.classList.add("bg-white","rounded-lg","shadow-md","p-6","mb-4","border","border-gray-200");
+        productoDiv.classList.add("bg-white", "rounded-lg", "shadow-md", "p-6", "mb-4", "border", "border-gray-200");
         productoDiv.innerHTML = `
             <p><strong>Código:</strong> ${producto.codigo}</p>
             <p><strong>Nombre:</strong> ${producto.nombre}</p>
@@ -124,7 +124,7 @@ function llenarFormularioEdicion(producto) {
     document.getElementById("formularioEdicion").style.display = "block";
 }
 // 
-export function buscarPorCodigoParcial(codigoParcial, callback) {
+export function buscarPorCodigoParcial(codigoParcial, Tipo, callback) {
     const transaction = db.transaction(["productos"], "readonly");
     const objectStore = transaction.objectStore("productos");
     const request = objectStore.getAll();
@@ -134,14 +134,41 @@ export function buscarPorCodigoParcial(codigoParcial, callback) {
 
         // Convertir códigos a string para evitar problemas con números
         const resultados = productos.filter(producto => {
-            const codigo = String(producto.codigo);
-            return codigo.includes(codigoParcial);
+            const code = String(producto.codigo); // Asegurarse de que el código sea una cadena de texto
+            return code.includes(codigoParcial);
         });
 
+        if (Tipo == "Consulta") {
+            mostrarResultados(resultados);
+        } else if (Tipo == "inventario") {
+            if (resultados.length === 0) {
+                if (codigoParcial.length === 4) {
+                    mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
+                    Swal.fire({
+                        title: 'Agregar Nuevo Producto',
+                        text: "¿Deseas agregar un nuevo producto con el código completo?",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Agregar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            agregarNuevoProductoDesdeInventario(codigoParcial, true); // Permitir modificar el código
+                        }
+                    });
+                } else {
+                    agregarNuevoProductoDesdeInventario(codigoParcial); // Agregar nuevo producto
+                }
+            } else {
+                mostrarResultadosInventario(resultados);
+            }
+        } else {
+            mostrarResultadosEdicion(resultados);
+        }
+
+        // Llamar al callback si está definido
         if (callback) {
             callback(resultados);
-        } else {
-            mostrarResultados(resultados);
         }
     };
 
@@ -201,18 +228,18 @@ export async function agregarProducto(evento) {
 }
 // Funciones para consulta de producto
 export function buscarProducto() {
-    const codigo = document.getElementById("codigoConsulta").value;
+    const codigo = document.getElementById("codigoConsulta").value.toString();
     const nombre = document.getElementById("nombreConsulta").value;
     const categoria = document.getElementById("categoriaConsulta").value;
 
     // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
     if (codigo.length === 4) {
-        buscarPorCodigoParcial(codigo);
+        buscarPorCodigoParcial(codigo, "Consulta");
         return;  // Detener la ejecución aquí para evitar la búsqueda normal
-    } else if (codigo.length >= 13) {
+    } else if (codigo.length === 12 || codigo.length >= 14) {
         const codigoSanitizado = sanitizarEntrada(codigo);
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
-        console.log('codigo:',codigoSanitizado)
+        console.log('codigo:', codigoSanitizado)
         const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
         // Expresión regular para capturar los 4 dígitos después del primer "2"
@@ -222,46 +249,45 @@ export function buscarProducto() {
         if (match) {
             const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
             mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
-            buscarPorCodigoParcial(codigoParcial);
-        }else
-        {
+            buscarPorCodigoParcial(codigoParcial, "Consulta");
+        } else {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
-    }else {
+    } else {
         const codigoSanitizado = sanitizarEntrada(codigo);
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
         const codigoM = codigoSanitizado.replace(/^0+/, '');
         if (codigoM) {
-        const request = objectStore.get(codigoM);
-        request.onsuccess = event => {
-            const result = event.target.result;
-            if (Array.isArray(result)) {
-                mostrarResultados(result);
-            } else {
-                mostrarResultados([result]);
-            }
+            const request = objectStore.get(codigoM);
+            request.onsuccess = event => {
+                const result = event.target.result;
+                if (Array.isArray(result)) {
+                    mostrarResultados(result);
+                } else {
+                    mostrarResultados([result]);
+                }
             };
-        request.onerror = () => {
-            mostrarMensaje("Error al buscar en la base de datos", "error");
+            request.onerror = () => {
+                mostrarMensaje("Error al buscar en la base de datos", "error");
             };
         } else {
-        const request = objectStore.getAll();
-        request.onsuccess = event => {
-            let resultados = event.target.result.filter(
-                producto =>
-                    (!nombre ||
-                        producto.nombre.toLowerCase().includes(nombre.toLowerCase())) &&
-                    (!categoria ||
-                        producto.categoria.toLowerCase().includes(categoria.toLowerCase()))
-            );
-            mostrarResultados(resultados);
-        };
-        request.onerror = () => {
-            mostrarMensaje("Error al buscar en la base de datos", "error");
-        };
-    }
+            const request = objectStore.getAll();
+            request.onsuccess = event => {
+                let resultados = event.target.result.filter(
+                    producto =>
+                        (!nombre ||
+                            producto.nombre.toLowerCase().includes(nombre.toLowerCase())) &&
+                        (!categoria ||
+                            producto.categoria.toLowerCase().includes(categoria.toLowerCase()))
+                );
+                mostrarResultados(resultados);
+            };
+            request.onerror = () => {
+                mostrarMensaje("Error al buscar en la base de datos", "error");
+            };
+        }
     }
 }
 
@@ -269,20 +295,12 @@ export function buscarProductoParaEditar() {
     const codigo = document.getElementById("codigoEditar").value;
 
     if (codigo.length === 4) {
-        buscarPorCodigoParcial(codigo, (resultados) => {
-            if (resultados.length === 1) {
-                llenarFormularioEdicion(resultados[0]);
-            } else if (resultados.length > 1) {
-                mostrarResultadosEdicion(resultados);
-            } else {
-                mostrarMensaje("No se encontraron productos con ese código parcial", "error");
-            }
-        });
+        buscarPorCodigoParcial(codigo, "Consulta");
         return;
-    } else if (codigo.length >= 13) {
+    } else if (codigo.length === 12 || codigo.length >= 14) {
         const codigoSanitizado = sanitizarEntrada(codigo);
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
-        console.log('codigo:',codigoSanitizado)
+        console.log('codigo:', codigoSanitizado)
         const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
         // Expresión regular para capturar los 4 dígitos después del primer "2"
@@ -293,12 +311,11 @@ export function buscarProductoParaEditar() {
             const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
             mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
             buscarPorCodigoParcial(codigoParcial);
-        }else
-        {
+        } else {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
-    }else {
+    } else {
         const codigoSanitizado = sanitizarEntrada(codigo);
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
@@ -485,7 +502,7 @@ export async function guardarInventario() {
         });
 
         // Sincronizar con Supabase
-        const token = localStorage.getItem('supabase.auth.token');      
+        const token = localStorage.getItem('supabase.auth.token');
         const supabaseResponse = await fetch(
             'https://gestorinventory-backend-production.up.railway.app/productos/inventario',
             {
@@ -568,15 +585,15 @@ function mostrarVentanaDinamica(mensaje) {
     });
 }
 
-function agregarNuevoProductoDesdeInventario(codigo) {
+function agregarNuevoProductoDesdeInventario(codigo, esParcial = false) {
     Swal.fire({
         title: 'Agregar Nuevo Producto',
         html:
-            '<input id="swal-codigo" class="swal2-input" placeholder="Código" value="' + codigo + '" readonly>' +
-            '<input id="swal-nombre" class="swal2-input" placeholder="Nombre">' +
-            '<input id="swal-categoria" class="swal2-input" placeholder="Categorí­a">' +
-            '<input id="swal-marca" class="swal2-input" placeholder="Marca">'+
-            '<input id="swal-Tunidad" class="swal2-input" placeholder="Tipo-Unidad">',
+            `<input id="swal-codigo" class="swal2-input" placeholder="Código" value="${codigo}" ${esParcial ? '' : 'readonly'}>` +
+            `<input id="swal-nombre" class="swal2-input" placeholder="Nombre">` +
+            `<input id="swal-categoria" class="swal2-input" placeholder="Categoría">` +
+            `<input id="swal-marca" class="swal2-input" placeholder="Marca">` +
+            `<input id="swal-Tunidad" class="swal2-input" placeholder="Tipo-Unidad">`,
         focusConfirm: false,
         showCancelButton: true,
         confirmButtonText: 'Agregar',
@@ -630,6 +647,7 @@ export function agregarProductoABaseDeDatos(producto) {
 }
 // Función para buscar inventario en nueva base de datos
 export async function buscarProductoInventario() {
+    document.getElementById("datosInventario").style.display = "none";
     const codigo = document.getElementById("codigo").value;
     const nombre = document.getElementById("nombreInventario").value;
     const marca = document.getElementById("marcaInventario").value;
@@ -637,18 +655,26 @@ export async function buscarProductoInventario() {
     try {
         // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
         if (codigo.length === 4) {
-            buscarPorCodigoParcial(codigo, (resultados) => {
-                if (resultados.length === 0) {
-                    agregarNuevoProductoDesdeInventario(codigo);
+            buscarPorCodigoParcial(codigo, "inventario", async (resultados) => {
+                if (resultados.length > 0) {
+                    const inventarioResultados = await buscarEnInventario(resultados[0].codigo);
+
+                    if (inventarioResultados.length > 0) {
+                        // Si existe en inventario, mostrar modal con opciones
+                        mostrarModalProductoExistente(resultados[0], inventarioResultados);
+                    } else {
+                        // Si no existe en inventario, mostrar resultados normales
+                        mostrarResultadosInventario(resultados);
+                    }
                 } else {
-                    mostrarResultadosInventario(resultados);
+                    mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
                 }
             });
             return;  // Detener la ejecución aquí para evitar la búsqueda normal
-        } else if (codigo.length >= 13) {
+        } else if (codigo.length === 12 || codigo.length >= 14) {
             const codigoSanitizado = sanitizarEntrada(codigo);
             mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
-            console.log('codigo:',codigoSanitizado)
+            console.log('codigo:', codigoSanitizado)
             const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
             // Expresión regular para capturar los 4 dígitos después del primer "2"
@@ -658,10 +684,25 @@ export async function buscarProductoInventario() {
             if (match) {
                 const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
                 mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
-                buscarPorCodigoParcial(codigoParcial);
-            }
-        }else {
+                const inventarioResultados = await buscarEnInventario(codigo, nombre, marca);
+                buscarPorCodigoParcial(codigoParcial, "inventario", async (resultados) => {
+                    if (resultados.length > 0) {
+                        const inventarioResultados = await buscarEnInventario(resultados[0].codigo);
 
+                        if (inventarioResultados.length > 0) {
+                            // Si existe en inventario, mostrar modal con opciones
+                            mostrarModalProductoExistente(resultados[0], inventarioResultados);
+                        } else {
+                            // Si no existe en inventario, mostrar resultados normales
+                            mostrarResultadosInventario(resultados);
+                        }
+                    } else {
+                        mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
+                    }
+                });
+            }
+            return; // Detener la ejecución aquí para evitar la búsqueda normal
+        } else if (codigo.length === 13) {
             // Primero buscar en la base de datos de productos
             const productosResultados = await buscarEnProductos(codigo, nombre, marca);
 
@@ -675,14 +716,16 @@ export async function buscarProductoInventario() {
             const inventarioResultados = await buscarEnInventario(codigo, nombre, marca);
 
             if (inventarioResultados.length > 0) {
-            // Si existe en inventario, mostrar modal con opciones
-            mostrarModalProductoExistente(productosResultados[0], inventarioResultados);
+                // Si existe en inventario, mostrar modal con opciones
+                mostrarModalProductoExistente(productosResultados[0], inventarioResultados);
             } else {
-            // Si no existe en inventario, mostrar resultados normales
-            mostrarResultadosInventario(productosResultados);
+                // Si no existe en inventario, mostrar resultados normales
+                mostrarResultadosInventario(productosResultados);
             }
+        } else {
+            mostrarMensaje("Código inválido.\n vuelve a buscar/ escanear", "error");
         }
-        }catch (error) {
+    } catch (error) {
         console.error("Error en la búsqueda:", error);
         Swal.fire({
             title: "Error",

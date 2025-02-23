@@ -168,7 +168,6 @@ export function iniciarEscaneoConModal(inputId) {
             { fps: 10, qrbox: { width: 250, height: 250 },aspectRatio: 1.0 // Mantener relación 1:1 
             },
             (decodedText,decodedResult) => {
-                //playTone(1000,50);
                 manejarCodigoEscaneado(decodedText, decodedResult); // Llamar con decodedResult
                 document.getElementById(inputId).value = decodedText;
                 mostrarMensaje(`Código detectado: ${decodedText}`, "success", { timer: 1000 });

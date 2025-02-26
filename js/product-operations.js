@@ -179,7 +179,7 @@ export function buscarPorCodigoParcial(codigoParcial, Tipo, callback) {
 export async function agregarProducto(evento) {
     evento.preventDefault();
 
-    const codigo = document.getElementById("codigo").value;
+    const codigo = document.getElementById("codigoAgregar").value;
     const nombre = document.getElementById("nombre").value;
     const categoria = document.getElementById("categoria").value;
     const marca = document.getElementById("marca").value;

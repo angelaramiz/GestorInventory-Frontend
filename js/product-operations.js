@@ -662,8 +662,8 @@ export async function buscarProductoInventario() {
                         // Si existe en inventario, mostrar modal con opciones
                         mostrarModalProductoExistente(resultados[0], inventarioResultados);
                     } else {
-                        // Si no existe en inventario, mostrar resultados normales
-                        mostrarResultadosInventario(resultados);
+                        // Si no existe en inventario, mostrar formulario para agregar producto
+                        mostrarFormularioInventario(resultados[0]);
                     }
                 } else {
                     mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
@@ -691,8 +691,8 @@ export async function buscarProductoInventario() {
                             // Si existe en inventario, mostrar modal con opciones
                             mostrarModalProductoExistente(resultados[0], inventarioResultados);
                         } else {
-                            // Si no existe en inventario, mostrar resultados normales
-                            mostrarResultadosInventario(resultados);
+                            // Si no existe en inventario, mostrar formulario para agregar producto
+                            mostrarFormularioInventario(resultados[0]);
                         }
                     } else {
                         mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
@@ -717,8 +717,8 @@ export async function buscarProductoInventario() {
                 // Si existe en inventario, mostrar modal con opciones
                 mostrarModalProductoExistente(productosResultados[0], inventarioResultados);
             } else {
-                // Si no existe en inventario, mostrar resultados normales
-                mostrarResultadosInventario(productosResultados);
+                // Si no existe en inventario, mostrar formulario para agregar producto
+                mostrarFormularioInventario(productosResultados[0]);
             }
         } else {
             mostrarMensaje("Código inválido.\n vuelve a buscar/ escanear", "error");

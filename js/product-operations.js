@@ -683,7 +683,6 @@ export async function buscarProductoInventario() {
             if (match) {
                 const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
                 mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
-                const inventarioResultados = await buscarEnInventario(codigo, nombre, marca);
                 buscarPorCodigoParcial(codigoParcial, "inventario", async (resultados) => {
                     if (resultados.length > 0) {
                         const inventarioResultados = await buscarEnInventario(resultados[0].codigo);
@@ -841,6 +840,11 @@ function habilitarSeleccionOpciones(productosInventario) {
         `,
         showCancelButton: true,
         cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.dismiss === Swal.DismissReason.cancel) {
+            // Si se cancela, volver a mostrar el modal original
+            mostrarModalProductoExistente(productosInventario[0], productosInventario);
+        }
     });
 
     const opciones = document.querySelectorAll('.producto-opcion');

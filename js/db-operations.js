@@ -11,7 +11,7 @@ const dbVersion = 1;
 let syncQueue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
 // 
 
-// Nueva cola de sincronizació
+// Nueva cola de sincronización
 export function agregarAColaSincronizacion(data) {
     syncQueue.push(data);
     localStorage.setItem('syncQueue', JSON.stringify(syncQueue));
@@ -21,6 +21,11 @@ export function agregarAColaSincronizacion(data) {
 // Llamar esto cuando se detecte conexión
 export async function procesarColaSincronizacion() {
     if (!navigator.onLine) return;
+
+    // Esperar a que supabase esté inicializado
+    while (!supabase) {
+        await new Promise(resolve => setTimeout(resolve, 100)); // Espera 100ms y reintenta
+    }
 
     while (syncQueue.length > 0) {
         const item = syncQueue.shift();
@@ -150,7 +155,12 @@ async function actualizarInventarioDesdeServidor(evento, payload) {
 }
 
 // Configurar suscripción a Supabase
-export function inicializarSuscripciones() {
+export async function inicializarSuscripciones() {
+    // Esperar a que supabase esté inicializado
+    while (!supabase) {
+        await new Promise(resolve => setTimeout(resolve, 100)); // Espera 100ms y reintenta
+    }
+
     const userId = localStorage.getItem('usuario_id');
     if (!userId) {
         console.warn('No hay usuario autenticado, suscripciones no iniciadas.');

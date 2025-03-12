@@ -1,5 +1,5 @@
 // Importaciones
-import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend } from './db-operations.js';
+import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
@@ -9,6 +9,7 @@ async function init() {
     try {
         await inicializarDB();
         await inicializarDBInventario();
+        inicializarSuscripciones(); // Iniciar suscripciones en tiempo real
 
         // Solo inicializamos el escáner si estamos en una página que lo usa
         if (document.getElementById('scanner-container')) {
@@ -84,6 +85,10 @@ async function init() {
         if (window.location.pathname.includes('archivos.html')) {
             cargarDatosEnTabla();
             cargarDatosInventarioEnTablaPlantilla();
+
+            // Agregar listeners para sincronización manual
+            document.getElementById('sync-down-btn').addEventListener('click', sincronizarProductosDesdeBackend);
+            document.getElementById('sync-up-btn').addEventListener('click', subirProductosAlBackend);
         }
 
         const botonResetearBaseDatos = document.getElementById("resetearBaseDatos");

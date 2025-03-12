@@ -1,4 +1,10 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { mostrarMensaje } from './logs.js';
+
+// Configuración de Supabase
+const SUPABASE_URL = 'TU_URL_DE_SUPABASE'; // Reemplaza con tu URL de Supabase
+const SUPABASE_KEY = 'TU_CLAVE_ANONIMA';   // Reemplaza con tu clave pública de Supabase
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 document.addEventListener('DOMContentLoaded', () => {
     const formLogin = document.getElementById('formLogin');
@@ -21,6 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('supabase.auth.token', data.user.access_token); // ✅ Guarda solo el token
                 localStorage.setItem('supabase.auth.refresh', data.user.refresh_token); // ✅ Guarda el token de refresco
                 localStorage.setItem('usuario_id', data.user.user.id); // ✅ Guarda el ID del usuario
+
+                // Configurar el token en el cliente Supabase
+                await supabase.auth.setSession({
+                    access_token: data.user.access_token,
+                    refresh_token: data.user.refresh_token
+                });
 
                 mostrarMensaje('Inicio de sesión exitoso', 'success');
                 setTimeout(() => {
@@ -145,3 +157,6 @@ export function getToken() {
         return null;
     }
 }
+
+// Exportar Supabase
+export { supabase };

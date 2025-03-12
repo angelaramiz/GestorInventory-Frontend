@@ -1,6 +1,6 @@
-// Funciones de base de datos
 import { mostrarMensaje, mostrarResultadoCarga } from './logs.js';
 import { sanitizarProducto } from './sanitizacion.js';
+import { supabase } from './auth.js'; // Importar el cliente de Supabase
 
 // variables globales
 export let db;
@@ -8,32 +8,30 @@ export let dbInventario;
 // Nombre y versión de la base de datos
 const dbName = "ProductosDB";
 const dbVersion = 1;
-let syncQueue = [];
+let syncQueue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
 // 
 
 // Nueva cola de sincronizació
 export function agregarAColaSincronizacion(data) {
     syncQueue.push(data);
     localStorage.setItem('syncQueue', JSON.stringify(syncQueue));
+    if (navigator.onLine) procesarColaSincronizacion();
 }
 
 // Llamar esto cuando se detecte conexión
 export async function procesarColaSincronizacion() {
     if (!navigator.onLine) return;
 
-    const queue = JSON.parse(localStorage.getItem('syncQueue') || []);
-    
-    while (queue.length > 0) {
-        const item = queue.shift();
+    while (syncQueue.length > 0) {
+        const item = syncQueue.shift();
         try {
-            await fetch('https://gestorinventory-backend-production.up.railway.app/productos/inventario', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(item)
-            });
-            localStorage.setItem('syncQueue', JSON.stringify(queue));
+            const { error } = await supabase
+                .from('inventario')
+                .upsert({ ...item, usuario_id: localStorage.getItem('usuario_id') });
+
+            if (error) throw error;
+
+            localStorage.setItem('syncQueue', JSON.stringify(syncQueue));
         } catch (error) {
             console.error('Error en cola:', error);
             break;
@@ -124,6 +122,61 @@ export function inicializarDBInventario() {
             console.log("Base de datos de inventario creada/actualizada con nuevo esquema");
         };
     });
+}
+
+// Función para actualizar IndexedDB desde eventos en tiempo real
+async function actualizarInventarioDesdeServidor(evento, payload) {
+    const transaction = dbInventario.transaction(["inventario"], "readwrite");
+    const objectStore = transaction.objectStore("inventario");
+
+    if (evento === 'INSERT' || evento === 'UPDATE') {
+        const data = payload.new;
+        const request = objectStore.get(data.id);
+
+        request.onsuccess = async () => {
+            const localRecord = request.result;
+            if (!localRecord || new Date(localRecord.last_modified) < new Date(data.last_modified)) {
+                await objectStore.put({ ...data, last_modified: new Date().toISOString() });
+                mostrarMensaje(`Inventario actualizado: ${data.nombre} (Lote ${data.lote})`, 'success');
+                cargarDatosInventarioEnTablaPlantilla(); // Refrescar tabla si está en archivos.html
+            }
+        }
+    } else if (evento === 'DELETE') {
+        const data = payload.old;
+        await objectStore.delete(data.id);
+        mostrarMensaje(`Inventario eliminado: ${data.nombre} (Lote ${data.lote})`, 'info');
+        cargarDatosInventarioEnTablaPlantilla();
+    }
+}
+
+// Configurar suscripción a Supabase
+export function inicializarSuscripciones() {
+    const userId = localStorage.getItem('usuario_id');
+    if (!userId) {
+        console.warn('No hay usuario autenticado, suscripciones no iniciadas.');
+        return;
+    }
+
+    supabase
+        .channel('inventario-changes')
+        .on('postgres_changes', 
+            { 
+                event: '*', 
+                schema: 'public', 
+                table: 'inventario', 
+                filter: `usuario_id=eq.${userId}` 
+            }, 
+            (payload) => {
+                actualizarInventarioDesdeServidor(payload.eventType, payload);
+            }
+        )
+        .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                mostrarMensaje('Conectado a actualizaciones en tiempo real', 'info');
+            } else if (status === 'CLOSED') {
+                mostrarMensaje('Desconectado de actualizaciones en tiempo real', 'warning');
+            }
+        });
 }
 
 export function resetearBaseDeDatos(database, storeName) {

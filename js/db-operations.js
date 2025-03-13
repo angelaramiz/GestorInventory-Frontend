@@ -798,10 +798,6 @@ export function cargarDatosEnTabla() {
     };
 }
 
-import { supabase } from './auth.js'; // Cliente de Supabase
-import { mostrarMensaje } from './logs.js'; // Para notificaciones
-import { cargarDatosInventarioEnTablaPlantilla } from './db-operations.js'; // Para actualizar la UI
-
 export async function sincronizarInventarioDesdeSupabase() {
     try {
         // Verificar autenticación del usuario

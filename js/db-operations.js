@@ -856,9 +856,12 @@ export async function sincronizarInventarioDesdeSupabase() {
         mostrarMensaje("Inventario sincronizado exitosamente desde Supabase", "success");
         cargarDatosInventarioEnTablaPlantilla(); // Refrescar la tabla en la interfaz
     } catch (error) {
-        console.error("Error al sincronizar inventario:", error);
-        mostrarMensaje(`Error al sincronizar inventario: ${error.message}`, "error");
+        if (error.message.includes('409')) {
+            mostrarMensaje("Conflicto al sincronizar inventario: el registro ya existe", "error");
+        } else {
+            console.error("Error al sincronizar inventario:", error);
+            mostrarMensaje(`Error al sincronizar inventario: ${error.message}`, "error");
+        }
     }
-    return;
 }
 

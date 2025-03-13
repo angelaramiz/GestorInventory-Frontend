@@ -21,7 +21,7 @@ async function inicializarSupabase() {
         if (error) {
             console.warn('No hay sesión activa al inicializar Supabase:', error);
         } else {
-            mostrarMensaje('Conexión a Supabase establecida', 'info');
+            // mostrarMensaje('Conexión a Supabase establecida', 'info');
         }
     } catch (error) {
         console.error('Error al inicializar Supabase:', error);

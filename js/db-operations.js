@@ -855,5 +855,6 @@ export async function sincronizarInventarioDesdeSupabase() {
         console.error("Error al sincronizar inventario:", error);
         mostrarMensaje(`Error al sincronizar inventario: ${error.message}`, "error");
     }
+    return;
 }
 

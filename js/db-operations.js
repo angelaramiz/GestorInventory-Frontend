@@ -714,7 +714,11 @@ export function cargarDatosInventarioEnTablaPlantilla() {
 
     request.onsuccess = function (event) {
         const inventario = event.target.result;
-        const tbody = document.querySelector("#estructura-plantilla tbody");
+        const tbody = document.getElementById("estructuraPlantillaBody");
+        if (!tbody) {
+            console.error("Elemento 'estructuraPlantillaBody' no encontrado.");
+            return;
+        }
         tbody.innerHTML = ""; // Limpiar la tabla antes de cargar nuevos datos
 
         inventario.forEach(function (item) {
@@ -772,7 +776,7 @@ export function generarPlantillaInventario() {
 export function cargarDatosEnTabla() {
     const tbody = document.getElementById("databaseBody");
     if (!tbody) {
-        console.log("Elemento 'databaseBody' no encontrado.");
+        console.error("Elemento 'databaseBody' no encontrado.");
         return;
     }
 

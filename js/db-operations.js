@@ -61,6 +61,7 @@ export async function procesarColaSincronizacion() {
 
 // Escuchar eventos de conexión
 window.addEventListener('online', procesarColaSincronizacion);
+
 // Inicialización de la base de datos
 export function inicializarDB() {
     return new Promise((resolve, reject) => {

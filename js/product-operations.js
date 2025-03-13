@@ -616,7 +616,7 @@ export async function buscarProductoInventario() {
         } else if (codigo.length === 12 || codigo.length >= 14) {
             const codigoSanitizado = sanitizarEntrada(codigo);
             mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
-            console.log('codigo:', codigoSanitizado)
+            // console.log('codigo:', codigoSanitizado)
             const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
             // Expresión regular para capturar los 4 dígitos después del primer "2"

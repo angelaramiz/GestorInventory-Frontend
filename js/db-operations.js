@@ -22,23 +22,38 @@ export function agregarAColaSincronizacion(data) {
 export async function procesarColaSincronizacion() {
     if (!navigator.onLine) return;
 
-    // Esperar a que supabase esté inicializado
     while (!supabase) {
-        await new Promise(resolve => setTimeout(resolve, 100)); // Espera 100ms y reintenta
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     while (syncQueue.length > 0) {
         const item = syncQueue.shift();
         try {
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('inventario')
-                .upsert({ ...item, usuario_id: localStorage.getItem('usuario_id') });
+                .upsert({ ...item, usuario_id: localStorage.getItem('usuario_id') })
+                .select();
 
             if (error) throw error;
 
+            // Actualizar IndexedDB con el ID permanente de Supabase
+            const transaction = dbInventario.transaction(["inventario"], "readwrite");
+            const objectStore = transaction.objectStore("inventario");
+            await new Promise((resolve, reject) => {
+                const request = objectStore.delete(item.id);
+                request.onsuccess = resolve;
+                request.onerror = () => reject(request.error);
+            });
+            await new Promise((resolve, reject) => {
+                const request = objectStore.add({ ...item, id: data[0].id, is_temp_id: false });
+                request.onsuccess = resolve;
+                request.onerror = () => reject(request.error);
+            });
+
             localStorage.setItem('syncQueue', JSON.stringify(syncQueue));
         } catch (error) {
-            console.error('Error en cola:', error);
+            console.error('Error al procesar la cola:', error);
+            syncQueue.unshift(item); // Reinsertar el elemento si falla
             break;
         }
     }
@@ -781,5 +796,67 @@ export function cargarDatosEnTabla() {
     request.onerror = function (event) {
         mostrarMensaje("Error al cargar datos en la tabla:", event.target.error);
     };
+}
+
+import { supabase } from './auth.js'; // Cliente de Supabase
+import { mostrarMensaje } from './logs.js'; // Para notificaciones
+import { cargarDatosInventarioEnTablaPlantilla } from './db-operations.js'; // Para actualizar la UI
+
+export async function sincronizarInventarioDesdeSupabase() {
+    try {
+        // Verificar autenticación del usuario
+        const userId = localStorage.getItem('usuario_id');
+        if (!userId) {
+            mostrarMensaje("Debes iniciar sesión para sincronizar", "error");
+            return;
+        }
+
+        const token = localStorage.getItem('supabase.auth.token');
+        if (!token) {
+            mostrarMensaje("Sesión no válida, inicia sesión nuevamente", "error");
+            return;
+        }
+
+        // Obtener datos de inventario desde Supabase
+        const { data, error } = await supabase
+            .from('inventario')
+            .select('*')
+            .eq('usuario_id', userId);
+
+        if (error) {
+            throw new Error(`Error al obtener inventario: ${error.message}`);
+        }
+
+        if (!data || data.length === 0) {
+            mostrarMensaje("No hay datos de inventario en Supabase", "info");
+            return;
+        }
+
+        // Actualizar IndexedDB
+        const transaction = dbInventario.transaction(["inventario"], "readwrite");
+        const objectStore = transaction.objectStore("inventario");
+
+        // Limpiar datos existentes en IndexedDB
+        await new Promise((resolve, reject) => {
+            const request = objectStore.clear();
+            request.onsuccess = resolve;
+            request.onerror = () => reject(request.error);
+        });
+
+        // Insertar los datos de Supabase en IndexedDB
+        for (const item of data) {
+            await new Promise((resolve, reject) => {
+                const request = objectStore.put(item); // 'put' actualiza o inserta
+                request.onsuccess = resolve;
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        mostrarMensaje("Inventario sincronizado exitosamente desde Supabase", "success");
+        cargarDatosInventarioEnTablaPlantilla(); // Refrescar la tabla en la interfaz
+    } catch (error) {
+        console.error("Error al sincronizar inventario:", error);
+        mostrarMensaje(`Error al sincronizar inventario: ${error.message}`, "error");
+    }
 }
 

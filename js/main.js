@@ -1,5 +1,5 @@
 // Importaciones
-import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones } from './db-operations.js';
+import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
@@ -9,7 +9,8 @@ async function init() {
     try {
         await inicializarDB();
         await inicializarDBInventario();
-        inicializarSuscripciones(); // Iniciar suscripciones en tiempo real
+        await inicializarSuscripciones(); // Iniciar suscripciones en tiempo real
+        await sincronizarInventarioDesdeSupabase(); // Sincronizar al cargar la página
 
         // Solo inicializamos el escáner si estamos en una página que lo usa
         if (document.getElementById('scanner-container')) {
@@ -135,6 +136,8 @@ async function init() {
                 });
             }
         }
+
+        document.getElementById('sync-inventario-down-btn')?.addEventListener('click', sincronizarInventarioDesdeSupabase);
     } catch (error) {
         console.error("Error initializing the application:", error);
         mostrarMensaje("Error al inicializar la aplicación. Por favor, recargue la página.", "error");

@@ -174,6 +174,18 @@ async function init() {
 // Event listener principal
 document.addEventListener('DOMContentLoaded', init);
 
+document.addEventListener('DOMContentLoaded', async () => {
+    if (window.location.pathname.includes('inventario.html')) {
+        const ubicacionEnUso = await obtenerUbicacionEnUso();
+        if (!ubicacionEnUso) {
+            const nuevaUbicacion = await seleccionarUbicacionAlmacen();
+            if (nuevaUbicacion) {
+                iniciarInventario(nuevaUbicacion);
+            }
+        }
+    }
+});
+
 // Funciones auxiliares
 function mostrarSeccion(seccion) {
     document.querySelectorAll(".seccion").forEach(div => (div.style.display = "none"));

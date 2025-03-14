@@ -948,7 +948,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Función de ejemplo para iniciar inventario con la ubicación dada
-function iniciarInventario(ubicacion) {
+export function iniciarInventario(ubicacion) {
     // Almacena la ubicación seleccionada en una variable o en el estado de la aplicación
     localStorage.setItem('ubicacion_almacen', ubicacion);
     // Continúa con la carga de inventario filtrando según la ubicación

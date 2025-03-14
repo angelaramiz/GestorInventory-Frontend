@@ -843,3 +843,8 @@ export async function sincronizarInventarioDesdeSupabase() {
     }
 }
 
+// Función para obtener la ubicación en uso
+export async function obtenerUbicacionEnUso() {
+    return localStorage.getItem('ubicacion_almacen') || null; // Si usas IndexedDB, reemplázalo por una consulta real
+}
+

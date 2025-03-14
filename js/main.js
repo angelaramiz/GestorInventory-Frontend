@@ -1,7 +1,7 @@
 // Importaciones
 import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase } from './db-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
-import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario } from './product-operations.js';
+import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
 
 // Función de inicialización
@@ -157,6 +157,14 @@ async function init() {
                 ocultarSpinner();
             }
         });
+
+        // Solicitar la selección de ubicación al cargar inventario.html
+        if (esPaginaInventario) {
+            const ubicacion = await seleccionarUbicacionAlmacen();
+            if (ubicacion) {
+                iniciarInventario(ubicacion);
+            }
+        }
     } catch (error) {
         console.error("Error initializing the application:", error);
         mostrarMensaje("Error al inicializar la aplicación. Por favor, recargue la página.", "error");

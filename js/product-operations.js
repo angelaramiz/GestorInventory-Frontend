@@ -1,7 +1,7 @@
 // importaciones 
 import { db, dbInventario, agregarAColaSincronizacion } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
-import { cargarDatosEnTabla } from './db-operations.js';
+import { cargarDatosEnTabla,obtenerUbicacionEnUso } from './db-operations.js';
 import { sanitizarProducto, sanitizarEntrada } from './sanitizacion.js';
 import { supabase } from './auth.js';
 import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm'; // Usar UUID para IDs únicos
@@ -954,5 +954,67 @@ export function iniciarInventario(ubicacion) {
     // Continúa con la carga de inventario filtrando según la ubicación
     console.log("Iniciando inventario para la ubicación:", ubicacion);
     // Aquí puedes hacer la consulta a Supabase filtrando por 'ubicacion_almacen'
+}
+
+// Función para agregar un nuevo producto desde el inventario
+export async function agregarNuevoProductoDesdeInventario(codigo, permitirModificarCodigo = false) {
+    const { value: formValues } = await Swal.fire({
+        title: 'Agregar Nuevo Producto',
+        html: `
+            <input id="swal-input1" class="swal2-input" placeholder="Nombre del Producto">
+            <input id="swal-input2" class="swal2-input" placeholder="Categoría">
+            <input id="swal-input3" class="swal2-input" placeholder="Marca">
+            <input id="swal-input4" class="swal2-input" placeholder="Unidad">
+            ${permitirModificarCodigo ? `<input id="swal-input5" class="swal2-input" placeholder="Código" value="${codigo}">` : ''}
+        `,
+        focusConfirm: false,
+        preConfirm: () => {
+            return [
+                document.getElementById('swal-input1').value,
+                document.getElementById('swal-input2').value,
+                document.getElementById('swal-input3').value,
+                document.getElementById('swal-input4').value,
+                permitirModificarCodigo ? document.getElementById('swal-input5').value : codigo
+            ];
+        }
+    });
+
+    if (formValues) {
+        const [nombre, categoria, marca, unidad, codigoFinal] = formValues;
+        const producto = { codigo: codigoFinal, nombre, categoria, marca, unidad };
+
+        const productosanitizado = sanitizarProducto(producto);
+        if (!productosanitizado) {
+            mostrarMensaje("Error: Datos de producto inválidos", "error");
+            return;
+        }
+
+        const transaction = db.transaction(["productos"], "readwrite");
+        const objectStore = transaction.objectStore("productos");
+
+        // Verificar si el código ya existe
+        const existe = await new Promise(resolve => {
+            const req = objectStore.get(codigoFinal);
+            req.onsuccess = () => resolve(!!req.result);
+        });
+
+        if (existe) {
+            mostrarMensaje("El código ya existe", "error");
+            return;
+        }
+
+        const request = objectStore.put(productosanitizado);
+
+        request.onerror = event => {
+            console.error("Error al agregar producto", event.target.error);
+            mostrarMensaje("Error al agregar el producto. Es posible que el código ya exista.", "error");
+        };
+
+        request.onsuccess = event => {
+            console.log("Producto agregado exitosamente");
+            mostrarMensaje("Producto agregado exitosamente", "success");
+            document.getElementById("formAgregarProducto").reset();
+        };
+    }
 }
 

@@ -159,12 +159,6 @@ async function init() {
         });
 
         // Solicitar la selección de ubicación al cargar inventario.html
-        if (esPaginaInventario) {
-            const ubicacion = await seleccionarUbicacionAlmacen();
-            if (ubicacion) {
-                iniciarInventario(ubicacion);
-            }
-        }
     } catch (error) {
         console.error("Error initializing the application:", error);
         mostrarMensaje("Error al inicializar la aplicación. Por favor, recargue la página.", "error");

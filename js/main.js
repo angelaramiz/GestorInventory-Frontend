@@ -176,11 +176,14 @@ document.addEventListener('DOMContentLoaded', init);
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (window.location.pathname.includes('inventario.html')) {
-        const ubicacionEnUso = await obtenerUbicacionEnUso();
-        if (!ubicacionEnUso) {
-            const nuevaUbicacion = await seleccionarUbicacionAlmacen();
-            if (nuevaUbicacion) {
-                iniciarInventario(nuevaUbicacion);
+        if (!sessionStorage.getItem("ubicacion_seleccionada")) {
+            const ubicacionEnUso = await obtenerUbicacionEnUso();
+            if (!ubicacionEnUso) {
+                const nuevaUbicacion = await seleccionarUbicacionAlmacen();
+                if (nuevaUbicacion) {
+                    iniciarInventario(nuevaUbicacion);
+                    sessionStorage.setItem("ubicacion_seleccionada", "true"); // Evita doble ejecución
+                }
             }
         }
     }

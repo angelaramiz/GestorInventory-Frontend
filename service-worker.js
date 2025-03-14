@@ -7,10 +7,13 @@ const ASSETS = [
     // Añade más recursos estáticos aquí
 ];
 
+// Detectar si estamos en localhost o en GitHub Pages
+const BASE_PATH = location.hostname === 'localhost' ? '' : '/GestorInventory-Frontend';
+
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(ASSETS))
+            .then(cache => cache.addAll(ASSETS.map(asset => BASE_PATH + asset)))
     );
 });
 

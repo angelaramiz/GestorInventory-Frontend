@@ -143,26 +143,9 @@ export function inicializarDBInventario() {
 
 // Función para actualizar IndexedDB desde eventos en tiempo real
 async function actualizarInventarioDesdeServidor(evento, payload) {
-    const transaction = dbInventario.transaction(["inventario"], "readwrite");
-    const objectStore = transaction.objectStore("inventario");
-
-    if (evento === 'INSERT' || evento === 'UPDATE') {
-        const data = payload.new;
-        const request = objectStore.get(data.id);
-
-        request.onsuccess = async () => {
-            const localRecord = request.result;
-            if (!localRecord || new Date(localRecord.last_modified) < new Date(data.last_modified)) {
-                await objectStore.put({ ...data, last_modified: new Date().toISOString() });
-                mostrarMensaje(`Inventario actualizado: ${data.nombre} (Lote ${data.lote})`, 'success');
-                cargarDatosInventarioEnTablaPlantilla(); // Refrescar tabla si está en archivos.html
-            }
-        }
-    } else if (evento === 'DELETE') {
-        const data = payload.old;
-        await objectStore.delete(data.id);
-        mostrarMensaje(`Inventario eliminado: ${data.nombre} (Lote ${data.lote})`, 'info');
-        cargarDatosInventarioEnTablaPlantilla();
+    const localRecord = await obtenerRegistroLocal(payload.new.id);
+    if (!localRecord || new Date(localRecord.last_modified) < new Date(payload.new.last_modified)) {
+        await actualizarRegistroLocal(payload.new);
     }
 }
 

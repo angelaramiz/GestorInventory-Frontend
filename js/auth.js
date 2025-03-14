@@ -1,5 +1,5 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-import { mostrarMensaje } from './logs.js';
+import { mostrarAlertaBurbuja } from './logs.js'; // Importar la nueva función
 
 let supabase = null;
 
@@ -21,11 +21,11 @@ async function inicializarSupabase() {
         if (error) {
             console.warn('No hay sesión activa al inicializar Supabase:', error);
         } else {
-            // mostrarMensaje('Conexión a Supabase establecida', 'info');
+            // mostrarAlertaBurbuja('Conexión a Supabase establecida', 'info');
         }
     } catch (error) {
         console.error('Error al inicializar Supabase:', error);
-        mostrarMensaje('Error al conectar con el servidor', 'error');
+        mostrarAlertaBurbuja('Error al conectar con el servidor', 'error');
     }
 }
 
@@ -41,32 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                localStorage.setItem('supabase.auth.token', data.user.access_token);
-                localStorage.setItem('supabase.auth.refresh', data.user.refresh_token);
-                localStorage.setItem('usuario_id', data.user.user.id);
-
-                // Configurar el token en el cliente Supabase
-                await supabase.auth.setSession({
-                    access_token: data.user.access_token,
-                    refresh_token: data.user.refresh_token
-                });
-
-                mostrarMensaje('Inicio de sesión exitoso', 'success');
-                setTimeout(() => {
-                    window.location.href = './plantillas/main.html';
-                }, 500);
-            } else {
-                mostrarMensaje(data.error, 'error');
-            }
+            await iniciarSesion(email, password);
         });
     }
 
@@ -81,11 +56,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const confirmPassword = document.getElementById('confirmPassword').value;
 
             if (!nombre || !email || !password) {
-                mostrarMensaje('Todos los campos son obligatorios', 'error');
+                mostrarAlertaBurbuja('Todos los campos son obligatorios', 'error');
                 return;
             }
             if (password !== confirmPassword) {
-                mostrarMensaje('Las contraseñas no coinciden', 'error');
+                mostrarAlertaBurbuja('Las contraseñas no coinciden', 'error');
                 return;
             }
 
@@ -98,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await response.json();
 
             if (data.success) {
-                mostrarMensaje('Registro exitoso. Redirigiendo...', 'success');
+                mostrarAlertaBurbuja('Registro exitoso. Redirigiendo...', 'success');
                 Swal.fire({
                     title: 'Registro exitoso',
                     html: 'Por favor, verifica tu correo electrónico antes de iniciar sesión. Redirigiendo al inicio de sesión...',
@@ -110,11 +85,50 @@ document.addEventListener('DOMContentLoaded', async () => {
                     window.location.href = './index.html';
                 }, 2000);
             } else {
-                mostrarMensaje(data.error || 'Error al registrar el usuario', 'error');
+                mostrarAlertaBurbuja(data.error || 'Error al registrar el usuario', 'error');
             }
         });
     }
 });
+
+async function iniciarSesion(email, password) {
+    try {
+        const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            mostrarAlertaBurbuja(errorData.error || 'Error al iniciar sesión', 'error');
+            return;
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            localStorage.setItem('supabase.auth.token', data.user.access_token);
+            localStorage.setItem('supabase.auth.refresh', data.user.refresh_token);
+            localStorage.setItem('usuario_id', data.user.user.id);
+
+            // Configurar el token en el cliente Supabase
+            await supabase.auth.setSession({
+                access_token: data.user.access_token,
+                refresh_token: data.user.refresh_token
+            });
+
+            mostrarAlertaBurbuja('Inicio de sesión exitoso', 'success');
+            setTimeout(() => {
+                window.location.href = './plantillas/main.html';
+            }, 500);
+        } else {
+            mostrarAlertaBurbuja(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarAlertaBurbuja('Error de conexión con el servidor', 'error');
+    }
+}
 
 function isTokenExpired(token) {
     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -150,10 +164,10 @@ function isTokenExpired(token) {
                 if (data.success) {
                     localStorage.setItem('supabase.auth.token', JSON.stringify(data.user));
                     localStorage.setItem('usuario_id', data.user.id);
-                    mostrarMensaje('Inicio de sesión exitoso', 'success');
+                    mostrarAlertaBurbuja('Inicio de sesión exitoso', 'success');
                     window.location.reload(); // Recargar la página para aplicar el nuevo token
                 } else {
-                    mostrarMensaje(data.error, 'error');
+                    mostrarAlertaBurbuja(data.error, 'error');
                 }
             }
         });

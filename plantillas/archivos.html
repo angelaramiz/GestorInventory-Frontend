@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="../librerías/tailwind.min.css">
     <script src="../librerías/sweetalert2@11.js"></script>
     <script src="../librerías/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body class="bg-gray-100">
+    
     <div id="archivos" class="container mx-auto mt-8 p-4">
         <h1 class="text-3xl font-bold mb-6">Gestión de Archivos</h1>
         
@@ -32,7 +34,12 @@
             </div>
             </div>
         </div>
-
+        <button id="sync-inventario-down-btn" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+            Sincronizar Inventario desde Supabase
+        </button>
+        <button id="sincronizarManual" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            Sincronizar Ahora
+        </button>
         <h2 class="text-2xl font-bold mt-8 mb-4">Estructura de la Plantilla</h2>
         <div class="overflow-x-auto">
             <table id="estructura-plantilla" class="table-auto w-full bg-white shadow-md rounded">
@@ -58,9 +65,6 @@
         </button>
         <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" id="sync-up-btn">
             Sincronizar en Subida
-        </button>
-        <button id="sync-inventario-down-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Sincronizar Inventario desde Supabase
         </button>
         <h2 class="text-2xl font-bold mt-8 mb-4">Base de Datos Actual</h2>
         <div class="overflow-x-auto">

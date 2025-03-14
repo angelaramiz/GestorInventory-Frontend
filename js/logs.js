@@ -1,6 +1,6 @@
 //importaciones
 import { cargarDatosEnTabla } from "./db-operations.js";
-import { iniciarEscaneoConModal,detenerEscaner } from "./scanner.js";
+import { iniciarEscaneoConModal, detenerEscaner } from "./scanner.js";
 
 // Funciones de mensajes y alertas
 
@@ -9,24 +9,13 @@ export function mostrarMensaje(mensaje, tipo, opciones = {}) {
     const iconosValidos = ["success", "error", "warning", "info", "question"];
     const icono = iconosValidos.includes(tipo) ? tipo : "info";
 
-    const defaultOptions = {
+    Swal.fire({
         title: tipo.charAt(0).toUpperCase() + tipo.slice(1),
         text: mensaje,
         icon: icono,
         timer: opciones.timer || 2000,
         showConfirmButton: opciones.showConfirmButton || false,
-        allowOutsideClick: opciones.allowOutsideClick || false,
-        customClass: {
-            popup: "custom-alert",
-            title: "custom-alert-title",
-            htmlContainer: "custom-alert-text"
-        } // Clases personalizadas para el contenedor de mensajes
-
-    };
-
-    const finalOptions = { ...defaultOptions, ...opciones };
-
-    Swal.fire(finalOptions);
+    });
 }
 
 // Mostrar resultado de carga con animación de progreso
@@ -66,6 +55,28 @@ export function mostrarResultadoCarga(successCount, errorCount) {
             cargarDatosEnTabla();
         }
     });
+}
+
+// Función para mostrar alertas de estado como burbujas
+export function mostrarAlertaBurbuja(mensaje, tipo) {
+    const burbuja = document.createElement('div');
+    burbuja.className = `alerta-burbuja ${tipo}`;
+    burbuja.textContent = mensaje;
+
+    document.body.appendChild(burbuja);
+
+    // Mostrar la burbuja
+    setTimeout(() => {
+        burbuja.classList.add('mostrar');
+    }, 10);
+
+    // Ocultar la burbuja después de 3 segundos
+    setTimeout(() => {
+        burbuja.classList.remove('mostrar');
+        setTimeout(() => {
+            burbuja.remove();
+        }, 500);
+    }, 3000);
 }
 
 // Ventana modal con transición para escáner

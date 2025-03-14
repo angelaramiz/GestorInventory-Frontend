@@ -1,6 +1,6 @@
 // Importaciones
 import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase } from './db-operations.js';
-import { mostrarMensaje } from './logs.js';
+import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
 
@@ -9,12 +9,19 @@ async function init() {
     try {
         await inicializarDB();
         await inicializarDBInventario();
-        await inicializarSuscripciones(); // Iniciar suscripciones en tiempo real
-        await sincronizarInventarioDesdeSupabase(); // Sincronizar al cargar la página
+
+        // Sincronizar al cargar la página solo en archivos.html e inventario.html
+        const esPaginaArchivos = window.location.pathname.includes('archivos.html');
+        const esPaginaInventario = window.location.pathname.includes('inventario.html');
+
+        if (esPaginaArchivos || esPaginaInventario) {
+            await inicializarSuscripciones(); // Iniciar suscripciones en tiempo real
+            await sincronizarInventarioDesdeSupabase(); // Sincronizar al cargar la página
+        }
 
         // Solo inicializamos el escáner si estamos en una página que lo usa
         if (document.getElementById('scanner-container')) {
-
+            // Inicializar escáner
         }
 
         // Event listeners para los formularios
@@ -83,7 +90,7 @@ async function init() {
         }
 
         // Cargar datos en la tabla si estamos en la página de archivos
-        if (window.location.pathname.includes('archivos.html')) {
+        if (esPaginaArchivos) {
             cargarDatosEnTabla();
             cargarDatosInventarioEnTablaPlantilla();
 
@@ -117,8 +124,6 @@ async function init() {
         }
 
         // Event listeners para los botones de sincronización
-        const esPaginaArchivos = window.location.href.includes('archivos.html');
-
         if (esPaginaArchivos) {
             const botonSincronizarBajada = document.getElementById("sync-down-btn");
             if (botonSincronizarBajada) {
@@ -137,7 +142,21 @@ async function init() {
             }
         }
 
-        document.getElementById('sync-inventario-down-btn')?.addEventListener('click', sincronizarInventarioDesdeSupabase);
+        if (esPaginaInventario) {
+            document.getElementById('sync-inventario-down-btn')?.addEventListener('click', sincronizarInventarioDesdeSupabase);
+        }
+
+        document.getElementById('sincronizarManual')?.addEventListener('click', async () => {
+            mostrarSpinner();
+            try {
+                await procesarColaSincronizacion();
+                mostrarAlertaBurbuja('Sincronización manual completada', 'success');
+            } catch (error) {
+                mostrarAlertaBurbuja('Error al sincronizar', 'error');
+            } finally {
+                ocultarSpinner();
+            }
+        });
     } catch (error) {
         console.error("Error initializing the application:", error);
         mostrarMensaje("Error al inicializar la aplicación. Por favor, recargue la página.", "error");
@@ -227,6 +246,58 @@ function generarHojaInventario() {
         }
     });
 }
+
+function mostrarSpinner() {
+    const spinner = document.createElement('div');
+    spinner.id = 'spinner';
+    spinner.className = 'spinner';
+    document.body.appendChild(spinner);
+}
+
+function ocultarSpinner() {
+    const spinner = document.getElementById('spinner');
+    if (spinner) {
+        spinner.remove();
+    }
+}
+
+// Ejemplo de uso en una operación asíncrona
+async function sincronizarDatos() {
+    mostrarSpinner();
+    try {
+        await sincronizarProductosDesdeBackend();
+        mostrarMensaje('Sincronización exitosa', 'success');
+    } catch (error) {
+        mostrarMensaje('Error al sincronizar', 'error');
+    } finally {
+        ocultarSpinner();
+    }
+}
+
+function actualizarIndicadorConexion() {
+    const indicador = document.getElementById('conexion-indicador');
+    if (navigator.onLine) {
+        mostrarAlertaBurbuja('🟢 En línea', 'success');
+        if (indicador) {
+            indicador.textContent = '🟢 En línea';
+            indicador.classList.remove('bg-red-500');
+            indicador.classList.add('bg-green-500');
+        }
+    } else {
+        mostrarAlertaBurbuja('🔴 Sin conexión', 'error');
+        if (indicador) {
+            indicador.textContent = '🔴 Sin conexión';
+            indicador.classList.remove('bg-green-500');
+            indicador.classList.add('bg-red-500');
+        }
+    }
+}
+
+window.addEventListener('online', actualizarIndicadorConexion);
+window.addEventListener('offline', actualizarIndicadorConexion);
+
+// Inicializar el indicador al cargar la página
+document.addEventListener('DOMContentLoaded', actualizarIndicadorConexion);
 
 // Exportar funciones necesarias
 export { mostrarSeccion, resetearBaseDatos, generarHojaInventario };

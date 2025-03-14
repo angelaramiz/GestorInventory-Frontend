@@ -1,4 +1,4 @@
-import { mostrarMensaje, mostrarResultadoCarga } from './logs.js';
+import { mostrarMensaje, mostrarResultadoCarga, mostrarAlertaBurbuja } from './logs.js';
 import { sanitizarProducto } from './sanitizacion.js';
 import { supabase } from './auth.js'; // Importar el cliente de Supabase
 
@@ -21,10 +21,6 @@ export function agregarAColaSincronizacion(data) {
 // Llamar esto cuando se detecte conexión
 export async function procesarColaSincronizacion() {
     if (!navigator.onLine) return;
-
-    while (!supabase) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
 
     while (syncQueue.length > 0) {
         const item = syncQueue.shift();
@@ -198,9 +194,9 @@ export async function inicializarSuscripciones() {
         )
         .subscribe((status) => {
             if (status === 'SUBSCRIBED') {
-                mostrarMensaje('Conectado a actualizaciones en tiempo real', 'info');
+                mostrarAlertaBurbuja('Conectado a actualizaciones en tiempo real', 'info');
             } else if (status === 'CLOSED') {
-                mostrarMensaje('Desconectado de actualizaciones en tiempo real', 'warning');
+                mostrarAlertaBurbuja('Desconectado de actualizaciones en tiempo real', 'warning');
             }
         });
 }
@@ -573,7 +569,7 @@ export async function sincronizarProductosDesdeBackend() {
     try {
         const token = localStorage.getItem('supabase.auth.token');
         if (!token) {
-            mostrarMensaje("Debes iniciar sesión para sincronizar", "error");
+            mostrarAlertaBurbuja("Debes iniciar sesión para sincronizar", "error");
             return;
         }
 
@@ -587,7 +583,7 @@ export async function sincronizarProductosDesdeBackend() {
 
         // Manejar errores HTTP (ej: 401, 404, 500)
         if (response.status === 401) {
-            mostrarMensaje("Sesión expirada", "error");
+            mostrarAlertaBurbuja("Sesión expirada", "error");
             localStorage.clear();
             window.location.href = "../index.html";
             return;
@@ -629,7 +625,7 @@ export async function sincronizarProductosDesdeBackend() {
             };
         }
 
-        mostrarMensaje("Sincronización exitosa 🎉", "success");
+        mostrarAlertaBurbuja("Sincronización exitosa 🎉", "success");
 
         // Llamar a cargarDatosEnTabla para actualizar la tabla en la interfaz
         cargarDatosEnTabla();
@@ -638,7 +634,7 @@ export async function sincronizarProductosDesdeBackend() {
 
     } catch (error) {
         console.error("Error de sincronización:", error);
-        mostrarMensaje(`Falló la sincronización: ${error.message}`, "error");
+        mostrarAlertaBurbuja(`Falló la sincronización: ${error.message}`, "error");
         return false;
     }
 }
@@ -649,14 +645,14 @@ export async function subirProductosAlBackend() {
         // Verificar autenticación
         const token = localStorage.getItem('supabase.auth.token');
         if (!token) {
-            mostrarMensaje("Debes iniciar sesión para sincronizar", "error");
+            mostrarAlertaBurbuja("Debes iniciar sesión para sincronizar", "error");
             return false;
         }
 
         // Obtener el ID del usuario autenticado
         const userId = localStorage.getItem('usuario_id');
         if (!userId) {
-            mostrarMensaje("No se encontró el ID del usuario", "error");
+            mostrarAlertaBurbuja("No se encontró el ID del usuario", "error");
             return false;
         }
 
@@ -672,7 +668,7 @@ export async function subirProductosAlBackend() {
 
         // Verificar si hay productos para subir
         if (!productos || productos.length === 0) {
-            mostrarMensaje("No hay productos para subir", "info");
+            mostrarAlertaBurbuja("No hay productos para subir", "info");
             return false;
         }
 
@@ -697,29 +693,34 @@ export async function subirProductosAlBackend() {
         const data = await response.json();
 
         // Mostrar resultado al usuario
-        mostrarMensaje("✅ Productos subidos exitosamente", "success");
+        mostrarAlertaBurbuja("✅ Productos subidos exitosamente", "success");
         return true;
 
     } catch (error) {
         console.error("Error subiendo productos:", error);
-        mostrarMensaje(`🚨 Error: ${error.message || "Verifica tu conexión"}`, "error");
+        mostrarAlertaBurbuja(`🚨 Error: ${error.message || "Verifica tu conexión"}`, "error");
         return false;
     }
 }
 //  Función para cargar  datos en la tabla de la página de archivos
 export function cargarDatosInventarioEnTablaPlantilla() {
+    if (!window.location.pathname.includes('archivos.html')) {
+        return;
+    }
+
+    const tbody = document.getElementById("estructuraPlantillaBody");
+    if (!tbody) {
+        console.error("Elemento 'estructuraPlantillaBody' no encontrado.");
+        return;
+    }
+
     const transaction = dbInventario.transaction(["inventario"], "readonly");
     const objectStore = transaction.objectStore("inventario");
     const request = objectStore.getAll();
 
     request.onsuccess = function (event) {
         const inventario = event.target.result;
-        const tbody = document.getElementById("estructuraPlantillaBody");
-        if (!tbody) {
-            console.error("Elemento 'estructuraPlantillaBody' no encontrado.");
-            return;
-        }
-        tbody.innerHTML = ""; // Limpiar la tabla antes de cargar nuevos datos
+        tbody.innerHTML = ""; // Limpiar tabla
 
         inventario.forEach(function (item) {
             const row = tbody.insertRow();
@@ -808,13 +809,13 @@ export async function sincronizarInventarioDesdeSupabase() {
         // Verificar autenticación del usuario
         const userId = localStorage.getItem('usuario_id');
         if (!userId) {
-            mostrarMensaje("Debes iniciar sesión para sincronizar", "error");
+            mostrarAlertaBurbuja("Debes iniciar sesión para sincronizar", "error");
             return;
         }
 
         const token = localStorage.getItem('supabase.auth.token');
         if (!token) {
-            mostrarMensaje("Sesión no válida, inicia sesión nuevamente", "error");
+            mostrarAlertaBurbuja("Sesión no válida, inicia sesión nuevamente", "error");
             return;
         }
 
@@ -829,7 +830,7 @@ export async function sincronizarInventarioDesdeSupabase() {
         }
 
         if (!data || data.length === 0) {
-            mostrarMensaje("No hay datos de inventario en Supabase", "info");
+            mostrarAlertaBurbuja("No hay datos de inventario en Supabase", "info");
             return;
         }
 
@@ -839,29 +840,23 @@ export async function sincronizarInventarioDesdeSupabase() {
 
         // Limpiar datos existentes en IndexedDB
         await new Promise((resolve, reject) => {
-            const request = objectStore.clear();
-            request.onsuccess = resolve;
-            request.onerror = () => reject(request.error);
+            const clearRequest = objectStore.clear();
+            clearRequest.onsuccess = resolve;
+            clearRequest.onerror = () => reject(clearRequest.error);
         });
 
         // Insertar los datos de Supabase en IndexedDB
         for (const item of data) {
             await new Promise((resolve, reject) => {
-                const request = objectStore.put(item); // 'put' actualiza o inserta
-                request.onsuccess = resolve;
-                request.onerror = () => reject(request.error);
+                const addRequest = objectStore.add(item);
+                addRequest.onsuccess = resolve;
+                addRequest.onerror = () => reject(addRequest.error);
             });
         }
 
-        mostrarMensaje("Inventario sincronizado exitosamente desde Supabase", "success");
-        cargarDatosInventarioEnTablaPlantilla(); // Refrescar la tabla en la interfaz
+        mostrarAlertaBurbuja("Inventario sincronizado exitosamente desde Supabase", "success");
     } catch (error) {
-        if (error.message.includes('409')) {
-            mostrarMensaje("Conflicto al sincronizar inventario: el registro ya existe", "error");
-        } else {
-            console.error("Error al sincronizar inventario:", error);
-            mostrarMensaje(`Error al sincronizar inventario: ${error.message}`, "error");
-        }
+        mostrarAlertaBurbuja(`Error al sincronizar inventario: ${error.message}`, "error");
     }
 }
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,11 +10,12 @@
     <script src="../librerías/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
 </head>
+
 <body class="bg-gray-100">
-    
+
     <div id="archivos" class="container mx-auto mt-8 p-4">
         <h1 class="text-3xl font-bold mb-6">Gestión de Archivos</h1>
-        
+
         <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
 
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
@@ -21,45 +23,23 @@
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="csvFile">
                     Cargar Archivo CSV:
                 </label>
-                <input type="file" id="csvFile" accept=".csv" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            <div class="mb-4">
-                <button id="descargarCSV" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
-                    Exportar Datos a CSV
-                </button>
-            </div>
-            <div class="mb-4">
-                <button id="resetearBaseDatos" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                Resetear Base de Datos
-                </button>
-            </div>
+                <input type="file" id="csvFile" accept=".csv"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <div class="mb-4">
+                    <button id="descargarCSV"
+                        class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                        Exportar Datos a CSV
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <button id="resetearBaseDatos"
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                        Resetear Base de Datos
+                    </button>
+                </div>
             </div>
         </div>
-        <button id="sync-inventario-down-btn" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
-            Sincronizar Inventario desde Supabase
-        </button>
-        <button id="sincronizarManual" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-            Sincronizar Ahora
-        </button>
-        <h2 class="text-2xl font-bold mt-8 mb-4"> Productos en Inventario </h2>
-        <div class="overflow-x-auto">
-            <table id="estructura-plantilla" class="table-auto w-full bg-white shadow-md rounded">
-                <thead>
-                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                        <th class="py-3 px-6 text-left">Código</th>
-                        <th class="py-3 px-6 text-left">Nombre</th>
-                        <th class="py-3 px-6 text-left">Categoría</th>
-                        <th class="py-3 px-6 text-left">Marca</th>
-                        <th class="py-3 px-6 text-left">Tipo de Cantidad</th>
-                        <th class="py-3 px-6 text-left">Cantidad</th>
-                        <th class="py-3 px-6 text-left">Fecha de Caducidad</th>
-                        <th class="py-3 px-6 text-left">Comentarios</th>
-                    </tr>
-                </thead>
-                <tbody id="estructuraPlantillaBody" class="text-gray-600 text-sm font-light">
-                    <!-- Data will be dynamically populated here -->
-                </tbody>
-            </table>
-        </div>
+        
         <button class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded" id="sync-down-btn">
             Sincronizar en Bajada
         </button>
@@ -87,4 +67,5 @@
 
     <script type="module" src="../js/main.js"></script>
 </body>
+
 </html>

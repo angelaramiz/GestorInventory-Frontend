@@ -7,7 +7,10 @@ import { toggleEscaner, detenerEscaner } from './scanner.js';
 // Función para mostrar la ubicación actual
 async function mostrarUbicacionActual() {
     const ubicacion = await obtenerUbicacionEnUso();
-    document.getElementById('ubicacionActual').innerText = ubicacion || 'No seleccionada';
+    const ubicacionElement = document.getElementById('ubicacionActual');
+    if (ubicacionElement) {
+        ubicacionElement.innerText = ubicacion || 'No seleccionada';
+    }
 }
 
 // Función para cambiar la ubicación manualmente
@@ -37,7 +40,10 @@ async function init() {
             mostrarUbicacionActual(); // Mostrar la ubicación actual
 
             // Agregar event listener para cambiar ubicación
-            document.getElementById('cambiarUbicacion').addEventListener('click', cambiarUbicacion);
+            const cambiarUbicacionBtn = document.getElementById('cambiarUbicacion');
+            if (cambiarUbicacionBtn) {
+                cambiarUbicacionBtn.addEventListener('click', cambiarUbicacion);
+            }
         }
 
         // Solo inicializamos el escáner si estamos en una página que lo usa
@@ -116,8 +122,8 @@ async function init() {
             cargarDatosInventarioEnTablaPlantilla();
 
             // Agregar listeners para sincronización manual
-            document.getElementById('sync-down-btn').addEventListener('click', sincronizarProductosDesdeBackend);
-            document.getElementById('sync-up-btn').addEventListener('click', subirProductosAlBackend);
+            document.getElementById('sync-down-btn')?.addEventListener('click', sincronizarProductosDesdeBackend);
+            document.getElementById('sync-up-btn')?.addEventListener('click', subirProductosAlBackend);
         }
 
         const botonResetearBaseDatos = document.getElementById("resetearBaseDatos");

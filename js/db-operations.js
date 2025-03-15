@@ -565,7 +565,7 @@ export async function sincronizarProductosDesdeBackend() {
             },
             body: JSON.stringify({ usuarioId, categoriaId }),
         });
-        console.log(response);
+        console.log(response.body);
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Error ${response.status}: ${errorText}`);
@@ -593,10 +593,12 @@ export async function sincronizarProductosDesdeBackend() {
     }
 }
 
-// Call the function after initializing the database
-inicializarDB().then(() => {
-    sincronizarProductosDesdeBackend();
-});
+// Call the function after initializing the database if on archivos.html
+if (window.location.pathname.includes('archivos.html')) {
+    inicializarDB().then(() => {
+        sincronizarProductosDesdeBackend();
+    });
+}
 
 // Llamar a sincronizarDatos cuando se cargue la página
 export async function subirProductosAlBackend() {

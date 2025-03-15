@@ -92,24 +92,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function iniciarSesion(email, password) {
-    try {
-        const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/login', {
+try {
+    const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
-        });
+});
 
-        if (!response.ok) {
-            const errorData = await response.json();
+    if (!response.ok) {
+        const errorData = await response.json();
             mostrarAlertaBurbuja(errorData.error || 'Error al iniciar sesión', 'error');
-            return;
-        }
+        return;
+    }
 
-        const data = await response.json();
+    const data = await response.json();
 
         if (data.success) {
             localStorage.setItem('supabase.auth.token', data.user.access_token);
-            localStorage.setItem('supabase.auth.refresh', data.user.refresh_token);
+    localStorage.setItem('supabase.auth.refresh', data.user.refresh_token);
             localStorage.setItem('usuario_id', data.user.user.id);
 
             // Configurar el token en el cliente Supabase

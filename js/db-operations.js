@@ -550,34 +550,39 @@ function ordenarInventario(inventario, orden) {
 // Versión corregida:
 export async function sincronizarProductosDesdeBackend() {
     try {
-        const token = (await supabase.auth.getSession()).data.session?.access_token;
-        if (!token) throw new Error("No autenticado");
-        
+        const userId = localStorage.getItem('usuario_id');
+        if (!userId) {
+            mostrarAlertaBurbuja("Debes iniciar sesión para sincronizar", "error");
+            return;
+        }
+
         const response = await fetch("https://gestorinventory-backend-production.up.railway.app/productos/sincronizar", {
             method: "POST",
-            headers: { "Authorization": `Bearer ${token}` },
+            headers: { 
+                "Authorization": `Bearer ${localStorage.getItem('supabase.auth.token')}`
+            },
         });
-        
+
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Error ${response.status}: ${errorText}`);
         }
-        
+
         const data = await response.json();
         const transaction = db.transaction(["productos"], "readwrite");
         const store = transaction.objectStore("productos");
-        
+
         await Promise.all(data.productos.map(async (producto) => {
             const existing = await new Promise(resolve => {
                 const req = store.get(producto.codigo);
                 req.onsuccess = () => resolve(req.result);
             });
-            
+
             if (!existing || JSON.stringify(existing) !== JSON.stringify(producto)) {
                 await new Promise(resolve => store.put(producto).onsuccess = resolve);
             }
         }));
-        
+
         mostrarAlertaBurbuja("Sincronización exitosa", "success");
     } catch (error) {
         console.error("Error de sincronización:", error);

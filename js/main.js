@@ -29,11 +29,10 @@ async function init() {
         await inicializarDB();
         await inicializarDBInventario();
 
-        // Sincronizar al cargar la página solo en archivos.html e inventario.html
-        const esPaginaArchivos = window.location.pathname.includes('archivos.html');
+        // Sincronizar al cargar la página solo en inventario.html
         const esPaginaInventario = window.location.pathname.includes('inventario.html');
 
-        if (esPaginaArchivos || esPaginaInventario) {
+        if (esPaginaInventario) {
             await inicializarSuscripciones(); // Iniciar suscripciones en tiempo real
             await sincronizarInventarioDesdeSupabase(); // Sincronizar al cargar la página
             await verificarYSeleccionarUbicacion(); // Verificar y seleccionar ubicación
@@ -44,11 +43,22 @@ async function init() {
             if (cambiarUbicacionBtn) {
                 cambiarUbicacionBtn.addEventListener('click', cambiarUbicacion);
             }
-        }
 
-        // Solo inicializamos el escáner si estamos en una página que lo usa
-        if (document.getElementById('scanner-container')) {
-            // Inicializar escáner
+            cargarDatosInventarioEnTablaPlantilla(); // Cargar datos en la tabla de inventario
+
+            // Agregar listeners para sincronización manual
+            document.getElementById('sync-inventario-down-btn')?.addEventListener('click', sincronizarInventarioDesdeSupabase);
+            document.getElementById('sincronizarManual')?.addEventListener('click', async () => {
+                mostrarSpinner();
+                try {
+                    await procesarColaSincronizacion();
+                    mostrarAlertaBurbuja('Sincronización manual completada', 'success');
+                } catch (error) {
+                    mostrarAlertaBurbuja('Error al sincronizar', 'error');
+                } finally {
+                    ocultarSpinner();
+                }
+            });
         }
 
         // Event listeners para los formularios
@@ -116,16 +126,6 @@ async function init() {
             botonGenerarPlantilla.addEventListener("click", generarPlantillaInventario);
         }
 
-        // Cargar datos en la tabla si estamos en la página de archivos
-        if (esPaginaArchivos) {
-            cargarDatosEnTabla();
-            cargarDatosInventarioEnTablaPlantilla();
-
-            // Agregar listeners para sincronización manual
-            document.getElementById('sync-down-btn')?.addEventListener('click', sincronizarProductosDesdeBackend);
-            document.getElementById('sync-up-btn')?.addEventListener('click', subirProductosAlBackend);
-        }
-
         const botonResetearBaseDatos = document.getElementById("resetearBaseDatos");
         if (botonResetearBaseDatos) {
             botonResetearBaseDatos.addEventListener("click", resetearBaseDatos);
@@ -149,41 +149,6 @@ async function init() {
         if (botonBuscarInventario) {
             botonBuscarInventario.addEventListener("click", buscarProductoInventario);
         }
-
-        // Event listeners para los botones de sincronización
-        if (esPaginaArchivos) {
-            const botonSincronizarBajada = document.getElementById("sync-down-btn");
-            if (botonSincronizarBajada) {
-                botonSincronizarBajada.addEventListener("click", async () => {
-                    mostrarMensaje("Sincronizando productos en bajada...", "info");
-                    await sincronizarProductosDesdeBackend();
-                });
-            }
-
-            const botonSincronizarSubida = document.getElementById("sync-up-btn");
-            if (botonSincronizarSubida) {
-                botonSincronizarSubida.addEventListener("click", async () => {
-                    mostrarMensaje("Sincronizando productos en subida...", "info");
-                    await subirProductosAlBackend();
-                });
-            }
-        }
-
-        if (esPaginaInventario) {
-            document.getElementById('sync-inventario-down-btn')?.addEventListener('click', sincronizarInventarioDesdeSupabase);
-        }
-
-        document.getElementById('sincronizarManual')?.addEventListener('click', async () => {
-            mostrarSpinner();
-            try {
-                await procesarColaSincronizacion();
-                mostrarAlertaBurbuja('Sincronización manual completada', 'success');
-            } catch (error) {
-                mostrarAlertaBurbuja('Error al sincronizar', 'error');
-            } finally {
-                ocultarSpinner();
-            }
-        });
 
     } catch (error) {
         console.error("Error initializing the application:", error);
@@ -273,6 +238,52 @@ function generarHojaInventario() {
             descargarInventarioPDF();
         }
     });
+}
+
+function mostrarSpinner() {
+    const spinner = document.createElement('div');
+    spinner.id = 'spinner';
+    spinner.className = 'spinner';
+    document.body.appendChild(spinner);
+}
+
+function ocultarSpinner() {
+    const spinner = document.getElementById('spinner');
+    if (spinner) {
+        spinner.remove();
+    }
+}
+
+// Ejemplo de uso en una operación asíncrona
+async function sincronizarDatos() {
+    mostrarSpinner();
+    try {
+        await sincronizarProductosDesdeBackend();
+        mostrarMensaje('Sincronización exitosa', 'success');
+    } catch (error) {
+        mostrarMensaje('Error al sincronizar', 'error');
+    } finally {
+        ocultarSpinner();
+    }
+}
+
+function actualizarIndicadorConexion() {
+    const indicador = document.getElementById('conexion-indicador');
+    if (navigator.onLine) {
+        mostrarAlertaBurbuja('🟢 En línea', 'success');
+        if (indicador) {
+            indicador.textContent = '🟢 En línea';
+            indicador.classList.remove('bg-red-500');
+            indicador.classList.add('bg-green-500');
+        }
+    } else {
+        mostrarAlertaBurbuja('🔴 Sin conexión', 'error');
+        if (indicador) {
+            indicador.textContent = '🔴 Sin conexión';
+            indicador.classList.remove('bg-green-500');
+            indicador.classList.add('bg-red-500');
+        }
+    }
 }
 
 function mostrarSpinner() {

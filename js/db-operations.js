@@ -550,17 +550,21 @@ function ordenarInventario(inventario, orden) {
 // Versión corregida:
 export async function sincronizarProductosDesdeBackend() {
     try {
-        const userId = localStorage.getItem('usuario_id');
-        if (!userId) {
-            mostrarAlertaBurbuja("Debes iniciar sesión para sincronizar", "error");
+        const usuarioId = localStorage.getItem('usuario_id');
+        const categoriaId = JSON.parse(localStorage.getItem('categoria_id'));
+        console.log(usuarioId, categoriaId);
+        if (!usuarioId || !categoriaId) {
+            console.warn("No hay usuario o categoría disponible para sincronizar");
             return;
         }
 
-        const response = await fetch("https://gestorinventory-backend-production.up.railway.app/productos/sincronizar", {
-            method: "POST",
+        const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/sincronizar', {
+            method: 'POST',
             headers: { 
+                'Content-Type': 'application/json',
                 "Authorization": `Bearer ${localStorage.getItem('supabase.auth.token')}`
             },
+            body: JSON.stringify({ usuarioId, categoriaId }),
         });
 
         if (!response.ok) {

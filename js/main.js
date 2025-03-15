@@ -150,6 +150,22 @@ async function init() {
             botonBuscarInventario.addEventListener("click", buscarProductoInventario);
         }
 
+        // Event listener para el botón de sincronización en bajada
+        const botonSyncDown = document.getElementById("sync-down-btn");
+        if (botonSyncDown) {
+            botonSyncDown.addEventListener("click", async () => {
+                mostrarSpinner();
+                try {
+                    await sincronizarProductosDesdeBackend();
+                    mostrarAlertaBurbuja('Sincronización en bajada completada', 'success');
+                } catch (error) {
+                    mostrarAlertaBurbuja('Error al sincronizar en bajada', 'error');
+                } finally {
+                    ocultarSpinner();
+                }
+            });
+        }
+
     } catch (error) {
         console.error("Error initializing the application:", error);
         mostrarMensaje("Error al inicializar la aplicación. Por favor, recargue la página.", "error");

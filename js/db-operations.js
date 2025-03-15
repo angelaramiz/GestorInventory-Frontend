@@ -550,75 +550,38 @@ function ordenarInventario(inventario, orden) {
 // Versión corregida:
 export async function sincronizarProductosDesdeBackend() {
     try {
-        const token = localStorage.getItem('supabase.auth.token');
-        if (!token) {
-            mostrarAlertaBurbuja("Debes iniciar sesión para sincronizar", "error");
-            return;
-        }
-
+        const token = (await supabase.auth.getSession()).data.session?.access_token;
+        if (!token) throw new Error("No autenticado");
+        
         const response = await fetch("https://gestorinventory-backend-production.up.railway.app/productos/sincronizar", {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
+            headers: { "Authorization": `Bearer ${token}` },
         });
-
-        // Manejar errores HTTP (ej: 401, 404, 500)
-        if (response.status === 401) {
-            mostrarAlertaBurbuja("Sesión expirada", "error");
-            localStorage.clear();
-            window.location.href = "../index.html";
-            return;
-        }
-
+        
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Error ${response.status}: ${errorText}`);
         }
-
-        const data = await response.json();
-
-        // Verificar que data.productos sea un array
-        if (!Array.isArray(data.productos)) {
-            throw new Error("La respuesta del servidor no contiene un array de productos");
-        }
         
-        // Actualizar IndexedDB
+        const data = await response.json();
         const transaction = db.transaction(["productos"], "readwrite");
         const store = transaction.objectStore("productos");
-
-        // Verificar si cada producto ya existe antes de agregarlo o actualizarlo
-        for (const producto of data.productos) {
-            const request = store.get(producto.codigo); // Buscar el producto por su código
-            request.onsuccess = (e) => {
-                const productoExistente = e.target.result;
-                if (!productoExistente) {
-                    // Si el producto no existe, lo agregamos
-                    store.add(producto);
-                } else {
-                    // Si el producto existe, lo actualizamos solo si es necesario
-                    if (JSON.stringify(productoExistente) !== JSON.stringify(producto)) {
-                        store.put(producto);
-                    }
-                }
-            };
-            request.onerror = (e) => {
-                console.error("Error al buscar producto:", e.target.error);
-            };
-        }
-
-        mostrarAlertaBurbuja("Sincronización exitosa 🎉", "success");
-
-        // Llamar a cargarDatosEnTabla para actualizar la tabla en la interfaz
-        cargarDatosEnTabla();
-
-        return true;
-
+        
+        await Promise.all(data.productos.map(async (producto) => {
+            const existing = await new Promise(resolve => {
+                const req = store.get(producto.codigo);
+                req.onsuccess = () => resolve(req.result);
+            });
+            
+            if (!existing || JSON.stringify(existing) !== JSON.stringify(producto)) {
+                await new Promise(resolve => store.put(producto).onsuccess = resolve);
+            }
+        }));
+        
+        mostrarAlertaBurbuja("Sincronización exitosa", "success");
     } catch (error) {
         console.error("Error de sincronización:", error);
-        mostrarAlertaBurbuja(`Falló la sincronización: ${error.message}`, "error");
-        return false;
+        mostrarAlertaBurbuja(`Falló: ${error.message}`, "error");
     }
 }
 

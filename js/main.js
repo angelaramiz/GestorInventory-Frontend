@@ -286,52 +286,6 @@ function actualizarIndicadorConexion() {
     }
 }
 
-function mostrarSpinner() {
-    const spinner = document.createElement('div');
-    spinner.id = 'spinner';
-    spinner.className = 'spinner';
-    document.body.appendChild(spinner);
-}
-
-function ocultarSpinner() {
-    const spinner = document.getElementById('spinner');
-    if (spinner) {
-        spinner.remove();
-    }
-}
-
-// Ejemplo de uso en una operación asíncrona
-async function sincronizarDatos() {
-    mostrarSpinner();
-    try {
-        await sincronizarProductosDesdeBackend();
-        mostrarMensaje('Sincronización exitosa', 'success');
-    } catch (error) {
-        mostrarMensaje('Error al sincronizar', 'error');
-    } finally {
-        ocultarSpinner();
-    }
-}
-
-function actualizarIndicadorConexion() {
-    const indicador = document.getElementById('conexion-indicador');
-    if (navigator.onLine) {
-        mostrarAlertaBurbuja('🟢 En línea', 'success');
-        if (indicador) {
-            indicador.textContent = '🟢 En línea';
-            indicador.classList.remove('bg-red-500');
-            indicador.classList.add('bg-green-500');
-        }
-    } else {
-        mostrarAlertaBurbuja('🔴 Sin conexión', 'error');
-        if (indicador) {
-            indicador.textContent = '🔴 Sin conexión';
-            indicador.classList.remove('bg-green-500');
-            indicador.classList.add('bg-red-500');
-        }
-    }
-}
-
 window.addEventListener('online', actualizarIndicadorConexion);
 window.addEventListener('offline', actualizarIndicadorConexion);
 

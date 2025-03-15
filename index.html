@@ -45,8 +45,12 @@
     <script type="module" src="./js/auth.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/GestorInventory-Frontend/service-worker.js')
-                .then(() => console.log('Service Worker registrado'))
+            // Detectar si estamos en localhost o en GitHub Pages
+            const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            const swPath = isLocalhost ? '/service-worker.js' : '/GestorInventory-Frontend/service-worker.js';
+
+            navigator.serviceWorker.register(swPath)
+                .then(() => console.log('Service Worker registrado en:', swPath))
                 .catch(err => console.error('Error registrando Service Worker:', err));
         }
     </script>

@@ -1,8 +1,24 @@
 // Importaciones
-import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase } from './db-operations.js';
+import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso } from './db-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
-import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario } from './product-operations.js';
+import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
+
+// Función para mostrar la ubicación actual
+async function mostrarUbicacionActual() {
+    const ubicacion = await obtenerUbicacionEnUso();
+    document.getElementById('ubicacionActual').innerText = ubicacion || 'No seleccionada';
+}
+
+// Función para cambiar la ubicación manualmente
+async function cambiarUbicacion() {
+    const nuevaUbicacion = await seleccionarUbicacionAlmacen();
+    if (nuevaUbicacion) {
+        iniciarInventario(nuevaUbicacion);
+        sessionStorage.setItem("ubicacion_seleccionada", "true");
+        mostrarUbicacionActual();
+    }
+}
 
 // Función de inicialización
 async function init() {
@@ -17,6 +33,11 @@ async function init() {
         if (esPaginaArchivos || esPaginaInventario) {
             await inicializarSuscripciones(); // Iniciar suscripciones en tiempo real
             await sincronizarInventarioDesdeSupabase(); // Sincronizar al cargar la página
+            await verificarYSeleccionarUbicacion(); // Verificar y seleccionar ubicación
+            mostrarUbicacionActual(); // Mostrar la ubicación actual
+
+            // Agregar event listener para cambiar ubicación
+            document.getElementById('cambiarUbicacion').addEventListener('click', cambiarUbicacion);
         }
 
         // Solo inicializamos el escáner si estamos en una página que lo usa
@@ -158,7 +179,6 @@ async function init() {
             }
         });
 
-        // Solicitar la selección de ubicación al cargar inventario.html
     } catch (error) {
         console.error("Error initializing the application:", error);
         mostrarMensaje("Error al inicializar la aplicación. Por favor, recargue la página.", "error");
@@ -167,21 +187,6 @@ async function init() {
 
 // Event listener principal
 document.addEventListener('DOMContentLoaded', init);
-
-document.addEventListener('DOMContentLoaded', async () => {
-    if (window.location.pathname.includes('inventario.html')) {
-        if (!sessionStorage.getItem("ubicacion_seleccionada")) {
-            const ubicacionEnUso = await obtenerUbicacionEnUso();
-            if (!ubicacionEnUso) {
-                const nuevaUbicacion = await seleccionarUbicacionAlmacen();
-                if (nuevaUbicacion) {
-                    iniciarInventario(nuevaUbicacion);
-                    sessionStorage.setItem("ubicacion_seleccionada", "true"); // Evita doble ejecución
-                }
-            }
-        }
-    }
-});
 
 // Funciones auxiliares
 function mostrarSeccion(seccion) {

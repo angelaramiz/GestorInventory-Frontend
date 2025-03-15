@@ -915,46 +915,6 @@ export async function seleccionarUbicacionAlmacen() {
     return ubicacion; // Puede ser undefined si se cancela
 }
 
-// Ejemplo de uso al cargar inventario
-document.addEventListener('DOMContentLoaded', async () => {
-    // Verifica si ya hay una ubicación en uso (podrías consultar a Supabase o IndexedDB)
-    const ubicacionEnUso = await obtenerUbicacionEnUso(); // Implementa esta función según tu lógica
-    if (ubicacionEnUso) {
-        const { value: decision } = await Swal.fire({
-            title: 'Ubicación en uso',
-            text: `La ubicación "${ubicacionEnUso}" ya está en uso. ¿Deseas unirte o seleccionar otra?`,
-            showDenyButton: true,
-            showCancelButton: true,
-            confirmButtonText: 'Unirme',
-            denyButtonText: 'Seleccionar otra'
-        });
-        if (decision === true) {
-            // Continuar con la ubicación existente
-            iniciarInventario(ubicacionEnUso);
-        } else if (decision === false) {
-            // Permitir seleccionar otra ubicación
-            const nuevaUbicacion = await seleccionarUbicacionAlmacen();
-            if (nuevaUbicacion) {
-                iniciarInventario(nuevaUbicacion);
-            }
-        }
-    } else {
-        // No hay ubicación en uso, se solicita la selección
-        const ubicacion = await seleccionarUbicacionAlmacen();
-        if (ubicacion) {
-            iniciarInventario(ubicacion);
-        }
-    }
-});
-
-// Función de ejemplo para iniciar inventario con la ubicación dada
-export function iniciarInventario(ubicacion) {
-    // Almacena la ubicación seleccionada en una variable o en el estado de la aplicación
-    localStorage.setItem('ubicacion_almacen', ubicacion);
-    // Continúa con la carga de inventario filtrando según la ubicación
-    console.log("Iniciando inventario para la ubicación:", ubicacion);
-    // Aquí puedes hacer la consulta a Supabase filtrando por 'ubicacion_almacen'
-}
 
 // Función para agregar un nuevo producto desde el inventario
 export async function agregarNuevoProductoDesdeInventario(codigo, permitirModificarCodigo = false) {
@@ -1016,5 +976,27 @@ export async function agregarNuevoProductoDesdeInventario(codigo, permitirModifi
             document.getElementById("formAgregarProducto").reset();
         };
     }
+}
+
+export async function verificarYSeleccionarUbicacion() {
+    if (!sessionStorage.getItem("ubicacion_seleccionada")) {
+        const ubicacionEnUso = await obtenerUbicacionEnUso();
+        if (!ubicacionEnUso) {
+            const nuevaUbicacion = await seleccionarUbicacionAlmacen();
+            if (nuevaUbicacion) {
+                iniciarInventario(nuevaUbicacion);
+                sessionStorage.setItem("ubicacion_seleccionada", "true"); // Evita doble ejecución
+            }
+        }
+    }
+}
+
+// Función de ejemplo para iniciar inventario con la ubicación dada
+export function iniciarInventario(ubicacion) {
+    // Almacena la ubicación seleccionada en una variable o en el estado de la aplicación
+    localStorage.setItem('ubicacion_almacen', ubicacion);
+    // Continúa con la carga de inventario filtrando según la ubicación
+    console.log("Iniciando inventario para la ubicación:", ubicacion);
+    // Aquí puedes hacer la consulta a Supabase filtrando por 'ubicacion_almacen'
 }
 

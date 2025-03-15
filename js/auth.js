@@ -107,24 +107,30 @@ async function iniciarSesion(email, password) {
 
         const data = await response.json();
 
-        if (data.success) {
-            localStorage.setItem('supabase.auth.token', data.user.access_token);
-            localStorage.setItem('supabase.auth.refresh', data.user.refresh_token);
-            localStorage.setItem('usuario_id', data.user.user.id);
-            localStorage.setItem('categoria_id', JSON.stringify(data.user.user.categorias)); // Guardar la categoría
-
-            // Configurar el token en el cliente Supabase
-            await supabase.auth.setSession({
-                access_token: data.user.access_token,
-                refresh_token: data.user.refresh_token
-            });
-
-            mostrarAlertaBurbuja('Inicio de sesión exitoso', 'success');
-            setTimeout(() => {
-                window.location.href = './plantillas/main.html';
-            }, 500);
+        if (data.success && data.user) {
+            const { access_token, refresh_token, user } = data.user;
+            if (access_token && refresh_token && user) {
+                localStorage.setItem('supabase.auth.token', access_token);
+                localStorage.setItem('supabase.auth.refresh', refresh_token);
+                localStorage.setItem('usuario_id', user.id);
+                localStorage.setItem('categoria_id', user.categoria_id); // Guardar la categoría
+                console.log(data.user.user.categoria_id);
+        
+                // Configurar el token en el cliente Supabase
+                await supabase.auth.setSession({
+                    access_token: access_token,
+                    refresh_token: refresh_token
+                });
+        
+                mostrarAlertaBurbuja('Inicio de sesión exitoso', 'success');
+                setTimeout(() => {
+                    window.location.href = './plantillas/main.html';
+                }, 500);
+            } else {
+                mostrarAlertaBurbuja('Datos de usuario incompletos', 'error');
+            }
         } else {
-            mostrarAlertaBurbuja(data.error, 'error');
+            mostrarAlertaBurbuja(data.error || 'Error al iniciar sesión', 'error');
         }
     } catch (error) {
         mostrarAlertaBurbuja('Error de conexión con el servidor', 'error');

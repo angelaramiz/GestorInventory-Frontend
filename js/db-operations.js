@@ -356,7 +356,7 @@ export function descargarInventarioCSV() {
         let csv =
             "Código,Nombre,Categoría,Marca,Lote,Tipo de Cantidad,Cantidad,Fecha de Caducidad,Comentarios\n";
         inventario.forEach(item => {
-            csv += `${item.codigo},${item.nombre},${item.categoria},${item.marca},${item.lote},${item.tipoQuantidad},${item.cantidad},${item.caducidad},${item.comentarios}\n`;
+            csv += `${item.codigo},${item.nombre},${item.categoria},${item.marca},${item.lote},${item.tipoCantidad},${item.cantidad},${item.caducidad},${item.comentarios}\n`;
         });
 
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -477,7 +477,7 @@ function generarPDFConOpciones(opciones) {
             doc.setFontSize(12);
             doc.text(`Código: ${item.codigo}`, 10, yPos);
             doc.text(`Nombre: ${item.nombre}`, 10, yPos + 5);
-            doc.text(`Cantidad: ${item.cantidad} ${item.tipoQuantidad}`, 10, yPos + 10);
+            doc.text(`Cantidad: ${item.cantidad} ${item.tipoCantidad}`, 10, yPos + 10);
             doc.text(`Marca: ${item.marca}`, 10, yPos + 15);
             doc.text(`Fecha de Caducidad: ${item.caducidad}`, 10, yPos + 20);
             doc.setFontSize(10);
@@ -551,13 +551,12 @@ function ordenarInventario(inventario, orden) {
 export async function sincronizarProductosDesdeBackend() {
     try {
         const usuarioId = localStorage.getItem('usuario_id');
-        const categoriaId = JSON.parse(localStorage.getItem('categoria_id'));
+        const categoriaId = localStorage.getItem('categoria_id');
         console.log(usuarioId, categoriaId);
         if (!usuarioId || !categoriaId) {
             console.warn("No hay usuario o categoría disponible para sincronizar");
             return;
         }
-
         const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/sincronizar', {
             method: 'POST',
             headers: { 
@@ -566,7 +565,7 @@ export async function sincronizarProductosDesdeBackend() {
             },
             body: JSON.stringify({ usuarioId, categoriaId }),
         });
-
+        console.log(response);
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Error ${response.status}: ${errorText}`);
@@ -593,6 +592,11 @@ export async function sincronizarProductosDesdeBackend() {
         mostrarAlertaBurbuja(`Falló: ${error.message}`, "error");
     }
 }
+
+// Call the function after initializing the database
+inicializarDB().then(() => {
+    sincronizarProductosDesdeBackend();
+});
 
 // Llamar a sincronizarDatos cuando se cargue la página
 export async function subirProductosAlBackend() {

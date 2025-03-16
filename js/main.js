@@ -40,13 +40,6 @@ async function init() {
         await inicializarDB();
         await inicializarDBInventario();
 
-        if (window.location.pathname.includes('inventario.html')) {
-            // Primero inicializar Supabase
-            // await verificarAutenticacion(); // Asegurar que el usuario está logueado
-            await inicializarSuscripciones(); // Ahora sí está listo
-            await verificarYSeleccionarUbicacion();
-            mostrarUbicacionActual();
-        }
 
         // Sincronizar al cargar la página solo en inventario.html
         const esPaginaInventario = window.location.pathname.includes('inventario.html');

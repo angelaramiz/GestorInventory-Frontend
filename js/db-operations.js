@@ -697,6 +697,11 @@ export function cargarDatosInventarioEnTablaPlantilla() {
         return;
     }
 
+    if (!dbInventario) {
+        console.error("Base de datos de inventario no inicializada.");
+        return;
+    }
+
     const transaction = dbInventario.transaction(["inventario"], "readonly");
     const objectStore = transaction.objectStore("inventario");
     const request = objectStore.getAll();
@@ -792,9 +797,10 @@ export function cargarDatosEnTabla() {
         mostrarMensaje("Error al cargar datos en la tabla:", event.target.error);
     };
 }
-
+// Función para sincronizar el inventario desde Supabase
 export async function sincronizarInventarioDesdeSupabase() {
     try {
+        const supabase = await getSupabase();
         const userId = localStorage.getItem('usuario_id');
         const ubicacion = await obtenerUbicacionEnUso(); // Obtener ubicación actual
 

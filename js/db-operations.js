@@ -563,6 +563,7 @@ export async function sincronizarProductosDesdeBackend() {
                 'Content-Type': 'application/json',
                 "Authorization": `Bearer ${localStorage.getItem('supabase.auth.token')}`
             },
+            credentials: 'include', // <- Añadir esto para enviar cookies
             body: JSON.stringify({ usuarioId, categoriaId }),
         });
         console.log(response.body);
@@ -587,6 +588,7 @@ export async function sincronizarProductosDesdeBackend() {
         }));
 
         mostrarAlertaBurbuja("Sincronización exitosa", "success");
+        cargarDatosEnTabla(); // Llamar a cargarDatosEnTabla después de la sincronización
     } catch (error) {
         console.error("Error de sincronización:", error);
         mostrarAlertaBurbuja(`Falló: ${error.message}`, "error");
@@ -742,12 +744,18 @@ export function cargarDatosEnTabla() {
         return;
     }
 
+    if (!db) {
+        console.error("Base de datos no inicializada.");
+        return;
+    }
+
     const transaction = db.transaction(["productos"], "readonly");
     const objectStore = transaction.objectStore("productos");
     const request = objectStore.getAll();
 
     request.onsuccess = function (event) {
         const productos = event.target.result;
+        console.log("Productos obtenidos:", productos);
         tbody.innerHTML = ""; // Limpiar tabla
 
         productos.forEach(function (producto) {
@@ -761,6 +769,7 @@ export function cargarDatosEnTabla() {
     };
 
     request.onerror = function (event) {
+        console.error("Error al cargar datos en la tabla:", event.target.error);
         mostrarMensaje("Error al cargar datos en la tabla:", event.target.error);
     };
 }
@@ -816,6 +825,7 @@ export async function sincronizarInventarioDesdeSupabase() {
         }
 
         mostrarAlertaBurbuja("Inventario sincronizado exitosamente desde Supabase", "success");
+        cargarDatosInventarioEnTablaPlantilla(); // Call the function to update the table
     } catch (error) {
         mostrarAlertaBurbuja(`Error al sincronizar inventario: ${error.message}`, "error");
     }

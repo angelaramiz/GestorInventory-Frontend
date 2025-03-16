@@ -1,6 +1,6 @@
 import { mostrarMensaje, mostrarResultadoCarga, mostrarAlertaBurbuja } from './logs.js';
 import { sanitizarProducto } from './sanitizacion.js';
-import { supabase } from './auth.js'; // Importar el cliente de Supabase
+import { getSupabase } from './auth.js'; // Importar la nueva función
 
 // variables globales
 export let db;
@@ -25,6 +25,7 @@ export async function procesarColaSincronizacion() {
     while (syncQueue.length > 0) {
         const item = syncQueue.shift();
         try {
+            const supabase = await getSupabase();
             const { data, error } = await supabase
                 .from('inventario')
                 .upsert({ ...item, usuario_id: localStorage.getItem('usuario_id') })
@@ -176,15 +177,15 @@ async function actualizarInventarioDesdeServidor(payload) {
 // Configurar suscripción a Supabase
 export async function inicializarSuscripciones() {
     try {
-        // Esperar a que supabase esté inicializado
-        while (!supabase) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+        // Esperar a que Supabase esté listo
+        const supabase = await getSupabase();
+        if (!supabase) {
+            throw new Error("Supabase no inicializado");
         }
 
         const userId = localStorage.getItem('usuario_id');
         if (!userId) {
-            console.warn('No hay usuario autenticado, suscripciones no iniciadas.');
-            return;
+            throw new Error("Usuario no autenticado");
         }
 
         const channel = supabase.channel('inventario-real-time')
@@ -194,26 +195,14 @@ export async function inicializarSuscripciones() {
                 table: 'inventario',
                 filter: `usuario_id=eq.${userId}`
             }, (payload) => {
-                console.log('Cambio recibido:', payload);
                 actualizarInventarioDesdeServidor(payload);
-            });
-
-        channel.subscribe(status => {
-            console.log('Estado de suscripción:', status);
-            if (status === 'SUBSCRIBED') {
-                mostrarAlertaBurbuja('Conexión en tiempo real activa', 'success');
-            } else if (status === 'CLOSED') {
-                mostrarAlertaBurbuja('Conexión en tiempo real cerrada', 'warning');
-            } else if (status === 'ERROR') {
-                mostrarAlertaBurbuja('Error en la conexión en tiempo real', 'error');
-            }
-        });
+            })
+            .subscribe();
 
         return channel;
-
     } catch (error) {
-        console.error("Error inicializando suscripciones:", error);
-        mostrarAlertaBurbuja('Error inicializando suscripciones', 'error');
+        console.error("Error en suscripción:", error);
+        throw error;
     }
 }
 
@@ -807,12 +796,19 @@ export function cargarDatosEnTabla() {
 export async function sincronizarInventarioDesdeSupabase() {
     try {
         const userId = localStorage.getItem('usuario_id');
-        if (!userId) return;
+        const ubicacion = await obtenerUbicacionEnUso(); // Obtener ubicación actual
 
+        if (!userId || !ubicacion) {
+            console.warn("Usuario o ubicación no definidos. Sincronización cancelada.");
+            return;
+        }
+
+        // Filtrar por usuario Y ubicación en Supabase
         const { data, error } = await supabase
             .from('inventario')
             .select('*')
             .eq('usuario_id', userId)
+            .eq('ubicacion', ubicacion) // <-- Agregar este filtro
             .order('last_modified', { ascending: false });
 
         if (error) throw error;

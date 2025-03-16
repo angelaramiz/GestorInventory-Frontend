@@ -979,15 +979,28 @@ export async function agregarNuevoProductoDesdeInventario(codigo, permitirModifi
 }
 
 export async function verificarYSeleccionarUbicacion() {
-    if (!sessionStorage.getItem("ubicacion_seleccionada")) {
-        const ubicacionEnUso = await obtenerUbicacionEnUso();
-        if (!ubicacionEnUso) {
-            const nuevaUbicacion = await seleccionarUbicacionAlmacen();
-            if (nuevaUbicacion) {
-                iniciarInventario(nuevaUbicacion);
-                sessionStorage.setItem("ubicacion_seleccionada", "true"); // Evita doble ejecución
+    const ubicacionGuardada = await obtenerUbicacionEnUso();
+    
+    if (!ubicacionGuardada) {
+        await Swal.fire({
+            title: 'Selecciona una ubicación',
+            input: 'select',
+            inputOptions: {
+                'bodega1': 'Bodega 1',
+                'camara_fria': 'Cámara Fría',
+                'almacen_central': 'Almacén Central'
+            },
+            inputPlaceholder: 'Selecciona una ubicación',
+            showCancelButton: false,
+            inputValidator: (value) => {
+                if (!value) return 'Debes seleccionar una ubicación';
             }
-        }
+        });
+        
+        const ubicacionSeleccionada = Swal.getInput().value;
+        localStorage.setItem('ubicacion_almacen', ubicacionSeleccionada);
+        sessionStorage.setItem("ubicacion_seleccionada", "true");
+        mostrarUbicacionActual();
     }
 }
 

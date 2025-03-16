@@ -19,7 +19,18 @@ async function cambiarUbicacion() {
     if (nuevaUbicacion) {
         iniciarInventario(nuevaUbicacion);
         sessionStorage.setItem("ubicacion_seleccionada", "true");
-        mostrarUbicacionActual();
+        await mostrarUbicacionActual();
+    }
+}
+
+// Función para verificar la autenticación del usuario
+async function verificarAutenticacion() {
+    // Aquí puedes agregar la lógica para verificar si el usuario está autenticado
+    // Por ejemplo, podrías verificar un token en el localStorage o hacer una llamada a tu backend
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = '../index.html'; // Redirigir a la página de login si no está autenticado
+        throw new Error('Usuario no autenticado');
     }
 }
 
@@ -30,21 +41,11 @@ async function init() {
         await inicializarDBInventario();
 
         if (window.location.pathname.includes('inventario.html')) {
-            // Sincronización inicial
-            await sincronizarInventarioDesdeSupabase();
-            
-            // Iniciar suscripciones y mantener la referencia al canal
-            const channel = await inicializarSuscripciones();
-            
-            // Manejar recarga de página
-            window.addEventListener('beforeunload', () => {
-                channel?.unsubscribe();
-            });
-
-            // Actualizar tabla cada 30 segundos como respaldo
-            setInterval(async () => {
-                await sincronizarInventarioDesdeSupabase();
-            }, 30000);
+            // Primero inicializar Supabase
+            await verificarAutenticacion(); // Asegurar que el usuario está logueado
+            await inicializarSuscripciones(); // Ahora sí está listo
+            await verificarYSeleccionarUbicacion();
+            mostrarUbicacionActual();
         }
 
         // Sincronizar al cargar la página solo en inventario.html
@@ -185,8 +186,7 @@ async function init() {
         }
 
     } catch (error) {
-        console.error("Error initializing the application:", error);
-        mostrarMensaje("Error al inicializar la aplicación. Por favor, recargue la página.", "error");
+        console.error("Error en inicialización:", error);
     }
 }
 

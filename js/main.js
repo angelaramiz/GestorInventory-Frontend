@@ -42,7 +42,7 @@ async function init() {
 
         if (window.location.pathname.includes('inventario.html')) {
             // Primero inicializar Supabase
-            await verificarAutenticacion(); // Asegurar que el usuario está logueado
+            // await verificarAutenticacion(); // Asegurar que el usuario está logueado
             await inicializarSuscripciones(); // Ahora sí está listo
             await verificarYSeleccionarUbicacion();
             mostrarUbicacionActual();

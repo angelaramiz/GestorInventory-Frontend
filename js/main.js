@@ -5,7 +5,7 @@ import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProduc
 import { toggleEscaner, detenerEscaner } from './scanner.js';
 
 // Función para mostrar la ubicación actual
-async function mostrarUbicacionActual() {
+export async function mostrarUbicacionActual() {
     const ubicacion = await obtenerUbicacionEnUso();
     const ubicacionElement = document.getElementById('ubicacionActual');
     if (ubicacionElement) {

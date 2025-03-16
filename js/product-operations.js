@@ -5,7 +5,7 @@ import { cargarDatosEnTabla,obtenerUbicacionEnUso } from './db-operations.js';
 import { sanitizarProducto, sanitizarEntrada } from './sanitizacion.js';
 import { supabase } from './auth.js';
 import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm'; // Usar UUID para IDs únicos
-
+import { mostrarUbicacionActual } from './main.js';
 // Función para generar un ID temporal si estás offline
 function generarIdTemporal(codigo, lote) {
     return `${codigo}-${lote}-${uuidv4().slice(0, 8)}`; // Ejemplo: "123-1-abc12345"

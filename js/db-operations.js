@@ -802,24 +802,32 @@ export async function sincronizarInventarioDesdeSupabase() {
     try {
         const supabase = await getSupabase();
         const userId = localStorage.getItem('usuario_id');
-        const ubicacionNombre = localStorage.getItem('ubicacion_almacen'); // Obtener el nombre de la ubicación
-
+        
         if (!userId || !ubicacionNombre) {
             console.warn("Usuario o ubicación no definidos. Sincronización cancelada.");
             return;
         }
 
-        // Buscar el ID del área en Supabase
+        const ubicacionNombre = localStorage.getItem('ubicacion_almacen'); // Obtener el nombre de la ubicación
+
+        if (!ubicacionNombre) {
+            console.error("El nombre de la ubicación no está definido.");
+            return;
+        }
+
         const { data: areaData, error: areaError } = await supabase
             .from('areas')
             .select('id')
             .eq('nombre', ubicacionNombre)
             .single();
 
+        console.log("Área encontrada:", areaData);
+
         if (areaError || !areaData) {
             console.error("No se encontró el área en Supabase:", areaError);
             return;
         }
+
         const areaId = areaData.id;
 
         // Ahora consulta el inventario con el área correcta
@@ -834,6 +842,23 @@ export async function sincronizarInventarioDesdeSupabase() {
             console.error("Error en la sincronización:", error);
         } else {
             console.log("Inventario sincronizado:", data);
+
+            // Actualizar IndexedDB con los datos sincronizados
+            const transaction = dbInventario.transaction(["inventario"], "readwrite");
+            const objectStore = transaction.objectStore("inventario");
+
+            // Limpiar el almacén de inventario antes de agregar los nuevos datos
+            objectStore.clear().onsuccess = async () => {
+                for (const item of data) {
+                    await new Promise((resolve, reject) => {
+                        const request = objectStore.add(item);
+                        request.onsuccess = resolve;
+                        request.onerror = () => reject(request.error);
+                    });
+                }
+                console.log("Inventario local actualizado con éxito");
+                cargarDatosInventarioEnTablaPlantilla(); // Actualizar la tabla después de la sincronización
+            };
         }
     } catch (error) {
         console.error("Error en la sincronización:", error);

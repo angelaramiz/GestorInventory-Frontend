@@ -142,46 +142,79 @@ export function inicializarDBInventario() {
 }
 
 // Función para actualizar IndexedDB desde eventos en tiempo real
-async function actualizarInventarioDesdeServidor(evento, payload) {
-    const localRecord = await obtenerRegistroLocal(payload.new.id);
-    if (!localRecord || new Date(localRecord.last_modified) < new Date(payload.new.last_modified)) {
-        await actualizarRegistroLocal(payload.new);
+async function actualizarInventarioDesdeServidor(payload) {
+    try {
+        const transaction = dbInventario.transaction(["inventario"], "readwrite");
+        const objectStore = transaction.objectStore("inventario");
+
+        switch (payload.eventType) {
+            case 'INSERT':
+            case 'UPDATE':
+                await new Promise((resolve) => {
+                    const request = objectStore.put(payload.new);
+                    request.onsuccess = resolve;
+                });
+                break;
+
+            case 'DELETE':
+                await new Promise((resolve) => {
+                    const request = objectStore.delete(payload.old.id);
+                    request.onsuccess = resolve;
+                });
+                break;
+        }
+
+        // Actualizar la tabla si estamos en inventario.html
+        if (window.location.pathname.includes('inventario.html')) {
+            cargarDatosInventarioEnTablaPlantilla();
+        }
+    } catch (error) {
+        console.error("Error actualizando inventario local:", error);
     }
 }
 
 // Configurar suscripción a Supabase
 export async function inicializarSuscripciones() {
-    // Esperar a que supabase esté inicializado
-    while (!supabase) {
-        await new Promise(resolve => setTimeout(resolve, 100)); // Espera 100ms y reintenta
-    }
+    try {
+        // Esperar a que supabase esté inicializado
+        while (!supabase) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
 
-    const userId = localStorage.getItem('usuario_id');
-    if (!userId) {
-        console.warn('No hay usuario autenticado, suscripciones no iniciadas.');
-        return;
-    }
+        const userId = localStorage.getItem('usuario_id');
+        if (!userId) {
+            console.warn('No hay usuario autenticado, suscripciones no iniciadas.');
+            return;
+        }
 
-    supabase
-        .channel('inventario-changes')
-        .on('postgres_changes', 
-            { 
-                event: '*', 
-                schema: 'public', 
-                table: 'inventario', 
-                filter: `usuario_id=eq.${userId}` 
-            }, 
-            (payload) => {
-                actualizarInventarioDesdeServidor(payload.eventType, payload);
-            }
-        )
-        .subscribe((status) => {
+        const channel = supabase.channel('inventario-real-time')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'inventario',
+                filter: `usuario_id=eq.${userId}`
+            }, (payload) => {
+                console.log('Cambio recibido:', payload);
+                actualizarInventarioDesdeServidor(payload);
+            });
+
+        channel.subscribe(status => {
+            console.log('Estado de suscripción:', status);
             if (status === 'SUBSCRIBED') {
-                mostrarAlertaBurbuja('Conectado a actualizaciones en tiempo real', 'info');
+                mostrarAlertaBurbuja('Conexión en tiempo real activa', 'success');
             } else if (status === 'CLOSED') {
-                mostrarAlertaBurbuja('Desconectado de actualizaciones en tiempo real', 'warning');
+                mostrarAlertaBurbuja('Conexión en tiempo real cerrada', 'warning');
+            } else if (status === 'ERROR') {
+                mostrarAlertaBurbuja('Error en la conexión en tiempo real', 'error');
             }
         });
+
+        return channel;
+
+    } catch (error) {
+        console.error("Error inicializando suscripciones:", error);
+        mostrarAlertaBurbuja('Error inicializando suscripciones', 'error');
+    }
 }
 
 export function resetearBaseDeDatos(database, storeName) {
@@ -773,58 +806,35 @@ export function cargarDatosEnTabla() {
 
 export async function sincronizarInventarioDesdeSupabase() {
     try {
-        // Verificar autenticación del usuario
         const userId = localStorage.getItem('usuario_id');
-        if (!userId) {
-            mostrarAlertaBurbuja("Debes iniciar sesión para sincronizar", "error");
-            return;
-        }
+        if (!userId) return;
 
-        const token = localStorage.getItem('supabase.auth.token');
-        if (!token) {
-            mostrarAlertaBurbuja("Sesión no válida, inicia sesión nuevamente", "error");
-            return;
-        }
-
-        // Obtener datos de inventario desde Supabase
         const { data, error } = await supabase
             .from('inventario')
             .select('*')
-            .eq('usuario_id', userId);
+            .eq('usuario_id', userId)
+            .order('last_modified', { ascending: false });
 
-        if (error) {
-            throw new Error(`Error al obtener inventario: ${error.message}`);
-        }
+        if (error) throw error;
 
-        if (!data || data.length === 0) {
-            mostrarAlertaBurbuja("No hay datos de inventario en Supabase", "info");
-            return;
-        }
-
-        // Actualizar IndexedDB
         const transaction = dbInventario.transaction(["inventario"], "readwrite");
         const objectStore = transaction.objectStore("inventario");
 
-        // Limpiar datos existentes en IndexedDB
-        await new Promise((resolve, reject) => {
-            const clearRequest = objectStore.clear();
-            clearRequest.onsuccess = resolve;
-            clearRequest.onerror = () => reject(clearRequest.error);
-        });
+        // Limpiar datos existentes
+        await new Promise(resolve => objectStore.clear().onsuccess = resolve);
 
-        // Insertar los datos de Supabase en IndexedDB
-        for (const item of data) {
-            await new Promise((resolve, reject) => {
-                const addRequest = objectStore.add(item);
-                addRequest.onsuccess = resolve;
-                addRequest.onerror = () => reject(addRequest.error);
-            });
+        // Insertar nuevos datos
+        await Promise.all(data.map(item => 
+            new Promise(resolve => objectStore.put(item).onsuccess = resolve)
+        ));
+
+        if (window.location.pathname.includes('inventario.html')) {
+            cargarDatosInventarioEnTablaPlantilla();
+            mostrarAlertaBurbuja("Inventario actualizado", "success");
         }
-
-        mostrarAlertaBurbuja("Inventario sincronizado exitosamente desde Supabase", "success");
-        cargarDatosInventarioEnTablaPlantilla(); // Call the function to update the table
+        
     } catch (error) {
-        mostrarAlertaBurbuja(`Error al sincronizar inventario: ${error.message}`, "error");
+        mostrarAlertaBurbuja(`Error sincronizando: ${error.message}`, "error");
     }
 }
 

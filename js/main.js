@@ -29,6 +29,24 @@ async function init() {
         await inicializarDB();
         await inicializarDBInventario();
 
+        if (window.location.pathname.includes('inventario.html')) {
+            // Sincronización inicial
+            await sincronizarInventarioDesdeSupabase();
+            
+            // Iniciar suscripciones y mantener la referencia al canal
+            const channel = await inicializarSuscripciones();
+            
+            // Manejar recarga de página
+            window.addEventListener('beforeunload', () => {
+                channel?.unsubscribe();
+            });
+
+            // Actualizar tabla cada 30 segundos como respaldo
+            setInterval(async () => {
+                await sincronizarInventarioDesdeSupabase();
+            }, 30000);
+        }
+
         // Sincronizar al cargar la página solo en inventario.html
         const esPaginaInventario = window.location.pathname.includes('inventario.html');
 
@@ -307,6 +325,34 @@ window.addEventListener('offline', actualizarIndicadorConexion);
 
 // Inicializar el indicador al cargar la página
 document.addEventListener('DOMContentLoaded', actualizarIndicadorConexion);
+
+// Conexión WebSocket
+let ws;
+
+function conectarWebSocket() {
+    ws = new WebSocket('ws://localhost:8080');
+
+    ws.onopen = () => {
+        console.log('Conexión WebSocket establecida');
+        mostrarAlertaBurbuja('Conexión en tiempo real activa', 'success');
+    };
+
+    ws.onmessage = (event) => {
+        const payload = JSON.parse(event.data);
+        console.log('Cambio recibido:', payload);
+        actualizarInventarioDesdeServidor(payload);
+    };
+
+    ws.onclose = () => {
+        console.log('Conexión WebSocket cerrada');
+        mostrarAlertaBurbuja('Conexión en tiempo real perdida', 'error');
+        // Intentar reconectar después de 5 segundos
+        setTimeout(conectarWebSocket, 5000);
+    };
+}
+
+// Conectar al WebSocket al cargar la página
+document.addEventListener('DOMContentLoaded', conectarWebSocket);
 
 // Exportar funciones necesarias
 export { mostrarSeccion, resetearBaseDatos, generarHojaInventario };

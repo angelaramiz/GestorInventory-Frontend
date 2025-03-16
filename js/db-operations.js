@@ -552,7 +552,6 @@ export async function sincronizarProductosDesdeBackend() {
     try {
         const usuarioId = localStorage.getItem('usuario_id');
         const categoriaId = localStorage.getItem('categoria_id');
-        console.log(usuarioId, categoriaId);
         if (!usuarioId || !categoriaId) {
             console.warn("No hay usuario o categoría disponible para sincronizar");
             return;
@@ -566,7 +565,6 @@ export async function sincronizarProductosDesdeBackend() {
             credentials: 'include', // <- Añadir esto para enviar cookies
             body: JSON.stringify({ usuarioId, categoriaId }),
         });
-        console.log(response.body);
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Error ${response.status}: ${errorText}`);
@@ -755,7 +753,6 @@ export function cargarDatosEnTabla() {
 
     request.onsuccess = function (event) {
         const productos = event.target.result;
-        console.log("Productos obtenidos:", productos);
         tbody.innerHTML = ""; // Limpiar tabla
 
         productos.forEach(function (producto) {

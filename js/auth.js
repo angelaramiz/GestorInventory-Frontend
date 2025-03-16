@@ -5,16 +5,12 @@ let supabase = null;
 
 // Función para inicializar Supabase
 async function inicializeSupabase() {
-    if (!supabase) {
+    if (!supabase) { // ✅ Evita crear más de una instancia
         try {
             const response = await fetch('https://gestorinventory-backend-production.up.railway.app/api/supabase-config');
-            if (!response.ok) {
-                throw new Error('No se pudo obtener la configuración de Supabase');
-            }
+            if (!response.ok) throw new Error('No se pudo obtener la configuración de Supabase');
             const config = await response.json();
-            const SUPABASE_URL = config.supabaseUrl;
-            const SUPABASE_KEY = config.supabaseKey;
-            supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+            supabase = createClient(config.supabaseUrl, config.supabaseKey);
         } catch (error) {
             console.error('Error al inicializar Supabase:', error);
         }

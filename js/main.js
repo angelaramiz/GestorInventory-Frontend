@@ -1,5 +1,5 @@
 // Importaciones
-import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso } from './db-operations.js';
+import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion } from './db-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', actualizarIndicadorConexion);
 let ws;
 
 function conectarWebSocket() {
-    ws = new WebSocket('ws://localhost:8080');
+    ws = new WebSocket('ws://localhost:5000');
 
     ws.onopen = () => {
         console.log('Conexión WebSocket establecida');
@@ -331,9 +331,12 @@ function conectarWebSocket() {
     };
 
     ws.onmessage = (event) => {
-        const payload = JSON.parse(event.data);
-        console.log('Cambio recibido:', payload);
-        actualizarInventarioDesdeServidor(payload);
+        try {
+            const data = JSON.parse(event.data); // ✅ Solo intenta parsear si es JSON
+            console.log("Mensaje recibido:", data);
+        } catch (error) {
+            console.log("Mensaje recibido (no JSON):", event.data);
+        }
     };
 
     ws.onclose = () => {

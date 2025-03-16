@@ -982,13 +982,14 @@ export async function verificarYSeleccionarUbicacion() {
     const ubicacionGuardada = await obtenerUbicacionEnUso();
     
     if (!ubicacionGuardada) {
-        await Swal.fire({
+        const { value: ubicacionSeleccionada } = await Swal.fire({
             title: 'Selecciona una ubicación',
             input: 'select',
             inputOptions: {
-                'bodega1': 'Bodega 1',
-                'camara_fria': 'Cámara Fría',
-                'almacen_central': 'Almacén Central'
+                '10000000-0000-0000-0000-000000000001': 'Cámara Fría',
+                '10000000-0000-0000-0000-000000000002': 'Congelador de Carnes Interior',
+                '10000000-0000-0000-0000-000000000003': 'Bunker',
+                '10000000-0000-0000-0000-000000000004': 'Rishin'
             },
             inputPlaceholder: 'Selecciona una ubicación',
             showCancelButton: false,
@@ -997,7 +998,6 @@ export async function verificarYSeleccionarUbicacion() {
             }
         });
         
-        const ubicacionSeleccionada = Swal.getInput().value;
         localStorage.setItem('ubicacion_almacen', ubicacionSeleccionada);
         sessionStorage.setItem("ubicacion_seleccionada", "true");
         mostrarUbicacionActual();

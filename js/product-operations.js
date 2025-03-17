@@ -226,7 +226,7 @@ export async function agregarProducto(evento) {
         );
     };
 
-    request.onsuccess = event => {
+    request.onsuccess = () => {
         console.log("Producto agregado exitosamente");
         mostrarMensaje("Producto agregado exitosamente", "success");
         document.getElementById("formAgregarProducto").reset();

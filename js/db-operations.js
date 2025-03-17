@@ -189,20 +189,17 @@ export async function inicializarSuscripciones() {
         }
 
         const channel = supabase.channel('inventario-real-time')
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'inventario',
-                filter: `usuario_id=eq.${userId}`
-            }, (payload) => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario' }, payload => {
                 actualizarInventarioDesdeServidor(payload);
             })
-            .subscribe();
-
+            .subscribe((status, err) => {
+                if (status === 'SUBSCRIBED') console.log("Suscripción activa");
+                if (err) console.error("Error en suscripción:", err);
+            });
         return channel;
     } catch (error) {
         console.error("Error en suscripción:", error);
-        throw error;
+        mostrarAlertaBurbuja("Error en conexión en tiempo real", "error");
     }
 }
 
@@ -687,7 +684,7 @@ export async function subirProductosAlBackend() {
 }
 //  Función para cargar  datos en la tabla de la página de archivos
 export function cargarDatosInventarioEnTablaPlantilla() {
-    if (!window.location.pathname.includes('archivos.html')) {
+    if (!window.location.pathname.includes('inventario.html')) {
         return;
     }
 
@@ -802,26 +799,22 @@ export async function sincronizarInventarioDesdeSupabase() {
     try {
         const supabase = await getSupabase();
         const userId = localStorage.getItem('usuario_id');
-        
+        let ubicacionNombre = localStorage.getItem('ubicacion_almacen'); // Mover esta línea arriba
+
+        // Verificar primero si tenemos los datos necesarios
         if (!userId || !ubicacionNombre) {
             console.warn("Usuario o ubicación no definidos. Sincronización cancelada.");
             return;
         }
 
-        const ubicacionNombre = localStorage.getItem('ubicacion_almacen'); // Obtener el nombre de la ubicación
-
-        if (!ubicacionNombre) {
-            console.error("El nombre de la ubicación no está definido.");
-            return;
-        }
+        // Normalizar el nombre de la ubicación para que coincida con la base de datos
+        ubicacionNombre = ubicacionNombre.charAt(0).toUpperCase() + ubicacionNombre.slice(1).toLowerCase();
 
         const { data: areaData, error: areaError } = await supabase
             .from('areas')
             .select('id')
-            .eq('nombre', ubicacionNombre)
+            .ilike('nombre', `%${ubicacionNombre}%`)
             .single();
-
-        console.log("Área encontrada:", areaData);
 
         if (areaError || !areaData) {
             console.error("No se encontró el área en Supabase:", areaError);
@@ -834,7 +827,6 @@ export async function sincronizarInventarioDesdeSupabase() {
         const { data, error } = await supabase
             .from('inventario')
             .select('*')
-            .eq('usuario_id', userId)
             .eq('area_id', areaId) // Filtramos por 'area_id'
             .order('last_modified', { ascending: false });
 

@@ -717,6 +717,7 @@ export function cargarDatosInventarioEnTablaPlantilla() {
             row.insertCell().textContent = item.cantidad;
             row.insertCell().textContent = item.caducidad;
             row.insertCell().textContent = item.comentarios;
+            row.insertCell().textContent = item.areaName;
         });
     };
 

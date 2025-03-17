@@ -1,7 +1,7 @@
 // importaciones 
 import { db, dbInventario, agregarAColaSincronizacion } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
-import { cargarDatosEnTabla,obtenerUbicacionEnUso } from './db-operations.js';
+import { cargarDatosEnTabla,obtenerUbicacionEnUso, sincronizarInventarioDesdeSupabase, cargarDatosInventarioEnTablaPlantilla } from './db-operations.js';
 import { sanitizarProducto, sanitizarEntrada } from './sanitizacion.js';
 import { supabase } from './auth.js';
 import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm'; // Usar UUID para IDs únicos
@@ -446,7 +446,15 @@ export function limpiarFormularioInventario() {
 }
 
 // funcion para guardar productos en la base de datos para inventariar
-// Actualizar la función guardarInventario para manejar lote
+// Mapeo de nombres de ubicaciones a sus IDs
+const ubicaciones = {
+    'cámara fría': '10000000-0000-0000-0000-000000000001',
+    'congelador interior': '10000000-0000-0000-0000-000000000002',
+    'bunker': '10000000-0000-0000-0000-000000000003',
+    'rishin': '10000000-0000-0000-0000-000000000004'
+};
+
+// Función para guardar productos en la base de datos para inventariar
 export async function guardarInventario() {
     const codigo = document.getElementById("codigoProductoInventario")?.value;
     const lote = document.getElementById("loteInventario")?.value || "1";
@@ -472,8 +480,44 @@ export async function guardarInventario() {
         return;
     }
 
-    const idBase = `${codigo}-${lote}`;
-    const idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, lote);
+    // Obtener la ID de la ubicación actual a partir del nombre almacenado en localStorage
+    const ubicacionNombre = localStorage.getItem('ubicacion_almacen');
+    const ubicacionId = ubicaciones[ubicacionNombre];
+
+    if (!ubicacionId) {
+        mostrarMensaje("Ubicación no encontrada. Por favor, selecciona una ubicación válida.", "error");
+        return;
+    }
+
+    let idBase = `${codigo}-${lote}`;
+    let idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, lote);
+
+    // Verificar si el ID ya existe en Supabase y modificar el lote si es necesario
+    if (navigator.onLine) {
+        let existe = true;
+        let nuevoLote = parseInt(lote);
+
+        while (existe) {
+            const { data, error } = await supabase
+                .from('inventario')
+                .select('id')
+                .eq('id', idFinal);
+
+            if (error) {
+                console.error("Error al verificar ID en Supabase:", error);
+                mostrarMensaje("Error al verificar ID en Supabase", "error");
+                return;
+            }
+
+            if (data.length === 0) {
+                existe = false;
+            } else {
+                nuevoLote++;
+                idBase = `${codigo}-${nuevoLote}`;
+                idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, nuevoLote);
+            }
+        }
+    }
 
     const inventarioData = {
         id: idFinal,
@@ -481,13 +525,14 @@ export async function guardarInventario() {
         nombre: producto.nombre,
         categoria: producto.categoria,
         marca: producto.marca,
-        lote: lote,
+        lote: idBase.split('-')[1],
         unidad: unidad || "Pz",
         cantidad: parseInt(cantidad),
         caducidad: fechaCaducidad,
         comentarios: comentarios || "N/A",
         last_modified: new Date().toISOString(),
-        is_temp_id: !navigator.onLine // Bandera para identificar IDs temporales
+        is_temp_id: !navigator.onLine,
+        area_id: ubicacionId // Incluir la ID de la ubicación
     };
 
     // Guardar en IndexedDB
@@ -504,15 +549,17 @@ export async function guardarInventario() {
             .from('inventario')
             .insert({ ...inventarioData, usuario_id: localStorage.getItem('usuario_id') });
         if (error) {
-            agregarAColaSincronizacion(inventarioData);
-            mostrarMensaje("Guardado localmente, sincronizará cuando haya conexión", "warning");
+            console.error("Error al sincronizar con Supabase:", error);
+            mostrarMensaje("Error al sincronizar con Supabase", "error");
         } else {
-            mostrarMensaje("Inventario guardado y sincronizado", "success");
+            mostrarMensaje("Producto guardado y sincronizado exitosamente", "success");
         }
     } else {
-        agregarAColaSincronizacion(inventarioData);
-        mostrarMensaje("Guardado localmente, sincronizará cuando haya conexión", "warning");
+        mostrarMensaje("Producto guardado localmente. Se sincronizará cuando haya conexión.", "info");
     }
+
+    // Actualizar la tabla después de guardar el producto
+    cargarDatosInventarioEnTablaPlantilla();
 
     limpiarFormularioInventario();
 }
@@ -557,7 +604,7 @@ export async function modificarInventario() {
         caducidad: fechaCaducidad,
         comentarios: comentarios || "N/A",
         last_modified: new Date().toISOString(),
-        is_temp_id: !navigator.onLine
+        is_temp_id: !navigator.onLine,
     };
 
     // Actualizar en IndexedDB
@@ -912,6 +959,7 @@ export async function seleccionarUbicacionAlmacen() {
         inputPlaceholder: 'Seleccione una opción',
         showCancelButton: true
     });
+    await sincronizarInventarioDesdeSupabase(ubicacion);
     return ubicacion; // Puede ser undefined si se cancela
 }
 
@@ -986,10 +1034,10 @@ export async function verificarYSeleccionarUbicacion() {
             title: 'Selecciona una ubicación',
             input: 'select',
             inputOptions: {
-                'Rishin': '10000000-0000-0000-0000-000000000004',
-                'Bunker': '10000000-0000-0000-0000-000000000003',
-                'Congelador de Carnes Interior': '10000000-0000-0000-0000-000000000002',
-                'Cámara Fría': '10000000-0000-0000-0000-000000000001'
+                'Rishin': 'Rishin',
+                'Bunker': 'Bunker',
+                'Congelador de Carnes Interior': 'Congelador de Carnes Interior',
+                'Cámara Fría': 'Cámara Fría'
             },
             inputPlaceholder: 'Selecciona una ubicación',
             showCancelButton: false,

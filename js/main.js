@@ -20,6 +20,7 @@ async function cambiarUbicacion() {
         iniciarInventario(nuevaUbicacion);
         sessionStorage.setItem("ubicacion_seleccionada", "true");
         await mostrarUbicacionActual();
+        await sincronizarInventarioDesdeSupabase();
     }
 }
 

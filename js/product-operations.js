@@ -986,10 +986,10 @@ export async function verificarYSeleccionarUbicacion() {
             title: 'Selecciona una ubicación',
             input: 'select',
             inputOptions: {
-                '10000000-0000-0000-0000-000000000001': 'Cámara Fría',
-                '10000000-0000-0000-0000-000000000002': 'Congelador de Carnes Interior',
-                '10000000-0000-0000-0000-000000000003': 'Bunker',
-                '10000000-0000-0000-0000-000000000004': 'Rishin'
+                'Rishin': '10000000-0000-0000-0000-000000000004',
+                'Bunker': '10000000-0000-0000-0000-000000000003',
+                'Congelador de Carnes Interior': '10000000-0000-0000-0000-000000000002',
+                'Cámara Fría': '10000000-0000-0000-0000-000000000001'
             },
             inputPlaceholder: 'Selecciona una ubicación',
             showCancelButton: false,

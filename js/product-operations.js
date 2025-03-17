@@ -226,10 +226,28 @@ export async function agregarProducto(evento) {
         );
     };
 
-    request.onsuccess = () => {
+    request.onsuccess = async () => {
         console.log("Producto agregado exitosamente");
         mostrarMensaje("Producto agregado exitosamente", "success");
         document.getElementById("formAgregarProducto").reset();
+
+        // Obtener la categoría del usuario
+        const categoriaId = localStorage.getItem('categoria_id');
+
+        // Subir el producto a Supabase
+        if (navigator.onLine) {
+            const { error } = await supabase
+                .from('productos')
+                .insert({ ...productosanitizado, categoria_id: categoriaId, usuario_id: localStorage.getItem('usuario_id') });
+            if (error) {
+                console.error("Error al sincronizar con Supabase:", error);
+                mostrarMensaje("Error al sincronizar con Supabase", "error");
+            } else {
+                mostrarMensaje("Producto sincronizado exitosamente con Supabase", "success");
+            }
+        } else {
+            mostrarMensaje("Producto guardado localmente. Se sincronizará cuando haya conexión.", "info");
+        }
     };
 }
 // Funciones para consulta de producto

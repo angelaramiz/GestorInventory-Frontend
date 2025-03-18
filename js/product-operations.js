@@ -973,7 +973,7 @@ export async function seleccionarUbicacionAlmacen() {
             'congelador interior': 'Congelador de Carnes Interior',
             'bunker': 'Congelador de Piso "Bunker"',
             'rishin': 'Congelador de Piso "Rishin"',
-            'Piso': 'Piso'
+            'piso': 'Piso'
         },
         inputPlaceholder: 'Seleccione una opción',
         showCancelButton: true

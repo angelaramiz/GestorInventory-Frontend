@@ -972,7 +972,8 @@ export async function seleccionarUbicacionAlmacen() {
             'cámara fría': 'Cámara Fría',
             'congelador interior': 'Congelador de Carnes Interior',
             'bunker': 'Congelador de Piso "Bunker"',
-            'rishin': 'Congelador de Piso "Rishin"'
+            'rishin': 'Congelador de Piso "Rishin"',
+            'Piso': 'Piso'
         },
         inputPlaceholder: 'Seleccione una opción',
         showCancelButton: true
@@ -1055,7 +1056,8 @@ export async function verificarYSeleccionarUbicacion() {
                 'Rishin': 'Rishin',
                 'Bunker': 'Bunker',
                 'Congelador de Carnes Interior': 'Congelador de Carnes Interior',
-                'Cámara Fría': 'Cámara Fría'
+                'Cámara Fría': 'Cámara Fría',
+                'Piso':'Piso'
             },
             inputPlaceholder: 'Selecciona una ubicación',
             showCancelButton: false,

@@ -1,5 +1,5 @@
 // Load the jsPDF library
-import { getSupabase } from "./auth";
+import { getSupabase } from "./auth.js";
 // Usar un Map para almacenar los productos
 const inventario = new Map();
 

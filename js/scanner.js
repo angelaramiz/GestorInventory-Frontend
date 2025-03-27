@@ -5,7 +5,7 @@ import {sanitizarEntrada} from './sanitizacion.js';
 
 // Variables globales
 let scanner = null;
-let escanerActivo = false;
+// Removed unused variable escanerActivo
 let audioContext;
 
 // Crear elementos para la superposición visual
@@ -92,7 +92,7 @@ style.textContent = `
 
 // Función para inicializar el escáner
 // En scanner.js, modificar iniciarEscaneo
-export function iniciarEscaneo(inputId) {
+export function iniciarEscaneo() {
     try {
         // Verificar permisos
         navigator.mediaDevices.getUserMedia({ video: true })
@@ -113,7 +113,7 @@ export function iniciarEscaneo(inputId) {
 // Función para reproducir un tono
 function playTone(frequency, duration, type = 'sine') {
     if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioContext = new (window.AudioContext || window["webkitAudioContext"])();
     }
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -134,7 +134,9 @@ function playTone(frequency, duration, type = 'sine') {
 // Función para toggle del escáner
 // Actualización de toggleEscaner para usar modal
 export function toggleEscaner(inputId) {
-    mostrarModalEscaneo(inputId);
+    if (inputId) {
+        mostrarModalEscaneo(inputId);
+    }
 }
 
 // Detener el escáner
@@ -167,12 +169,13 @@ export function iniciarEscaneoConModal(inputId) {
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 250 },aspectRatio: 1.0 // Mantener relación 1:1 
             },
-            (decodedText,decodedResult) => {
-                manejarCodigoEscaneado(decodedText, decodedResult); // Llamar con decodedResult
+            (decodedText, decodedResult) => {
+                manejarCodigoEscaneado(decodedText, decodedResult);
+                playTone(440, 0.2); // Reproducir un tono al escanear un código
                 document.getElementById(inputId).value = decodedText;
                 mostrarMensaje(`Código detectado: ${decodedText}`, "success", { timer: 1000 });
                 cerrarModalEscaneo(document.getElementById('scanner-modal'));
-                detenerEscaner()
+                detenerEscaner();
 
                 if (inputId === "codigoConsulta") {
                     buscarProducto();

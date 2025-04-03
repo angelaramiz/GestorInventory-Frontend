@@ -132,37 +132,9 @@
     <script src="../librerías/html5-qrcode.min.js"></script>
     <script type="module" src="../js/main.js"></script>
     <script>
-        // Función para guardar el inventario en el almacenamiento local
-        function guardarInventarioLocal(inventario) {
-            localStorage.setItem('inventario', JSON.stringify(inventario));
-        }
+        
 
-        // Función para cargar el inventario desde el almacenamiento local
-        function cargarInventarioLocal() {
-            const inventario = localStorage.getItem('inventario');
-            return inventario ? JSON.parse(inventario) : [];
-        }
-
-        // Modificar la función de guardar inventario para almacenar en localStorage
-        async function guardarInventario() {
-            // ...existing code...
-
-            // Guardar en IndexedDB
-            await new Promise((resolve) => {
-                const transaction = dbInventario.transaction(["inventario"], "readwrite");
-                const objectStore = transaction.objectStore("inventario");
-                const request = objectStore.add(inventarioData);
-                request.onsuccess = () => resolve();
-            });
-
-            // Guardar en localStorage
-            const inventarioLocal = cargarInventarioLocal();
-            inventarioLocal.push(inventarioData);
-            guardarInventarioLocal(inventarioLocal);
-
-            // Sincronizar con Supabase
-            // ...existing code...
-        }
+    
     </script>
 </body>
 

@@ -1,7 +1,7 @@
 // importaciones 
 import { db, dbInventario, agregarAColaSincronizacion } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
-import { cargarDatosEnTabla,obtenerUbicacionEnUso, sincronizarInventarioDesdeSupabase, cargarDatosInventarioEnTablaPlantilla } from './db-operations.js';
+import { cargarDatosEnTabla, obtenerUbicacionEnUso, sincronizarInventarioDesdeSupabase, cargarDatosInventarioEnTablaPlantilla } from './db-operations.js';
 import { sanitizarProducto, sanitizarEntrada } from './sanitizacion.js';
 import { supabase } from './auth.js';
 import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm'; // Usar UUID para IDs únicos
@@ -465,12 +465,13 @@ export function limpiarFormularioInventario() {
 
 // funcion para guardar productos en la base de datos para inventariar
 // Mapeo de nombres de ubicaciones a sus IDs
+//remmplazar por consulta dinamica a la base de dts
 const ubicaciones = {
     'cámara fría': '10000000-0000-0000-0000-000000000001',
     'congelador interior': '10000000-0000-0000-0000-000000000002',
     'bunker': '10000000-0000-0000-0000-000000000003',
     'rishin': '10000000-0000-0000-0000-000000000004',
-    'piso' : '10000000-0000-0000-0000-000000000005'
+    'piso': '10000000-0000-0000-0000-000000000005'
 };
 
 // Función para guardar productos en la base de datos para inventariar
@@ -500,6 +501,7 @@ export async function guardarInventario() {
     }
 
     // Obtener la ID de la ubicación actual a partir del nombre almacenado en localStorage
+    // Obtener la ID de la ubicación actual a partir del nombre almacenado en localStorage
     const ubicacionNombre = localStorage.getItem('ubicacion_almacen');
     const ubicacionId = ubicaciones[ubicacionNombre];
 
@@ -509,7 +511,8 @@ export async function guardarInventario() {
     }
 
     let idBase = `${codigo}-${lote}`;
-    let idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, lote);
+    let idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, lote);// Verificar si el ID ya existe en Supabase y modificar el lote si es necesario
+
 
     // Verificar si el ID ya existe en Supabase y modificar el lote si es necesario
     if (navigator.onLine) {
@@ -562,6 +565,11 @@ export async function guardarInventario() {
         request.onsuccess = () => resolve();
     });
 
+    // Guardar en localStorage
+    const inventarioLocal = cargarInventarioLocal();
+    inventarioLocal.push(inventarioData);
+    guardarInventarioLocal(inventarioLocal);
+
     // Sincronizar con Supabase
     if (navigator.onLine) {
         const { error } = await supabase
@@ -574,12 +582,12 @@ export async function guardarInventario() {
             mostrarMensaje("Producto guardado y sincronizado exitosamente", "success");
         }
     } else {
-        mostrarMensaje("Producto guardado localmente. Se sincronizará cuando haya conexión.", "info");
+        mostrarMensaje("Producto guardado localmente. Se sincronizará cuando hay conexión.", "info");
+        // Actualizar la tabla después de guardar el producto
     }
 
     // Actualizar la tabla después de guardar el producto
     cargarDatosInventarioEnTablaPlantilla();
-
     limpiarFormularioInventario();
 }
 
@@ -662,7 +670,7 @@ export async function buscarProductoInventario() {
 
     try {
         // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
-        if (codigo.length === 4) {
+        if (codigo.length === 4) { // Código PLU
             buscarPorCodigoParcial(codigo, "inventario", async (resultados) => {
                 if (resultados.length > 0) {
                     const inventarioResultados = await buscarEnInventario(resultados[0].codigo);
@@ -679,10 +687,57 @@ export async function buscarProductoInventario() {
                 }
             });
             return;  // Detener la ejecución aquí para evitar la búsqueda normal
-        } else if (codigo.length === 12 || codigo.length >= 14) {
+        } else if (codigo.length === 12) { // Código UPC-A
+            
             const codigoSanitizado = sanitizarEntrada(codigo);
             mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
-            // console.log('codigo:', codigoSanitizado)
+            const codigoCorto = codigoSanitizado.replace(/^0+/, '');
+
+            const transaction = db.transaction(["productos"], "readonly");
+            const objectStore = transaction.objectStore("productos");
+            const request = objectStore.getAll();
+
+            request.onsuccess = async (event) => {
+                const productos = event.target.result || [];
+                const resultados = productos.filter(producto => producto.codigo === codigoCorto);
+
+                if (resultados.length > 0) {
+                    const inventarioResultados = await buscarEnInventario(resultados[0].codigo);
+
+                    if (inventarioResultados.length > 0) {
+                        // Si existe en inventario, mostrar modal con opciones
+                        mostrarModalProductoExistente(resultados[0], inventarioResultados);
+                    } else {
+                        // Si no existe en inventario, mostrar formulario para agregar producto
+                        mostrarFormularioInventario(resultados[0]);
+                    }
+                } else {
+                    // Si no se encuentra el producto, preguntar si desea agregarlo
+                    Swal.fire({
+                        title: 'Producto no encontrado',
+                        text: '¿Deseas agregar este producto al inventario?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Agregar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            agregarNuevoProductoDesdeInventario(codigoCorto, true); // Permitir modificar el código
+                        }
+                    });
+                }
+            };
+
+            request.onerror = () => {
+                mostrarMensaje("Error al buscar en la base de datos", "error");
+            };
+
+            return; // Detener la ejecución aquí para evitar la búsqueda normal
+
+        } else if (codigo.length >= 14) { // Codigo code128
+            const codigoSanitizado = sanitizarEntrada(codigo);
+            mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
+            console.log('codigo:', codigoSanitizado)
             const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
             // Expresión regular para capturar los 4 dígitos después del primer "2"
@@ -709,13 +764,23 @@ export async function buscarProductoInventario() {
                 });
             }
             return; // Detener la ejecución aquí para evitar la búsqueda normal
-        } else if (codigo.length === 13) {
+        } else if (codigo.length === 13) { // Código EAN-13
             // Primero buscar en la base de datos de productos
             const productosResultados = await buscarEnProductos(codigo, nombre, marca);
 
             if (productosResultados.length === 0) {
-                // Si no se encuentra el producto, preguntar si desea agregarlo
-                agregarNuevoProductoDesdeInventario(codigo);
+                Swal.fire({
+                    title: 'Producto no encontrado',
+                    text: '¿Deseas agregar este producto al inventario?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Agregar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        agregarNuevoProductoDesdeInventario(codigo, true); // Permitir modificar el código
+                    }
+                });
                 return;
             }
 
@@ -729,6 +794,27 @@ export async function buscarProductoInventario() {
                 // Si no existe en inventario, mostrar formulario para agregar producto
                 mostrarFormularioInventario(productosResultados[0]);
             }
+        } else if (nombre || marca) { // Busqueda por nombre o marca
+            const transaction = db.transaction(["productos"], "readonly");
+            const objectStore = transaction.objectStore("productos");
+            const request = objectStore.getAll();
+
+            request.onsuccess = event => {
+                const productos = event.target.result;
+                const resultados = productos.filter(producto =>
+                    producto.nombre.toLowerCase().includes(nombre.toLowerCase()) ||
+                    (marca && producto.marca.toLowerCase().includes(marca.toLowerCase()))
+                );
+                if (resultados.length > 0) {
+                    mostrarResultados(resultados);
+                } else {
+                    mostrarMensaje("No se encontraron productos con ese nombre o marca.", "error");
+                }
+            };
+
+            request.onerror = () => {
+                mostrarMensaje("Error al buscar en la base de datos", "error");
+            };
         } else {
             mostrarMensaje("Código inválido.\n vuelve a buscar/ escanear", "error");
         }
@@ -1038,17 +1124,35 @@ export async function agregarNuevoProductoDesdeInventario(codigo, permitirModifi
             mostrarMensaje("Error al agregar el producto. Es posible que el código ya exista.", "error");
         };
 
-        request.onsuccess = event => {
-            console.log("Producto agregado exitosamente");
-            mostrarMensaje("Producto agregado exitosamente", "success");
-            document.getElementById("formAgregarProducto").reset();
+        request.onsuccess = async () => {
+            console.log("Producto agregado exitosamente a IndexedDB");
+            mostrarMensaje("Producto agregado exitosamente a IndexedDB", "success");
+
+            // Obtener la categoría y usuario del almacenamiento local
+            const categoriaId = localStorage.getItem('categoria_id');
+            const usuarioId = localStorage.getItem('usuario_id');
+
+            // Subir el producto a Supabase
+            if (navigator.onLine) {
+                const { error } = await supabase
+                    .from('productos')
+                    .insert({ ...productosanitizado, categoria_id: categoriaId, usuario_id: usuarioId });
+                if (error) {
+                    console.error("Error al sincronizar con Supabase:", error);
+                    mostrarMensaje("Error al sincronizar con Supabase", "error");
+                } else {
+                    mostrarMensaje("Producto sincronizado exitosamente con Supabase", "success");
+                }
+            } else {
+                mostrarMensaje("Producto guardado localmente. Se sincronizará cuando haya conexión.", "info");
+            }
         };
     }
 }
 
 export async function verificarYSeleccionarUbicacion() {
     const ubicacionGuardada = await obtenerUbicacionEnUso();
-    
+
     if (!ubicacionGuardada) {
         const { value: ubicacionSeleccionada } = await Swal.fire({
             title: 'Selecciona una ubicación',
@@ -1058,7 +1162,7 @@ export async function verificarYSeleccionarUbicacion() {
                 'Bunker': 'Bunker',
                 'Congelador de Carnes Interior': 'Congelador de Carnes Interior',
                 'Cámara Fría': 'Cámara Fría',
-                'Piso':'Piso'
+                'Piso': 'Piso'
             },
             inputPlaceholder: 'Selecciona una ubicación',
             showCancelButton: false,
@@ -1066,7 +1170,7 @@ export async function verificarYSeleccionarUbicacion() {
                 if (!value) return 'Debes seleccionar una ubicación';
             }
         });
-        
+
         localStorage.setItem('ubicacion_almacen', ubicacionSeleccionada);
         sessionStorage.setItem("ubicacion_seleccionada", "true");
         mostrarUbicacionActual();
@@ -1082,3 +1186,13 @@ export function iniciarInventario(ubicacion) {
     // Aquí puedes hacer la consulta a Supabase filtrando por 'ubicacion_almacen'
 }
 
+// Función para guardar el inventario en el almacenamiento local
+function guardarInventarioLocal(inventario) {
+    localStorage.setItem('inventario', JSON.stringify(inventario));
+}
+
+// Función para cargar el inventario desde el almacenamiento local
+function cargarInventarioLocal() {
+    const inventario = localStorage.getItem('inventario');
+    return inventario ? JSON.parse(inventario) : [];
+}

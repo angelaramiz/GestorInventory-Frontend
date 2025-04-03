@@ -216,16 +216,9 @@ export function manejarCodigoEscaneado(codigo, formato) {
         } else {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
-    }else if (formato.result.format.formatName.toLowerCase() === "upc_a") {
-        console.log('codigo:',codigoSanitizado, formato.result.format.formatName.toLowerCase());
-        codigo = codigoSanitizado.replace(/^0+/, '');
-        return 
-    }else if (formato.result.format.formatName.toLowerCase() === "ean_13") {
-        console.log('codigo:',codigoSanitizado, formato.result.format.formatName.toLowerCase());
-        codigo = codigoSanitizado.replace(/^0+/, '');
-        return 
     } else {
         mostrarMensaje("Formato de código no compatible.", "warning"); 
     }   
+    return
 }
 

@@ -380,6 +380,7 @@ export async function guardarCambios() {
         const categoria = document.getElementById("categoriaEditar").value;
         const marca = document.getElementById("marcaEditar").value;
         const unidad = document.getElementById("unidadEditar").value || "";
+
         // Sanitizar y validar el producto
         const productoSanitizado = sanitizarProducto({
             codigo: codigoNuevo,
@@ -394,46 +395,92 @@ export async function guardarCambios() {
             return;
         }
 
-        // Iniciar transacción
-        const transaction = db.transaction(["productos"], "readwrite");
-        const objectStore = transaction.objectStore("productos");
+        // Subir los cambios a Supabase
+        const { error } = await supabase
+            .from('productos')
+            .update({
+                codigo: codigoNuevo,
+                nombre: nombre,
+                categoria: categoria,
+                marca: marca,
+                unidad: unidad
+            })
+            .eq('codigo', codigoAntiguo);
 
-        // Actualizar el producto
-        const updateRequest = objectStore.put(productoSanitizado);
-        updateRequest.onsuccess = function () {
-            mostrarMensaje(`Producto actualizado correctamente.\n `, "success");
-            document.getElementById("formularioEdicion").style.display = "none";
+        if (error) {
+            console.error("Error al actualizar el producto en Supabase:", error);
+            mostrarMensaje("Error al actualizar el producto en Supabase.", "error");
+            return;
+        }
 
-            // Verificar si estamos en la página correcta antes de cargar la tabla
-            if (document.getElementById("databaseBody")) {
-                cargarDatosEnTabla(); // Actualizar la tabla solo si existe databaseBody
-            }
-        };
+        mostrarMensaje(`Producto actualizado correctamente en Supabase.`, "success");
+        document.getElementById("formularioEdicion").style.display = "none";
 
-        updateRequest.onerror = function () {
-            mostrarMensaje("Error al actualizar el producto.", "error");
-        };
+        // Verificar si estamos en la página correcta antes de cargar la tabla
+        if (document.getElementById("databaseBody")) {
+            cargarDatosEnTabla(); // Actualizar la tabla solo si existe databaseBody
+        }
     } catch (error) {
         console.error("Error al editar el producto:", error);
         mostrarMensaje("Error inesperado al editar el producto.", "error");
     }
 }
 // Funciones para eliminar producto
-export function eliminarProducto() {
+export async function eliminarProducto() {
     const codigo = document.getElementById("codigoEditado").value;
-    const transaction = db.transaction(["productos"], "readwrite");
-    const objectStore = transaction.objectStore("productos");
-    const request = objectStore.delete(codigo);
-
-    request.onsuccess = () => {
-        mostrarMensaje("Producto eliminado correctamente", "success");
-        document.getElementById("formularioEdicion").style.display = "none";
-        cargarDatosEnTabla();
-    };
-
-    request.onerror = () => {
-        mostrarMensaje("Error al eliminar el producto", "error");
-    };
+    
+    // Confirmar con el usuario antes de eliminar
+    const confirmacion = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: `Vas a eliminar el producto con código: ${codigo}. Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+    
+    if (!confirmacion.isConfirmed) {
+        return; // Si el usuario cancela, detener la operación
+    }
+    
+    try {
+        // Eliminar de IndexedDB
+        const transaction = db.transaction(["productos"], "readwrite");
+        const objectStore = transaction.objectStore("productos");
+        const request = objectStore.delete(codigo);
+        
+        request.onsuccess = async () => {
+            // Si hay conexión, eliminar también de Supabase
+            if (navigator.onLine) {
+                const { error } = await supabase
+                    .from('productos')
+                    .delete()
+                    .eq('codigo', codigo);
+                
+                if (error) {
+                    console.error("Error al eliminar producto de Supabase:", error);
+                    mostrarMensaje("Producto eliminado localmente pero hubo un error al sincronizar con Supabase", "warning");
+                } else {
+                    mostrarMensaje("Producto eliminado correctamente de la base de datos local y Supabase", "success");
+                }
+            } else {
+                mostrarMensaje("Producto eliminado localmente. Se sincronizará cuando haya conexión.", "info");
+                // Aquí podrías agregar la eliminación a una cola de sincronización
+            }
+            
+            document.getElementById("formularioEdicion").style.display = "none";
+            cargarDatosEnTabla();
+        };
+        
+        request.onerror = () => {
+            mostrarMensaje("Error al eliminar el producto de la base de datos local", "error");
+        };
+    } catch (error) {
+        console.error("Error en el proceso de eliminación:", error);
+        mostrarMensaje("Ocurrió un error durante el proceso de eliminación", "error");
+    }
 }
 // Actualizar la función limpiarFormularioInventario
 export function limpiarFormularioInventario() {
@@ -500,19 +547,33 @@ export async function guardarInventario() {
         return;
     }
 
-    // Obtener la ID de la ubicación actual a partir del nombre almacenado en localStorage
-    // Obtener la ID de la ubicación actual a partir del nombre almacenado en localStorage
+    // Obtener la ID de la ubicación actual desde Supabase
     const ubicacionNombre = localStorage.getItem('ubicacion_almacen');
-    const ubicacionId = ubicaciones[ubicacionNombre];
-
-    if (!ubicacionId) {
-        mostrarMensaje("Ubicación no encontrada. Por favor, selecciona una ubicación válida.", "error");
-        return;
+    let ubicacionId;
+    
+    // Consultar la ID de ubicación directamente desde Supabase
+    if (navigator.onLine) {
+        const { data, error } = await supabase
+            .from('areas')
+            .select('id')
+            .ilike('nombre', ubicacionNombre)
+            .single();
+            
+        if (error || !data) {
+            console.error("Error al obtener la ID de ubicación:", error);
+            mostrarMensaje("Error al obtener la ID de ubicación. Usando ID temporal.", "warning");
+            ubicacionId = `temp-${ubicacionNombre}-${Date.now()}`;
+        } else {
+            ubicacionId = data.id;
+        }
+    } else {
+        // Si está offline, usar un ID temporal para la ubicación
+        mostrarMensaje("Sin conexión, usando ID temporal para la ubicación", "info");
+        ubicacionId = `temp-${ubicacionNombre}-${Date.now()}`;
     }
 
     let idBase = `${codigo}-${lote}`;
-    let idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, lote);// Verificar si el ID ya existe en Supabase y modificar el lote si es necesario
-
+    let idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, lote);
 
     // Verificar si el ID ya existe en Supabase y modificar el lote si es necesario
     if (navigator.onLine) {
@@ -554,7 +615,7 @@ export async function guardarInventario() {
         comentarios: comentarios || "N/A",
         last_modified: new Date().toISOString(),
         is_temp_id: !navigator.onLine,
-        area_id: ubicacionId // Incluir la ID de la ubicación
+        area_id: ubicacionId
     };
 
     // Guardar en IndexedDB
@@ -583,7 +644,6 @@ export async function guardarInventario() {
         }
     } else {
         mostrarMensaje("Producto guardado localmente. Se sincronizará cuando hay conexión.", "info");
-        // Actualizar la tabla después de guardar el producto
     }
 
     // Actualizar la tabla después de guardar el producto

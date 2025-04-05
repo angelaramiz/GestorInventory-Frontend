@@ -41,11 +41,11 @@ async function init() {
         await inicializarDB();
         await inicializarDBInventario();
 
-
-        // Sincronizar al cargar la página solo en inventario.html
+        // Sincronizar al cargar la página solo en inventario.html o main.html
         const esPaginaInventario = window.location.pathname.includes('inventario.html');
+        const esPaginaMain = window.location.pathname.includes('main.html');
 
-        if (esPaginaInventario) {
+        if (esPaginaInventario || esPaginaMain) {
             await inicializarSuscripciones(); // Iniciar suscripciones en tiempo real
             await sincronizarInventarioDesdeSupabase(); // Sincronizar al cargar la página
             await verificarYSeleccionarUbicacion(); // Verificar y seleccionar ubicación

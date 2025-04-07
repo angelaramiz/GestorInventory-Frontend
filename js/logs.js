@@ -57,27 +57,99 @@ export function mostrarResultadoCarga(successCount, errorCount) {
     });
 }
 
-// Función para mostrar alertas de estado como burbujas
+// Crear un contador para llevar registro de las burbujas activas
+let burbujaCount = 0;
+const OFFSET_Y = 10; // Espacio vertical entre burbujas en píxeles
+const BURBUJA_HEIGHT = 60; // Altura aproximada de cada burbuja en píxeles (ajustar según diseño)
+
+// Función para mostrar alertas de estado como burbujas en cascada
 export function mostrarAlertaBurbuja(mensaje, tipo) {
+    // Incrementar contador para esta burbuja
+    const burbujaIndex = burbujaCount++;
+    
     const burbuja = document.createElement('div');
     burbuja.className = `alerta-burbuja ${tipo}`;
     burbuja.textContent = mensaje;
+    burbuja.style.position = 'fixed';
+    burbuja.style.right = '20px';
+    burbuja.style.top = `${OFFSET_Y + (burbujaIndex * (BURBUJA_HEIGHT + 10))}px`; // Posicionar en cascada
+    burbuja.style.zIndex = '9999';
+    burbuja.style.opacity = '0';
+    burbuja.style.transform = 'translateX(50px)';
+    burbuja.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
 
     document.body.appendChild(burbuja);
 
-    // Mostrar la burbuja
+    // Mostrar la burbuja con animación
     setTimeout(() => {
-        burbuja.classList.add('mostrar');
+        burbuja.style.opacity = '1';
+        burbuja.style.transform = 'translateX(0)';
     }, 10);
 
     // Ocultar la burbuja después de 3 segundos
     setTimeout(() => {
-        burbuja.classList.remove('mostrar');
+        burbuja.style.opacity = '0';
+        burbuja.style.transform = 'translateX(50px)';
+        
+        // Eliminar la burbuja del DOM después de la animación
         setTimeout(() => {
             burbuja.remove();
-        }, 500);
+            // Ajustar posición de las burbujas restantes
+            reposicionarBurbujas();
+            // Decrementar contador cuando se elimina
+            burbujaCount--;
+        }, 300);
     }, 3000);
 }
+
+// Función para reposicionar las burbujas activas
+function reposicionarBurbujas() {
+    const burbujas = document.querySelectorAll('.alerta-burbuja');
+    burbujas.forEach((burbuja, index) => {
+        burbuja.style.top = `${OFFSET_Y + (index * (BURBUJA_HEIGHT + 10))}px`;
+    });
+}
+
+// También necesitamos agregar estilos adicionales para las burbujas
+const agregarEstilosBurbuja = () => {
+    if (!document.getElementById('estilos-burbuja')) {
+        const estilos = document.createElement('style');
+        estilos.id = 'estilos-burbuja';
+        estilos.textContent = `
+            .alerta-burbuja {
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                color: white;
+                font-size: 14px;
+                min-width: 200px;
+                max-width: 400px;
+                margin-bottom: 10px;
+                z-index: 9999;
+            }
+            
+            .alerta-burbuja.success {
+                background-color: #4caf50;
+            }
+            
+            .alerta-burbuja.error {
+                background-color: #f44336;
+            }
+            
+            .alerta-burbuja.warning {
+                background-color: #ff9800;
+            }
+            
+            .alerta-burbuja.info {
+                background-color: #2196f3;
+            }
+        `;
+        document.head.appendChild(estilos);
+    }
+};
+
+// Ejecutar cuando se carga el script
+agregarEstilosBurbuja();
 
 // Ventana modal con transición para escáner
 export function mostrarModalEscaneo(inputId) {

@@ -1112,23 +1112,103 @@ function mostrarFormularioModificacion(productoInventario) {
 
 // Función para solicitar al usuario la selección de ubicación
 export async function seleccionarUbicacionAlmacen() {
-    const { value: ubicacion } = await Swal.fire({
-        title: 'Seleccione la ubicación de almacén',
-        input: 'select',
-        inputOptions: {
-            'cámara fría': 'Cámara Fría',
-            'congelador interior': 'Congelador de Carnes Interior',
-            'bunker': 'Congelador de Piso "Bunker"',
-            'rishin': 'Congelador de Piso "Rishin"',
-            'piso': 'Piso'
-        },
-        inputPlaceholder: 'Seleccione una opción',
-        showCancelButton: true
-    });
-    await sincronizarInventarioDesdeSupabase(ubicacion);
-    return ubicacion; // Puede ser undefined si se cancela
+    try {
+        const { obtenerAreasPorCategoria } = await import('./db-operations.js');
+        const areas = await obtenerAreasPorCategoria();
+        
+        if (!areas || areas.length === 0) {
+            mostrarMensaje("No hay áreas disponibles para tu categoría", "error");
+            return null;
+        }
+        
+        // Crear opciones para el select basadas en las áreas disponibles
+        const opciones = {};
+        areas.forEach(area => {
+            opciones[area.nombre] = area.nombre;
+        });
+        
+        const { value: ubicacionNombre } = await Swal.fire({
+            title: 'Seleccione la ubicación de almacén',
+            input: 'select',
+            inputOptions: opciones,
+            inputPlaceholder: 'Seleccione una opción',
+            showCancelButton: true
+        });
+        
+        if (ubicacionNombre) {
+            await sincronizarInventarioDesdeSupabase(ubicacionNombre);
+            return ubicacionNombre;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error("Error al seleccionar ubicación:", error);
+        mostrarMensaje("Error al cargar ubicaciones", "error");
+        return null;
+    }
 }
 
+export async function verificarYSeleccionarUbicacion() {
+    const ubicacionGuardada = await obtenerUbicacionEnUso();
+
+    if (!ubicacionGuardada) {
+        try {
+            const { obtenerAreasPorCategoria } = await import('./db-operations.js');
+            const areas = await obtenerAreasPorCategoria();
+            
+            if (!areas || areas.length === 0) {
+                mostrarMensaje("No hay áreas disponibles para tu categoría", "error");
+                return;
+            }
+            
+            // Crear opciones para el select basadas en las áreas disponibles
+            const opciones = {};
+            areas.forEach(area => {
+                opciones[area.nombre] = area.nombre;
+            });
+            
+            const { value: ubicacionSeleccionada } = await Swal.fire({
+                title: 'Selecciona una ubicación',
+                input: 'select',
+                inputOptions: opciones,
+                inputPlaceholder: 'Selecciona una ubicación',
+                showCancelButton: false,
+                inputValidator: (value) => {
+                    if (!value) return 'Debes seleccionar una ubicación';
+                }
+            });
+
+            if (ubicacionSeleccionada) {
+                localStorage.setItem('ubicacion_almacen', ubicacionSeleccionada);
+                sessionStorage.setItem("ubicacion_seleccionada", "true");
+                mostrarUbicacionActual();
+            }
+        } catch (error) {
+            console.error("Error al obtener áreas:", error);
+            mostrarMensaje("Error al cargar ubicaciones", "error");
+        }
+    }
+}
+
+// Función de ejemplo para iniciar inventario con la ubicación dada
+export function iniciarInventario(ubicacion) {
+    // Almacena la ubicación seleccionada en una variable o en el estado de la aplicación
+    localStorage.setItem('ubicacion_almacen', ubicacion);
+    // Continúa con la carga de inventario filtrando según la ubicación
+    console.log("Iniciando inventario para la ubicación:", ubicacion);
+    // Aquí puedes hacer la consulta a Supabase filtrando por 'ubicacion_almacen'
+}
+
+// Función para guardar el inventario en el almacenamiento local
+function guardarInventarioLocal(inventario) {
+    localStorage.setItem('inventario', JSON.stringify(inventario));
+}
+
+// Función para cargar el inventario desde el almacenamiento local
+function cargarInventarioLocal() {
+    const inventario = localStorage.getItem('inventario');
+    return inventario ? JSON.parse(inventario) : [];
+}
 
 // Función para agregar un nuevo producto desde el inventario
 export async function agregarNuevoProductoDesdeInventario(codigo, permitirModificarCodigo = false) {
@@ -1208,51 +1288,4 @@ export async function agregarNuevoProductoDesdeInventario(codigo, permitirModifi
             }
         };
     }
-}
-
-export async function verificarYSeleccionarUbicacion() {
-    const ubicacionGuardada = await obtenerUbicacionEnUso();
-
-    if (!ubicacionGuardada) {
-        const { value: ubicacionSeleccionada } = await Swal.fire({
-            title: 'Selecciona una ubicación',
-            input: 'select',
-            inputOptions: {
-                'Rishin': 'Rishin',
-                'Bunker': 'Bunker',
-                'Congelador de Carnes Interior': 'Congelador de Carnes Interior',
-                'Cámara Fría': 'Cámara Fría',
-                'Piso': 'Piso'
-            },
-            inputPlaceholder: 'Selecciona una ubicación',
-            showCancelButton: false,
-            inputValidator: (value) => {
-                if (!value) return 'Debes seleccionar una ubicación';
-            }
-        });
-
-        localStorage.setItem('ubicacion_almacen', ubicacionSeleccionada);
-        sessionStorage.setItem("ubicacion_seleccionada", "true");
-        mostrarUbicacionActual();
-    }
-}
-
-// Función de ejemplo para iniciar inventario con la ubicación dada
-export function iniciarInventario(ubicacion) {
-    // Almacena la ubicación seleccionada en una variable o en el estado de la aplicación
-    localStorage.setItem('ubicacion_almacen', ubicacion);
-    // Continúa con la carga de inventario filtrando según la ubicación
-    console.log("Iniciando inventario para la ubicación:", ubicacion);
-    // Aquí puedes hacer la consulta a Supabase filtrando por 'ubicacion_almacen'
-}
-
-// Función para guardar el inventario en el almacenamiento local
-function guardarInventarioLocal(inventario) {
-    localStorage.setItem('inventario', JSON.stringify(inventario));
-}
-
-// Función para cargar el inventario desde el almacenamiento local
-function cargarInventarioLocal() {
-    const inventario = localStorage.getItem('inventario');
-    return inventario ? JSON.parse(inventario) : [];
 }

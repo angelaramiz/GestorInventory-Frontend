@@ -41,6 +41,10 @@ async function init() {
         await inicializarDB();
         await inicializarDBInventario();
 
+        // Obtener áreas por categoría al inicializar
+        const { obtenerAreasPorCategoria } = await import('./db-operations.js');
+        await obtenerAreasPorCategoria();
+
         // Sincronizar al cargar la página solo en inventario.html o main.html
         const esPaginaInventario = window.location.pathname.includes('inventario.html');
         const esPaginaMain = window.location.pathname.includes('main.html');
@@ -334,9 +338,9 @@ function conectarWebSocket() {
     ws.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data); // ✅ Solo intenta parsear si es JSON
-            console.log("Mensaje recibido:", data);
+            //console.log("Mensaje recibido:", data);
         } catch (error) {
-            console.log("Mensaje recibido (no JSON):", event.data);
+            //console.log("Mensaje recibido (no JSON):", event.data);
         }
     };
 

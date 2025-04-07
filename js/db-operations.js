@@ -834,7 +834,7 @@ export async function sincronizarInventarioDesdeSupabase() {
         if (error) {
             console.error("Error en la sincronización:", error);
         } else {
-            console.log("Inventario sincronizado:", data);
+            mostrarAlertaBurbuja("Inventario sincronizado:", "success");
 
             // Actualizar IndexedDB con los datos sincronizados
             const transaction = dbInventario.transaction(["inventario"], "readwrite");
@@ -861,5 +861,34 @@ export async function sincronizarInventarioDesdeSupabase() {
 // Función para obtener la ubicación en uso
 export async function obtenerUbicacionEnUso() {
     return localStorage.getItem('ubicacion_almacen') || null; // Si usas IndexedDB, reemplázalo por una consulta real
+}
+
+// Función para obtener áreas por categoría del usuario
+export async function obtenerAreasPorCategoria() {
+    try {
+        const supabase = await getSupabase();
+        const categoriaId = localStorage.getItem('categoria_id');
+        
+        if (!categoriaId) {
+            console.error("No hay ID de categoría disponible");
+            return [];
+        }
+        
+        const { data, error } = await supabase
+            .from('areas')
+            .select('id, nombre')
+            .eq('categoria_id', categoriaId);
+            
+        if (error) {
+            console.error("Error al obtener áreas:", error);
+            return [];
+        }
+        
+        mostrarAlertaBurbuja("Áreas disponibles para la categoría:", "success");
+        return data;
+    } catch (error) {
+        console.error("Error en obtenerAreasPorCategoria:", error);
+        return [];
+    }
 }
 

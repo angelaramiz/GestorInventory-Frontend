@@ -26,6 +26,13 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+
+    // Evitar interferir con solicitudes a Supabase
+    if (url.hostname.includes('supabase.co')) {
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request)
             .then(response => response || fetch(event.request))

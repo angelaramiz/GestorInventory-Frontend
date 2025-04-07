@@ -1,108 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generar Informe de Inventario con Códigos de Barras</title>
-  <script type="module" src="../librerías/JsBarcode.all.min.js"></script>
-  <script type="module" src="../librerías/jspdf.umd.min.js"></script>
-    <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-
-    .producto-input {
-      margin-bottom: 10px;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    /* Estilo para la ventana modal */
-    #loading-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    #loading-modal.hidden {
-      display: none;
-    }
-
-    #loading-modal p {
-      color: white;
-      font-size: 20px;
-      text-align: center;
-    }
-
-    #progress-bar-container {
-      width: 80%;
-      margin-top: 20px;
-    }
-
-    #progress-bar {
-      width: 0%;
-      height: 20px;
-      background-color: #4caf50;
-      border-radius: 5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Preconteo</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="../librerías/tailwind.min.css" rel="stylesheet">
+    <script src="../librerías/sweetalert2@11.js"></script>
+    <script src="../librerías/jspdf.umd.min.js"></script>
+    <script src="../librerías/JsBarcode.all.min.js"></script>
+    
+    <!-- Agregar Supabase desde CDN (necesario para el módulo) -->
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        window.supabaseCreateClient = createClient;
+    </script>
 </head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-bold">GestorInventory</h1>
+            <a href="./main.html" class="hover:underline">Volver al inicio</a>
+        </div>
+    </nav>
 
-<body>
-  <!-- Ventana modal de carga -->
-  <div id="loading-modal">
-    <p id="loading-message">Cargando dependencias... Por favor, espera.</p>
-    <div id="progress-bar-container">
-      <div id="progress-bar"></div>
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold text-center mb-6">Generador de Reportes de Preconteo</h1>
+        
+        <div class="mb-6 bg-white p-4 rounded shadow">
+            <div class="mb-4">
+                <label for="areaSelect" class="block font-semibold mb-2">Área:</label>
+                <select id="areaSelect" class="form-select w-full p-2 border rounded">
+                    <option value="todas">Todas las áreas</option>
+                    <!-- Las áreas se cargarán dinámicamente -->
+                </select>
+            </div>
+            
+            <div id="loadingIndicator" class="hidden">
+                <div class="flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span class="ml-2">Cargando productos...</span>
+                </div>
+            </div>
+            
+            <div id="productosList" class="mt-4">
+                <h2 class="text-xl font-semibold mb-2">Lista de productos:</h2>
+                <ul id="productosContainer" class="list-decimal pl-6 space-y-1">
+                    <!-- Los productos se cargarán dinámicamente -->
+                </ul>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <button id="generarReporteBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
+                GENERAR REPORTE DE PRECONTEO
+            </button>
+        </div>
+        
+        <!-- Contenedor invisible para generar códigos de barras -->
+        <div id="barcodeContainer" class="hidden"></div>
     </div>
-  </div>
-
-  <h1>Generar Informe de Inventario con Códigos de Barras</h1>
-  <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
-
-  <!-- Lista de productos agregados -->
-  <h2>Productos Agregados</h2>
-  <ul id="lista-productos"></ul>
-
-  <!-- Botón para generar el PDF -->
-  <button onclick="generarPDF()">Generar PDF</button>
-
-  <!-- Tarjeta para seleccionar la generación del reporte -->
-  <div id="reporte-inventario">
-    <h2>Generar Reporte de Inventario</h2>
-    <label for="ubicacion-select">Seleccionar Ubicación:</label>
-    <select id="selectUbicacion">
-      <option value="todas">Todas las ubicaciones</option>
-      <option value="piso">Piso</option>
-      <option value="camara fria">Cámara Fría</option>
-      <option value="congelador interior">Congelador Interior</option>
-      <option value="bunker">Bunker</option>
-      <option value="rishin">Rishin</option>
-    </select>
-    <button onclick="generarReporteInventario()">Generar Reporte</button>
-  </div>
-
-  <script type="module" src="../js/rep.js"></script>
+      
+    <!-- Cargar nuestro script principal después de asegurarnos que las dependencias estén cargadas -->
+    <script type="module" src="../js/rep.js"></script>
 </body>
-
 </html>

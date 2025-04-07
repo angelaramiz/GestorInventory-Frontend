@@ -183,6 +183,14 @@ async function init() {
             });
         }
 
+        // Agregar navegación a reportes
+        const irAReportesBtn = document.getElementById('irAReportes');
+        if (irAReportesBtn) {
+            irAReportesBtn.addEventListener('click', () => {
+                window.location.href = 'plantillas/report.html';
+            });
+        }
+
     } catch (error) {
         console.error("Error en inicialización:", error);
     }

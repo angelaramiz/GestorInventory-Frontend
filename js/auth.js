@@ -11,8 +11,10 @@ async function inicializeSupabase() {
             if (!response.ok) throw new Error('No se pudo obtener la configuración de Supabase');
             const config = await response.json();
             supabase = createClient(config.supabaseUrl, config.supabaseKey);
+            console.log('Supabase inicializado correctamente');
         } catch (error) {
             console.error('Error al inicializar Supabase:', error);
+            mostrarAlertaBurbuja('Error al inicializar Supabase. Verifica tu conexión.', 'error');
         }
     }
 }

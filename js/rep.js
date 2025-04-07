@@ -1,417 +1,418 @@
-// Load the jsPDF library
-import { getSupabase } from "./auth.js";
-// Usar un Map para almacenar los productos
-const inventario = new Map();
+import { obtenerAreasPorCategoria } from './db-operations.js';
+import { getSupabase } from './auth.js';
 
-async function cargarUbicaciones() {
-    const supabase = await getSupabase();
-    const { data, error } = await supabase.from('areas').select('*');
+let productosInventario = [];
+let supabase;
 
-    if (error) {
-        console.error("Error al obtener ubicaciones:", error);
-        return;
+// Inicializar la página
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Inicializar Supabase
+        supabase = await getSupabase();
+        if (!supabase) {
+            throw new Error('Supabase no está inicializado');
+        }
+
+        // Cargar áreas y productos
+        await cargarAreas();
+        await cargarProductos();
+
+        // Event listeners
+        document.getElementById('areaSelect').addEventListener('change', filtrarProductosPorArea);
+        document.getElementById('generarReporteBtn').addEventListener('click', mostrarOpcionesReporte);
+    } catch (error) {
+        console.error('Error al inicializar la página:', error);
+        Swal.fire('Error', 'Ocurrió un error al inicializar la página.', 'error');
     }
-
-    const selectUbicacion = document.getElementById("selectUbicacion");
-    data.forEach(area => {
-        let option = document.createElement("option");
-        option.value = area.id;
-        option.textContent = area.nombre;
-        selectUbicacion.appendChild(option);
-    });
-}
-
-document.addEventListener("DOMContentLoaded", cargarUbicaciones);
-
-// Función para actualizar la barra de progreso
-function actualizarProgressBar(progreso, mensaje) {
-    const progressBar = document.getElementById("progress-bar");
-    const loadingMessage = document.getElementById("loading-message");
-    progressBar.style.width = `${progreso}%`;
-    loadingMessage.textContent = mensaje;
-}
-// Cuando se carga el archivo CSV
-document.getElementById('csv-file').addEventListener('change', function (event) {
-    const csvFile = event.target.files[0];
-    const csvFileName = csvFile.name.split('.').slice(0, -1).join('.'); // Obtiene el nombre sin extensión
-    // Guarda el nombre del archivo CSV para usarlo luego
-    window.csvFileName = csvFileName;
-    // Continúa con el proceso normal de carga
-    loadCSV(csvFile);
 });
-// Función para cargar un archivo CSV
-function cargarCSV() {
-    const fileInput = document.getElementById("csv-file");
-    const file = fileInput.files[0];
 
-    const csvFileName = file.name.split('.').slice(0, -1).join('.'); // Obtiene el nombre sin extensión
+// Cargar áreas disponibles usando la función obtenerAreasPorCategoria
+async function cargarAreas() {
+    try {
+        mostrarCargando(true);
 
-    // Guarda el nombre del archivo CSV para usarlo luego
-    window.csvFileName = csvFileName;
-
-    if (!file) {
-        alert("Por favor, selecciona un archivo CSV.");
-        return;
-    }
-
-    const reader = new FileReader();
-    const modal = document.getElementById("loading-modal");
-
-    // Mostrar la ventana modal
-    modal.classList.remove("hidden");
-
-    reader.onload = async function (event) {
-        try {
-            const csvData = event.target.result;
-            const productos = parseCSV(csvData);
-
-            if (productos.length === 0) {
-                alert("El archivo CSV está vacío o no contiene datos válidos.");
-                modal.classList.add("hidden");
-                return;
-            }
-
-            // Simular progreso mientras se cargan los productos
-            const totalProductos = productos.length;
-            let progreso = 0;
-
-            for (let i = 0; i < totalProductos; i++) {
-                const producto = productos[i];
-                if (!inventario.has(producto.codigo)) {
-                    inventario.set(producto.codigo, {
-                        nombre: producto.nombre,  // Asegurar que el campo coincide con parseCSV()
-                        codigo: producto.codigo,
-                        cantidad: producto.cantidad,  // Agregar cantidad
-                        fecha_caducidad: producto.fecha_caducidad,  // Agregar fecha de caducidad
-                        formato: "EAN13"
-                    });
-                } else {
-                    console.warn(`Producto con código ${producto.codigo} ya existe en el inventario.`);
-                }
-
-                // Actualizar la barra de progreso
-                progreso = ((i + 1) / totalProductos) * 100;
-                actualizarProgressBar(progreso, `Cargando productos (${Math.round(progreso)}%)`);
-                await sleep(10); // Simular un pequeño retraso para visualizar el progreso
-            }
-
-            // Actualizar la lista de productos en la página
-            actualizarListaProductos();
-
-            // Ocultar la ventana modal
-            modal.classList.add("hidden");
-        } catch (error) {
-            console.error("Error al cargar el archivo CSV:", error);
-            alert("Ocurrió un error al cargar el archivo CSV. Verifica el formato del archivo.");
-            modal.classList.add("hidden");
+        const areas = await obtenerAreasPorCategoria();
+        if (!areas || areas.length === 0) {
+            console.warn('No se encontraron áreas disponibles.');
+            return;
         }
-    };
 
-    reader.onerror = function () {
-        alert("Error al leer el archivo CSV.");
-        modal.classList.add("hidden");
-    };
+        console.log('Áreas disponibles:', areas);
 
-    reader.readAsText(file);
-}
-
-// Función para parsear el contenido del CSV
-function parseCSV(csvData) {
-    const lines = csvData.split("\n").filter(line => line.trim() !== "");
-    const productos = [];
-
-    for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        const [codigo, Nombre, Categoria, Marca, TipoCantidad, Cantidad, FechaCaducidad, Comentarios] =
-            line.split(",").map(item => item.trim()); // Usa `,` como separador
-
-        if (codigo && Nombre) {
-            productos.push({
-                codigo: codigo,
-                nombre: Nombre,
-                cantidad: Cantidad || "N/A",  // Si el campo está vacío, poner "N/A"
-                fecha_caducidad: FechaCaducidad || "N/A"
+        const selectArea = document.getElementById('areaSelect');
+        if (selectArea) {
+            selectArea.innerHTML = '<option value="todas">Todas las áreas</option>';
+            areas.forEach(area => {
+                const option = document.createElement('option');
+                option.value = area.id; // Usar el ID del área como valor
+                option.textContent = area.nombre;
+                selectArea.appendChild(option);
             });
         }
+    } catch (error) {
+        console.error('Error al cargar áreas:', error);
+        Swal.fire('Error', 'No se pudieron cargar las áreas.', 'error');
+    } finally {
+        mostrarCargando(false);
     }
-
-    return productos;
 }
 
-// Función para actualizar la lista de productos en la página
-function actualizarListaProductos() {
-    const lista = document.getElementById("lista-productos");
-    lista.innerHTML = ""; // Limpiar la lista
+// Cargar todos los productos del inventario desde Supabase
+async function cargarProductos() {
+    try {
+        mostrarCargando(true);
 
-    // Iterar sobre el Map para mostrar los productos
-    inventario.forEach((producto) => {
-        const li = document.createElement("li");
-        li.textContent = `${producto.nombre} - ${producto.codigo}`;
-        lista.appendChild(li);
-    });
+        const { data, error } = await supabase
+            .from('inventario')
+            .select('*')
+            .order('nombre', { ascending: true });
+
+        if (error) throw error;
+
+        productosInventario = data;
+        mostrarProductosEnLista(productosInventario);
+    } catch (error) {
+        console.error('Error al cargar productos:', error);
+        Swal.fire('Error', 'No se pudieron cargar los productos. Verifica tu conexión a internet.', 'error');
+    } finally {
+        mostrarCargando(false);
+    }
 }
 
-// Función para generar el PDF
-async function generarPDF() {
-    const currentDate = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
-    const pdfName = `${window.csvFileName}_${currentDate}.pdf`;
+// Filtrar productos por área seleccionada
+async function filtrarProductosPorArea() {
+    const areaSeleccionada = document.getElementById('areaSelect').value;
 
-    if (inventario.size === 0) {
-        alert("No hay productos agregados para generar el PDF.");
+    if (areaSeleccionada === 'todas') {
+        mostrarProductosEnLista(productosInventario);
         return;
     }
 
-    const modal = document.getElementById("loading-modal");
-    modal.classList.remove("hidden");
+    try {
+        mostrarCargando(true);
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+        const { data, error } = await supabase
+            .from('inventario')
+            .select('*')
+            .eq('area_id', areaSeleccionada) // Usar el valor como cadena
+            .order('nombre', { ascending: true });
 
-    let yOffset = 20; // Posición vertical inicial
-    const xOffsetLeft = 20;  // Columna izquierda
-    const xOffsetRight = 110; // Columna derecha
-    let columna = 0; // 0 = Izquierda, 1 = Derecha
-    let productosPorPagina = 0; // Contador de productos en la página
+        if (error) throw error;
 
-    const productosArray = Array.from(inventario.values());
-
-    for (let i = 0; i < productosArray.length; i += 2) { // Iterar en pares
-        const producto1 = productosArray[i];
-        const producto2 = productosArray[i + 1]; // Puede ser undefined en la última iteración si es impar
-
-        // Imprimir primer producto en la izquierda
-        doc.text(`Producto: ${producto1.nombre}`, xOffsetLeft, yOffset);
-        doc.text(`Cantidad: ${producto1.cantidad}`, xOffsetLeft, yOffset + 10);
-        doc.setTextColor('red');
-        doc.text(`Fecha de Caducidad: ${producto1.fecha_caducidad}`, xOffsetLeft, yOffset + 20);
-        doc.setTextColor('black');
-
-        // Código de barras para el primer producto
-        const canvas1 = document.createElement("canvas");
-        JsBarcode(canvas1, producto1.codigo || "0000000000000", {
-            format: producto1.formato,
-            displayValue: true,
-            fontSize: 12,
-            height: 30
-        });
-        doc.addImage(canvas1.toDataURL("image/png"), "PNG", xOffsetLeft, yOffset + 30, 80, 20);
-
-        // Imprimir segundo producto en la derecha (si existe)
-        if (producto2) {
-            doc.text(`Producto: ${producto2.nombre}`, xOffsetRight, yOffset);
-            doc.text(`Cantidad: ${producto2.cantidad}`, xOffsetRight, yOffset + 10);
-            doc.setTextColor('red');
-            doc.text(`Fecha de Caducidad: ${producto2.fecha_caducidad}`, xOffsetRight, yOffset + 20);
-            doc.setTextColor('black');
-
-            // Código de barras para el segundo producto
-            const canvas2 = document.createElement("canvas");
-            JsBarcode(canvas2, producto2.codigo || "0000000000000", {
-                format: producto2.formato,
-                displayValue: true,
-                fontSize: 12,
-                height: 30
-            });
-            doc.addImage(canvas2.toDataURL("image/png"), "PNG", xOffsetRight, yOffset + 30, 80, 20);
-        }
-
-        yOffset += 60; // Avanzar a la siguiente fila
-        productosPorPagina += 2;
-
-        // Si se alcanzan 8 productos, crear una nueva página
-        if (productosPorPagina >= 8) {
-            doc.addPage();
-            yOffset = 20; // Reiniciar posición vertical
-            productosPorPagina = 0; // Reiniciar contador
-        }
-    }
-
-    doc.save(pdfName);
-    modal.classList.add("hidden");
-}
-
-// Función para verificar que todas las dependencias estén cargadas
-function verificarDependencias() {
-    const modal = document.getElementById("loading-modal");
-
-    // Verificar que JsBarcode y jsPDF estén disponibles
-    if (typeof JsBarcode !== "undefined" && typeof window.jspdf !== "undefined") {
-        // Ocultar la ventana modal
-        modal.classList.add("hidden");
-    } else {
-        // Intentar nuevamente después de 500 ms
-        setTimeout(verificarDependencias, 500);
+        mostrarProductosEnLista(data);
+    } catch (error) {
+        console.error('Error al filtrar productos por área:', error);
+        Swal.fire('Error', 'No se pudieron cargar los productos para esta área.', 'error');
+    } finally {
+        mostrarCargando(false);
     }
 }
 
-// Función para simular un retraso
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// Mostrar los productos en la lista
+function mostrarProductosEnLista(productos) {
+    const container = document.getElementById('productosContainer');
+    container.innerHTML = '';
 
-// Iniciar la verificación de dependencias cuando se cargue la página
-window.onload = () => {
-    verificarDependencias();
-};
-
-// Función para cargar el inventario desde IndexedDB
-async function cargarInventarioLocal() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open("InventarioDB", 2);
-
-        request.onerror = (event) => {
-            console.error("Error al abrir la base de datos de inventario", event.target.error);
-            reject(event.target.error);
-        };
-
-        request.onsuccess = (event) => {
-            const db = event.target.result;
-            const transaction = db.transaction(["inventario"], "readonly");
-            const objectStore = transaction.objectStore("inventario");
-            const getAllRequest = objectStore.getAll();
-
-            getAllRequest.onsuccess = (event) => {
-                resolve(event.target.result);
-            };
-
-            getAllRequest.onerror = (event) => {
-                console.error("Error al obtener los datos del inventario", event.target.error);
-                reject(event.target.error);
-            };
-        };
-    });
-}
-
-// Función para generar el reporte de inventario
-async function generarReporteInventario() {
-    const ubicacionSeleccionada = document.getElementById('ubicacion-select').value;
-    const inventario = await cargarInventarioLocal();
-
-    if (inventario.length === 0) {
-        alert("No hay productos agregados para generar el reporte.");
+    if (productos.length === 0) {
+        container.innerHTML = '<li class="text-gray-500">No hay productos disponibles para esta área.</li>';
         return;
     }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    let yOffset = 20;
-
-    if (ubicacionSeleccionada === 'toda') {
-        const ubicaciones = ['piso', 'camara fria', 'congelador interior', 'bunker', 'rishin'];
-        ubicaciones.forEach(ubicacion => {
-            doc.setFontSize(16);
-            doc.text(`Ubicación de Inventario: ${ubicacion}`, 10, yOffset);
-            yOffset += 10;
-            agregarProductosPorUbicacion(doc, inventario, ubicacion, yOffset);
-            yOffset += 20;
-        });
-    } else {
-        doc.setFontSize(16);
-        doc.text(`Ubicación de Inventario: ${ubicacionSeleccionada}`, 10, yOffset);
-        yOffset += 10;
-        agregarProductosPorUbicacion(doc, inventario, ubicacionSeleccionada, yOffset);
-    }
-
-    doc.save(`reporte_inventario_${ubicacionSeleccionada}.pdf`);
-}
-
-// Función para agregar productos por ubicación al PDF
-function agregarProductosPorUbicacion(doc, inventario, ubicacion, yOffset) {
-    const productosPorUbicacion = inventario.filter(item => item.area_id === ubicacion);
-    const productosAgrupados = agruparProductosPorCodigo(productosPorUbicacion);
-
-    productosAgrupados.forEach(producto => {
-        doc.setFontSize(12);
-        doc.text(`Código: ${producto.codigo}`, 10, yOffset);
-        doc.text(`Nombre: ${producto.nombre}`, 10, yOffset + 10);
-        doc.text(`Marca: ${producto.marca}`, 10, yOffset + 20);
-        doc.text(`Tipo Unidad: ${producto.unidad}`, 10, yOffset + 30);
-        doc.text(`Cantidad: ${producto.cantidad}`, 10, yOffset + 40);
-        doc.text(`Fecha de Caducidad: ${producto.fecha_caducidad}`, 10, yOffset + 50);
-        doc.text(`Comentarios: ${producto.comentarios}`, 10, yOffset + 60);
-        yOffset += 70;
-    });
-}
-
-// Función para agrupar productos por código
-function agruparProductosPorCodigo(productos) {
-    const productosAgrupados = new Map();
 
     productos.forEach(producto => {
-        if (productosAgrupados.has(producto.codigo)) {
-            const productoExistente = productosAgrupados.get(producto.codigo);
-            productoExistente.cantidad += producto.cantidad;
-            productoExistente.comentarios += `, Lote: ${producto.lote}, Cantidad: ${producto.cantidad}, Fecha de Caducidad: ${producto.caducidad}`;
+        const li = document.createElement('li');
+        li.className = 'py-1';
+        li.innerHTML = `<span class="font-semibold">${producto.nombre || 'Sin nombre'}</span> - Código: ${producto.codigo || 'Sin código'}`;
+        container.appendChild(li);
+    });
+}
+
+// Mostrar/ocultar indicador de carga
+function mostrarCargando(mostrar) {
+    document.getElementById('loadingIndicator').classList.toggle('hidden', !mostrar);
+}
+
+// Mostrar opciones para generar el reporte
+function mostrarOpcionesReporte() {
+    const areaSeleccionada = document.getElementById('areaSelect')?.value || 'todas';
+    const esTodasLasAreas = areaSeleccionada === 'todas';
+
+    Swal.fire({
+        title: 'Configuración del reporte',
+        html: `
+            <div class="text-left">
+                <div class="mb-3">
+                    <label class="block mb-1">Ordenar por:</label>
+                    <select id="ordenReporte" class="w-full border rounded p-2">
+                        <option value="caducidad">Fecha de caducidad (primero las más próximas)</option>
+                        <option value="alfabetico">Orden alfabético por nombre</option>
+                        ${esTodasLasAreas ? '<option value="area">Por área</option>' : ''}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="block mb-1">Incluir en el reporte:</label>
+                    <div class="flex flex-col space-y-1">
+                        <label><input type="checkbox" id="incluirCaducidad" checked> Fechas de caducidad</label>
+                        <label><input type="checkbox" id="incluirComentarios" checked> Comentarios</label>
+                        <label><input type="checkbox" id="incluirCodigo" checked> Códigos de barras</label>
+                        <label><input type="checkbox" id="incluirArea" checked> Área</label>
+                    </div>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Generar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            return {
+                orden: document.getElementById('ordenReporte').value,
+                incluirCaducidad: document.getElementById('incluirCaducidad').checked,
+                incluirComentarios: document.getElementById('incluirComentarios').checked,
+                incluirCodigo: document.getElementById('incluirCodigo').checked,
+                incluirArea: document.getElementById('incluirArea').checked
+            };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            generarReportePDF(result.value);
+        }
+    });
+}
+
+// Generar el reporte en PDF
+async function generarReportePDF(opciones) {
+    try {
+        mostrarCargando(true);
+
+        // Obtener productos filtrados por área
+        const areaSeleccionada = document.getElementById('areaSelect').value;
+        let productos;
+
+        if (areaSeleccionada === 'todas') {
+            productos = productosInventario;
         } else {
-            productosAgrupados.set(producto.codigo, {
-                ...producto,
-                comentarios: `Lote: ${producto.lote}, Cantidad: ${producto.cantidad}, Fecha de Caducidad: ${producto.caducidad}`
+            productos = productosInventario.filter(p => p.area_id === areaSeleccionada);
+        }
+
+        if (productos.length === 0) {
+            Swal.fire('Advertencia', 'No hay productos para generar el reporte.', 'warning');
+            return;
+        }
+
+        // Generar códigos de barras si es necesario
+        if (opciones.incluirCodigo) {
+            await generarCodigosDeBarras(productos);
+        }
+
+        // Crear documento PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+
+        // Dimensiones de la página
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const marginHorizontal = 15; // Márgenes horizontales ajustados para centrar las columnas
+        const marginVertical = 10; // Márgenes verticales
+        const cardWidth = (pageWidth - (marginHorizontal * 3)) / 2; // Ajustar para 2 columnas
+        const cardHeight = (pageHeight - (marginVertical * 6)) / 5; // Ajustar para 5 filas
+
+        // Variables para controlar la posición
+        let x = marginHorizontal;
+        let y = marginVertical;
+
+        // Agrupar productos por área
+        const productosPorArea = productos.reduce((grupos, producto) => {
+            const area = producto.area_nombre || producto.area || 'Sin área'; // Priorizar 'area_nombre', luego 'area', o 'Sin área'
+            if (!grupos[area]) {
+                grupos[area] = [];
+            }
+            grupos[area].push(producto);
+            return grupos;
+        }, {});
+
+        // Procesar productos por área
+        for (const [area, productosArea] of Object.entries(productosPorArea)) {
+            // Agregar encabezado del área
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text(`Área: ${area}`, marginHorizontal, y); // Mostrar el nombre del área correctamente
+            y += 10; // Espacio debajo del encabezado
+
+            for (let i = 0; i < productosArea.length; i++) {
+                const producto = productosArea[i];
+
+                // Calcular la posición de la tarjeta
+                const column = i % 2; // 0: izquierda, 1: derecha
+                x = marginHorizontal + column * (cardWidth + marginHorizontal);
+                if (i > 0 && column === 0) {
+                    y += cardHeight + marginVertical; // Reducir espacio entre filas
+                }
+
+                // Verificar si necesitamos una nueva página
+                if (y + cardHeight > pageHeight - marginVertical) {
+                    doc.addPage();
+                    y = marginVertical;
+                    doc.text(`Área: ${area}`, marginHorizontal, y); // Repetir encabezado en nueva página
+                    y += 10;
+                }
+
+                // Dibujar borde de la tarjeta
+                doc.setDrawColor(200, 200, 200);
+                doc.rect(x, y, cardWidth, cardHeight);
+
+                // Contenido de la tarjeta
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(8); // Reducir tamaño de fuente
+                const nombreProducto = producto.nombre || 'Sin nombre';
+                const fechaCaducidad = producto.caducidad
+                    ? new Date(producto.caducidad).toLocaleDateString('es-ES')
+                    : 'Sin caducidad';
+                doc.text(`${nombreProducto} - ${fechaCaducidad}`, x + 3, y + 6);
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+
+                // Cantidad y unidad
+                const cantidadTexto = `Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
+                doc.text(cantidadTexto, x + 3, y + 10); // Ajustar posición del texto
+
+                // Código de barras (si la opción está activada)
+                if (opciones.incluirCodigo && producto.codigo) {
+                    try {
+                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+
+                        // Determinar el formato del código de barras
+                        let formato = 'EAN13'; // Por defecto EAN-13
+                        if (/^\d{12}$/.test(producto.codigo)) {
+                            formato = 'UPC'; // Cambiar a UPC-A si tiene 12 dígitos
+                        }
+
+                        JsBarcode(svg, producto.codigo, {
+                            format: formato,
+                            width: 1,
+                            height: 30,
+                            displayValue: false,
+                            margin: 0,
+                        });
+
+                        // Convertir SVG a PNG usando un canvas
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const svgData = new XMLSerializer().serializeToString(svg);
+                        const img = new Image();
+                        img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgData)}`;
+
+                        await new Promise((resolve, reject) => {
+                            img.onload = () => {
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                ctx.drawImage(img, 0, 0);
+                                resolve();
+                            };
+                            img.onerror = reject;
+                        });
+
+                        const pngDataUrl = canvas.toDataURL('image/png');
+
+                        doc.addImage(
+                            pngDataUrl,
+                            'PNG',
+                            x + (cardWidth - 50) / 2, // Centrar horizontalmente
+                            y + cardHeight - 35, // Ajustar posición vertical
+                            50, // Reducir ancho del código de barras
+                            12 // Reducir altura del código de barras
+                        );
+
+                        // Agregar el código numérico debajo del código de barras
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(7); // Reducir tamaño de fuente
+                        doc.text(
+                            producto.codigo,
+                            x + cardWidth / 2, // Centrar horizontalmente
+                            y + cardHeight - 20, // Posicionar debajo del código de barras
+                            { align: 'center' }
+                        );
+                    } catch (error) {
+                        console.error(`Error al agregar código de barras para ${producto.codigo}:`, error);
+                    }
+                }
+
+                // Comentarios (si existen)
+                if (producto.comentarios) {
+                    const comentarios = `Comentarios: ${producto.comentarios}`;
+                    doc.text(comentarios, x + 3, y + cardHeight - 5, { maxWidth: cardWidth - 6 });
+                }
+            }
+
+            // Espacio entre áreas
+            y += cardHeight + marginVertical;
+        }
+
+        // Guardar el PDF
+        const fechaActual = new Date().toISOString().slice(0, 10);
+        doc.save(`reporte_preconteo_${fechaActual}.pdf`);
+        Swal.fire('¡Éxito!', 'Reporte de preconteo generado correctamente.', 'success');
+    } catch (error) {
+        console.error('Error al generar el reporte:', error);
+        Swal.fire('Error', 'No se pudo generar el reporte.', 'error');
+    } finally {
+        mostrarCargando(false);
+    }
+}
+
+// Ordenar productos según el criterio seleccionado
+function ordenarProductos(productos, criterio) {
+    switch (criterio) {
+        case 'caducidad':
+            productos.sort((a, b) => {
+                // Productos sin fecha de caducidad van al final
+                if (!a.caducidad) return 1;
+                if (!b.caducidad) return -1;
+                return new Date(a.caducidad) - new Date(b.caducidad);
             });
-        }
-    });
-
-    return Array.from(productosAgrupados.values());
-}
-
-async function obtenerInventario(ubicacionId) {
-    const supabase = await getSupabase();
-    let query = supabase.from('inventario').select('*');
-
-    if (ubicacionId !== "todas") {
-        query = query.eq('area_id', ubicacionId);
+            break;
+        case 'alfabetico':
+            productos.sort((a, b) => {
+                const nombreA = (a.nombre || '').toLowerCase();
+                const nombreB = (b.nombre || '').toLowerCase();
+                return nombreA.localeCompare(nombreB);
+            });
+            break;
+        // 'area' no necesita ordenamiento especial, ya que lo manejamos por grupos
     }
+}
 
-    const { data, error } = await query;
+// Generar códigos de barras para todos los productos
+async function generarCodigosDeBarras(productos) {
+    // Limpiar el contenedor
+    const container = document.getElementById('barcodeContainer');
+    container.innerHTML = '';
 
-    if (error) {
-        console.error("Error al obtener inventario:", error);
-        return [];
+    // Crear elementos SVG para cada código
+    for (const producto of productos) {
+        if (!producto.codigo) continue;
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.id = `barcode-${producto.codigo}`; // Usar el código como ID único
+        container.appendChild(svg);
+
+        try {
+            // Determinar el formato del código de barras
+            let formato = 'EAN13'; // Por defecto EAN-13
+            if (/^\d{12}$/.test(producto.codigo)) {
+                formato = 'UPC'; // Cambiar a UPC-A si tiene 12 dígitos
+            }
+
+            // Generar el código de barras con tamaño ajustado
+            JsBarcode(svg, producto.codigo, {
+                format: formato,
+                width: 2, // Ancho de las barras
+                height: 40, // Altura de las barras
+                displayValue: true,
+                fontSize: 10, // Tamaño de la fuente
+                margin: 5 // Margen alrededor del código
+            });
+        } catch (error) {
+            console.error(`Error al generar código de barras para ${producto.codigo}:`, error);
+        }
     }
-    
-    return data;
 }
-
-async function generarReportePDF(datos) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    let y = 20;
-
-    doc.setFontSize(16);
-    doc.text("Reporte de Inventario", 10, 10);
-    doc.setFontSize(10);
-    doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 10, 15);
-
-    datos.forEach((producto) => {
-        if (y > 250) {
-            doc.addPage();
-            y = 20;
-        }
-
-        // Generar código de barras
-        const canvas = document.createElement("canvas");
-        JsBarcode(canvas, producto.codigo, { format: "EAN13", displayValue: true });
-
-        doc.text(`Código: ${producto.codigo}`, 10, y);
-        doc.text(`Nombre: ${producto.nombre}`, 10, y + 5);
-        doc.text(`Marca: ${producto.marca}`, 10, y + 10);
-        doc.text(`Unidad: ${producto.tipoUnidad} (${producto.unidad})`, 10, y + 15);
-        doc.text(`Fecha de Caducidad: ${producto.fechaDeCadocidad}`, 10, y + 20);
-        if (producto.comentarios) {
-            doc.text(`Comentarios: ${producto.comentarios}`, 10, y + 25);
-        }
-
-        // Insertar código de barras en PDF
-        const imgData = canvas.toDataURL("image/png");
-        doc.addImage(imgData, "PNG", 150, y, 40, 20);
-        
-        y += 40;
-    });
-
-    doc.save("Reporte_Inventario.pdf");
-}
-
-document.getElementById("btnGenerarPDF").addEventListener("click", async () => {
-    const ubicacionId = document.getElementById("selectUbicacion").value;
-    const inventario = await obtenerInventario(ubicacionId);
-    generarReportePDF(inventario);
-});

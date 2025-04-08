@@ -1,4 +1,5 @@
 import { obtenerAreasPorCategoria } from './db-operations.js';
+import { mostrarAlertaBurbuja, mostrarMensaje } from './logs.js';
 import { getSupabase } from './auth.js';
 
 let productosInventario = [];
@@ -37,7 +38,7 @@ async function cargarAreas() {
             return;
         }
 
-        console.log('Áreas disponibles:', areas);
+        mostrarMensaje('Áreas disponibles de manera exitosa', 'success', );
 
         const selectArea = document.getElementById('areaSelect');
         if (selectArea) {

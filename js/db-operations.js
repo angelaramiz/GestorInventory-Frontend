@@ -605,7 +605,7 @@ export async function sincronizarProductosDesdeBackend() {
         }));
 
         mostrarAlertaBurbuja("Sincronización exitosa", "success");
-        cargarDatosEnTabla(); // Llamar a cargarDatosEnTabla después de la sincronización
+        
     } catch (error) {
         console.error("Error de sincronización:", error);
         mostrarAlertaBurbuja(`Falló: ${error.message}`, "error");
@@ -613,10 +613,14 @@ export async function sincronizarProductosDesdeBackend() {
 }
 
 // Call the function after initializing the database if on archivos.html
-if (window.location.pathname.includes('archivos.html')) {
+if (window.location.pathname.includes('main.html') ) {
     inicializarDB().then(() => {
         sincronizarProductosDesdeBackend();
     });
+}
+
+if (window.location.pathname.includes('archivos.html')) {
+    cargarDatosEnTabla(); // Llamar a cargarDatosEnTabla después de la sincronización
 }
 
 // Llamar a sincronizarDatos cuando se cargue la página
@@ -760,25 +764,38 @@ export function generarPlantillaInventario() {
 }
 
 // Función para cargar datos en la tabla de la página de archivos
-export function cargarDatosEnTabla() {
+export async function cargarDatosEnTabla() {
     const tbody = document.getElementById("databaseBody");
     if (!tbody) {
         console.error("Elemento 'databaseBody' no encontrado.");
         return;
     }
 
-    if (!db) {
-        console.error("Base de datos no inicializada.");
-        return;
-    }
+    try {
+        // Get Supabase instance
+        const supabase = await getSupabase();
+        if (!supabase) {
+            throw new Error("No se pudo obtener la instancia de Supabase");
+        }
 
-    const transaction = db.transaction(["productos"], "readonly");
-    const objectStore = transaction.objectStore("productos");
-    const request = objectStore.getAll();
+        // Get user's category ID for filtering products
+        const categoriaId = localStorage.getItem('categoria_id');
+        if (!categoriaId) {
+            throw new Error("No hay categoría disponible para consultar productos");
+        }
 
-    request.onsuccess = function (event) {
-        const productos = event.target.result;
-        tbody.innerHTML = ""; // Limpiar tabla
+        // Query products from Supabase
+        const { data: productos, error } = await supabase
+            .from('productos')
+            .select('*')
+            .eq('categoria_id', categoriaId);
+
+        if (error) {
+            throw error;
+        }
+
+        // Display the products in the table
+        tbody.innerHTML = ""; // Clear table
 
         productos.forEach(function (producto) {
             const row = tbody.insertRow();
@@ -788,12 +805,35 @@ export function cargarDatosEnTabla() {
             row.insertCell().textContent = producto.marca;
             row.insertCell().textContent = producto.unidad;
         });
-    };
 
-    request.onerror = function (event) {
-        console.error("Error al cargar datos en la tabla:", event.target.error);
-        mostrarMensaje("Error al cargar datos en la tabla:", event.target.error);
-    };
+        mostrarAlertaBurbuja("Productos cargados desde Supabase", "success");
+    } catch (error) {
+        console.error("Error al cargar datos desde Supabase:", error);
+        mostrarMensaje("Error al cargar datos desde Supabase", "error");
+        
+        // Fallback to IndexedDB if Supabase fails
+        if (db) {
+            const transaction = db.transaction(["productos"], "readonly");
+            const objectStore = transaction.objectStore("productos");
+            const request = objectStore.getAll();
+
+            request.onsuccess = function (event) {
+                const productos = event.target.result;
+                tbody.innerHTML = ""; // Limpiar tabla
+
+                productos.forEach(function (producto) {
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = producto.codigo;
+                    row.insertCell().textContent = producto.nombre;
+                    row.insertCell().textContent = producto.categoria;
+                    row.insertCell().textContent = producto.marca;
+                    row.insertCell().textContent = producto.unidad;
+                });
+                
+                mostrarAlertaBurbuja("Productos cargados desde IndexedDB (modo fallback)", "warning");
+            };
+        }
+    }
 }
 // Función para sincronizar el inventario desde Supabase
 export async function sincronizarInventarioDesdeSupabase() {

@@ -45,36 +45,40 @@ async function init() {
         const { obtenerAreasPorCategoria } = await import('./db-operations.js');
         await obtenerAreasPorCategoria();
 
-        // Sincronizar al cargar la página solo en inventario.html o main.html
+        // Inicializar suscripciones en tiempo real para ambas páginas
         const esPaginaInventario = window.location.pathname.includes('inventario.html');
-        const esPaginaMain = window.location.pathname.includes('main.html');
-
-        if (esPaginaInventario || esPaginaMain) {
-            await inicializarSuscripciones(); // Iniciar suscripciones en tiempo real
-            await sincronizarInventarioDesdeSupabase(); // Sincronizar al cargar la página
-            await verificarYSeleccionarUbicacion(); // Verificar y seleccionar ubicación
-            mostrarUbicacionActual(); // Mostrar la ubicación actual
-
+        
+        if (esPaginaInventario ) {
+            await inicializarSuscripciones();
+        }
+        
+        // Funcionalidad específica para main.html
+        // Funcionalidad específica para inventario.html
+        if (esPaginaInventario) {
+            await verificarYSeleccionarUbicacion();
+            mostrarUbicacionActual();
+            await sincronizarInventarioDesdeSupabase(); // Sincronizar solo en inventario.html
+            
             // Agregar event listener para cambiar ubicación
             const cambiarUbicacionBtn = document.getElementById('cambiarUbicacion');
             if (cambiarUbicacionBtn) {
-                cambiarUbicacionBtn.addEventListener('click', cambiarUbicacion);
+            cambiarUbicacionBtn.addEventListener('click', cambiarUbicacion);
             }
-
-            cargarDatosInventarioEnTablaPlantilla(); // Cargar datos en la tabla de inventario
-
+            
+            cargarDatosInventarioEnTablaPlantilla();
+            
             // Agregar listeners para sincronización manual
             document.getElementById('sync-inventario-down-btn')?.addEventListener('click', sincronizarInventarioDesdeSupabase);
             document.getElementById('sincronizarManual')?.addEventListener('click', async () => {
-                mostrarSpinner();
-                try {
-                    await procesarColaSincronizacion();
-                    mostrarAlertaBurbuja('Sincronización manual completada', 'success');
-                } catch (error) {
-                    mostrarAlertaBurbuja('Error al sincronizar', 'error');
-                } finally {
-                    ocultarSpinner();
-                }
+            mostrarSpinner();
+            try {
+                await procesarColaSincronizacion();
+                mostrarAlertaBurbuja('Sincronización manual completada', 'success');
+            } catch (error) {
+                mostrarAlertaBurbuja('Error al sincronizar', 'error');
+            } finally {
+                ocultarSpinner();
+            }
             });
         }
 
@@ -295,17 +299,17 @@ function ocultarSpinner() {
 }
 
 // Ejemplo de uso en una operación asíncrona
-async function sincronizarDatos() {
-    mostrarSpinner();
-    try {
-        await sincronizarProductosDesdeBackend();
-        mostrarMensaje('Sincronización exitosa', 'success');
-    } catch (error) {
-        mostrarMensaje('Error al sincronizar', 'error');
-    } finally {
-        ocultarSpinner();
-    }
-}
+// async function sincronizarDatos() {
+//     mostrarSpinner();
+//     try {
+//         await sincronizarProductosDesdeBackend();
+//         mostrarMensaje('Sincronización exitosa', 'success');
+//     } catch (error) {
+//         mostrarMensaje('Error al sincronizar', 'error');
+//     } finally {
+//         ocultarSpinner();
+//     }
+// }
 
 function actualizarIndicadorConexion() {
     const indicador = document.getElementById('conexion-indicador');

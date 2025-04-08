@@ -9,9 +9,23 @@
     <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body class="bg-gray-100">
-    <header class="bg-blue-600 text-white p-4">
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
         <h1 class="text-3xl font-bold">Sistema de Gestión de Productos</h1>
+        <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">
+            Menú
+        </button>
     </header>
+
+    <div id="sideMenu" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-bold">Menú de Navegación</h2>
+            <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
+        </div>
+        <ul id="menuRoutes" class="p-4 space-y-2">
+            <!-- Las rutas se generarán dinámicamente -->
+        </ul>
+    </div>
+
     <a href="../index.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
     
     <main class="container mx-auto mt-8">
@@ -59,5 +73,39 @@
     </footer>
     
     <script type="module" src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menuToggle');
+            const sideMenu = document.getElementById('sideMenu');
+            const closeMenu = document.getElementById('closeMenu');
+            const menuRoutes = document.getElementById('menuRoutes');
+
+            const routes = [
+                { name: 'Consulta de Producto', path: './consulta.html' },
+                { name: 'Editar Producto', path: './editar.html' },
+                { name: 'Inventario', path: './inventario.html' },
+                { name: 'Reporte para Inventario', path: './report.html' },
+                { name: 'Agregar Productos', path: './agregar.html' },
+                { name: 'Administración de Archivos', path: './archivos.html' }
+            ];
+
+            // Generar las rutas dinámicamente
+            routes.forEach(route => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="${route.path}" class="text-blue-500 hover:underline">${route.name}</a>`;
+                menuRoutes.appendChild(li);
+            });
+
+            // Mostrar el menú
+            menuToggle.addEventListener('click', () => {
+                sideMenu.classList.remove('-translate-x-full');
+            });
+
+            // Ocultar el menú
+            closeMenu.addEventListener('click', () => {
+                sideMenu.classList.add('-translate-x-full');
+            });
+        });
+    </script>
 </body>
 </html>

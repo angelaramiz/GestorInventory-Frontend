@@ -1,5 +1,4 @@
 import { obtenerAreasPorCategoria } from './db-operations.js';
-import { mostrarAlertaBurbuja, mostrarMensaje } from './logs.js';
 import { getSupabase } from './auth.js';
 
 let productosInventario = [];
@@ -38,7 +37,7 @@ async function cargarAreas() {
             return;
         }
 
-        mostrarMensaje('Áreas disponibles de manera exitosa', 'success', );
+        console.log('Áreas disponibles:', areas);
 
         const selectArea = document.getElementById('areaSelect');
         if (selectArea) {
@@ -211,141 +210,78 @@ async function generarReportePDF(opciones) {
         // Dimensiones de la página
         const pageWidth = 210;
         const pageHeight = 297;
-        const marginHorizontal = 15; // Márgenes horizontales ajustados para centrar las columnas
-        const marginVertical = 10; // Márgenes verticales
-        const cardWidth = (pageWidth - (marginHorizontal * 3)) / 2; // Ajustar para 2 columnas
-        const cardHeight = (pageHeight - (marginVertical * 6)) / 5; // Ajustar para 5 filas
+        const margin = 10;
+        const cardWidth = (pageWidth - (margin * 3)) / 2; // Ancho de las tarjetas (2 columnas)
+        const cardHeight = 45; // Altura compacta de las tarjetas
 
         // Variables para controlar la posición
-        let x = marginHorizontal;
-        let y = marginVertical;
+        let x = margin;
+        let y = margin;
 
-        // Agrupar productos por área
-        const productosPorArea = productos.reduce((grupos, producto) => {
-            const area = producto.area_nombre || producto.area || 'Sin área'; // Priorizar 'area_nombre', luego 'area', o 'Sin área'
-            if (!grupos[area]) {
-                grupos[area] = [];
+        // Procesar productos
+        for (let i = 0; i < productos.length; i++) {
+            const producto = productos[i];
+
+            // Calcular la posición de la tarjeta
+            const column = i % 2; // 0: izquierda, 1: derecha
+            x = margin + column * (cardWidth + margin / 2);
+            if (i > 0 && column === 0) {
+                y += cardHeight + 5; // Mover hacia abajo para la siguiente fila
             }
-            grupos[area].push(producto);
-            return grupos;
-        }, {});
 
-        // Procesar productos por área
-        for (const [area, productosArea] of Object.entries(productosPorArea)) {
-            // Agregar encabezado del área
+            // Verificar si necesitamos una nueva página
+            if (y + cardHeight > pageHeight - margin) {
+                doc.addPage();
+                y = margin;
+            }
+
+            // Dibujar borde de la tarjeta
+            doc.setDrawColor(200, 200, 200);
+            doc.rect(x, y, cardWidth, cardHeight);
+
+            // Contenido de la tarjeta
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(10);
-            doc.text(`Área: ${area}`, marginHorizontal, y); // Mostrar el nombre del área correctamente
-            y += 10; // Espacio debajo del encabezado
+            doc.setFontSize(9);
+            const nombreProducto = producto.nombre || 'Sin nombre';
+            const fechaCaducidad = producto.caducidad
+                ? new Date(producto.caducidad).toLocaleDateString('es-ES')
+                : 'Sin caducidad';
+            doc.text(`${nombreProducto} - ${fechaCaducidad}`, x + 3, y + 6);
 
-            for (let i = 0; i < productosArea.length; i++) {
-                const producto = productosArea[i];
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
 
-                // Calcular la posición de la tarjeta
-                const column = i % 2; // 0: izquierda, 1: derecha
-                x = marginHorizontal + column * (cardWidth + marginHorizontal);
-                if (i > 0 && column === 0) {
-                    y += cardHeight + marginVertical; // Reducir espacio entre filas
-                }
+            // Cantidad y unidad
+            const cantidadTexto = `Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
+            doc.text(cantidadTexto, x + 3, y + 12);
 
-                // Verificar si necesitamos una nueva página
-                if (y + cardHeight > pageHeight - marginVertical) {
-                    doc.addPage();
-                    y = marginVertical;
-                    doc.text(`Área: ${area}`, marginHorizontal, y); // Repetir encabezado en nueva página
-                    y += 10;
-                }
-
-                // Dibujar borde de la tarjeta
-                doc.setDrawColor(200, 200, 200);
-                doc.rect(x, y, cardWidth, cardHeight);
-
-                // Contenido de la tarjeta
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(8); // Reducir tamaño de fuente
-                const nombreProducto = producto.nombre || 'Sin nombre';
-                const fechaCaducidad = producto.caducidad
-                    ? new Date(producto.caducidad).toLocaleDateString('es-ES')
-                    : 'Sin caducidad';
-                doc.text(`${nombreProducto} - ${fechaCaducidad}`, x + 3, y + 6);
-
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8);
-
-                // Cantidad y unidad
-                const cantidadTexto = `Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
-                doc.text(cantidadTexto, x + 3, y + 10); // Ajustar posición del texto
-
-                // Código de barras (si la opción está activada)
-                if (opciones.incluirCodigo && producto.codigo) {
-                    try {
-                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-
-                        // Determinar el formato del código de barras
-                        let formato = 'EAN13'; // Por defecto EAN-13
-                        if (/^\d{12}$/.test(producto.codigo)) {
-                            formato = 'UPC'; // Cambiar a UPC-A si tiene 12 dígitos
-                        }
-
-                        JsBarcode(svg, producto.codigo, {
-                            format: formato,
-                            width: 1,
-                            height: 30,
-                            displayValue: false,
-                            margin: 0,
-                        });
-
-                        // Convertir SVG a PNG usando un canvas
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const svgData = new XMLSerializer().serializeToString(svg);
-                        const img = new Image();
-                        img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgData)}`;
-
-                        await new Promise((resolve, reject) => {
-                            img.onload = () => {
-                                canvas.width = img.width;
-                                canvas.height = img.height;
-                                ctx.drawImage(img, 0, 0);
-                                resolve();
-                            };
-                            img.onerror = reject;
-                        });
-
-                        const pngDataUrl = canvas.toDataURL('image/png');
-
+            // Código de barras (si la opción está activada)
+            if (opciones.incluirCodigo && producto.codigo) {
+                try {
+                    const barcodeCanvas = document.getElementById(`barcode-${producto.codigo}`);
+                    if (barcodeCanvas) {
+                        const barcodeDataUrl = barcodeCanvas.toDataURL('image/png');
                         doc.addImage(
-                            pngDataUrl,
+                            barcodeDataUrl,
                             'PNG',
-                            x + (cardWidth - 50) / 2, // Centrar horizontalmente
-                            y + cardHeight - 35, // Ajustar posición vertical
-                            50, // Reducir ancho del código de barras
-                            12 // Reducir altura del código de barras
+                            x + (cardWidth - 60) / 2, // Centrar horizontalmente
+                            y + cardHeight - 20, // Cerca del fondo
+                            60, // Ancho ajustado
+                            15 // Altura ajustada
                         );
-
-                        // Agregar el código numérico debajo del código de barras
-                        doc.setFont('helvetica', 'normal');
-                        doc.setFontSize(7); // Reducir tamaño de fuente
-                        doc.text(
-                            producto.codigo,
-                            x + cardWidth / 2, // Centrar horizontalmente
-                            y + cardHeight - 20, // Posicionar debajo del código de barras
-                            { align: 'center' }
-                        );
-                    } catch (error) {
-                        console.error(`Error al agregar código de barras para ${producto.codigo}:`, error);
+                    } else {
+                        console.warn(`No se encontró el código de barras para el producto con código: ${producto.codigo}`);
                     }
-                }
-
-                // Comentarios (si existen)
-                if (producto.comentarios) {
-                    const comentarios = `Comentarios: ${producto.comentarios}`;
-                    doc.text(comentarios, x + 3, y + cardHeight - 5, { maxWidth: cardWidth - 6 });
+                } catch (error) {
+                    console.error(`Error al agregar código de barras para ${producto.codigo}:`, error);
                 }
             }
 
-            // Espacio entre áreas
-            y += cardHeight + marginVertical;
+            // Comentarios (si existen)
+            if (producto.comentarios) {
+                const comentarios = `Comentarios: ${producto.comentarios}`;
+                doc.text(comentarios, x + 3, y + cardHeight - 5, { maxWidth: cardWidth - 6 });
+            }
         }
 
         // Guardar el PDF
@@ -388,23 +324,22 @@ async function generarCodigosDeBarras(productos) {
     const container = document.getElementById('barcodeContainer');
     container.innerHTML = '';
 
-    // Crear elementos SVG para cada código
+    // Crear elementos canvas para cada código
     for (const producto of productos) {
         if (!producto.codigo) continue;
 
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.id = `barcode-${producto.codigo}`; // Usar el código como ID único
-        container.appendChild(svg);
+        const canvas = document.createElement('canvas');
+        canvas.id = `barcode-${producto.codigo}`; // Usar el código como ID único
+        container.appendChild(canvas);
 
         try {
             // Determinar el formato del código de barras
-            let formato = 'EAN13'; // Por defecto EAN-13
-            if (/^\d{12}$/.test(producto.codigo)) {
-                formato = 'UPC'; // Cambiar a UPC-A si tiene 12 dígitos
-            }
+            let formato = 'CODE128';
+            if (/^\d{13}$/.test(producto.codigo)) formato = 'EAN13';
+            else if (/^\d{12}$/.test(producto.codigo)) formato = 'UPC';
 
             // Generar el código de barras con tamaño ajustado
-            JsBarcode(svg, producto.codigo, {
+            JsBarcode(canvas, producto.codigo, {
                 format: formato,
                 width: 2, // Ancho de las barras
                 height: 40, // Altura de las barras

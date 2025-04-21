@@ -115,14 +115,14 @@ async function iniciarSesion(email, password) {
                 localStorage.setItem('supabase.auth.refresh', refresh_token);
                 localStorage.setItem('usuario_id', user.id);
                 localStorage.setItem('categoria_id', user.categoria_id); // Guardar la categoría
-                console.log(user.categoria_id); // Corrección aquí
-        
+                localStorage.setItem('rol', user.rol); // Guardar el rol del usuario
+
                 // Configurar el token en el cliente Supabase
                 await supabase.auth.setSession({
                     access_token: access_token,
                     refresh_token: refresh_token
                 });
-        
+
                 mostrarAlertaBurbuja('Inicio de sesión exitoso', 'success');
                 setTimeout(() => {
                     window.location.href = './plantillas/main.html';

@@ -41,6 +41,21 @@ async function init() {
         await inicializarDB();
         await inicializarDBInventario();
 
+        // Obtener el rol del usuario
+        const rol = localStorage.getItem('rol');
+
+        // Controlar funcionalidades según el rol
+        if (rol === 'operador') {
+            // Ocultar funcionalidades restringidas para operadores
+            document.getElementById('generarReporteBtn')?.classList.add('hidden');
+            document.getElementById('resetearBaseDatos')?.classList.add('hidden');
+            document.getElementById('generarHojaInventario')?.classList.add('hidden');
+        }
+
+        if (rol === 'administrador') {
+            // Administrador tiene acceso completo, no se oculta nada
+        }
+
         // Obtener áreas por categoría al inicializar
         const { obtenerAreasPorCategoria } = await import('./db-operations.js');
         await obtenerAreasPorCategoria();

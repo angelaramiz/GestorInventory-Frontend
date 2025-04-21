@@ -35,6 +35,30 @@ async function verificarAutenticacion() {
     }
 }
 
+// Función para ocultar rutas según el rol
+function ocultarRutasPorRol(rol) {
+    const rutasRestringidas = {
+        operador: ['editar', 'reporte', 'agregar', 'archivos'], // IDs de los divs restringidos para operadores
+        administrador: [] // No hay restricciones para administradores
+    };
+
+    const rutasBloqueadas = rutasRestringidas[rol] || [];
+
+    rutasBloqueadas.forEach(id => {
+        const div = document.getElementById(id);
+        const link = document.getElementById(`${id}Link`);
+        if (div) {
+            div.style.display = 'none'; // Ocultar el div
+        }
+        if (link) {
+            link.addEventListener('click', (event) => {
+                event.preventDefault(); // Restringir la redirección
+                mostrarMensaje('Acceso denegado', 'error');
+            });
+        }
+    });
+}
+
 // Función de inicialización
 async function init() {
     try {
@@ -44,17 +68,8 @@ async function init() {
         // Obtener el rol del usuario
         const rol = localStorage.getItem('rol');
 
-        // Controlar funcionalidades según el rol
-        if (rol === 'operador') {
-            // Ocultar funcionalidades restringidas para operadores
-            document.getElementById('generarReporteBtn')?.classList.add('hidden');
-            document.getElementById('resetearBaseDatos')?.classList.add('hidden');
-            document.getElementById('generarHojaInventario')?.classList.add('hidden');
-        }
-
-        if (rol === 'administrador') {
-            // Administrador tiene acceso completo, no se oculta nada
-        }
+        // Ocultar rutas según el rol
+        ocultarRutasPorRol(rol);
 
         // Obtener áreas por categoría al inicializar
         const { obtenerAreasPorCategoria } = await import('./db-operations.js');

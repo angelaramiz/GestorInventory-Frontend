@@ -35,6 +35,7 @@ function inicializarMenu() {
     
     // Generar las rutas dinámicamente, excluyendo las restringidas
     if (menuRoutes) {
+        menuRoutes.innerHTML = ''; // Clear existing menu items first
         routes.forEach(route => {
             if (!rutasBloqueadas.includes(route.id)) {
                 const li = document.createElement('li');

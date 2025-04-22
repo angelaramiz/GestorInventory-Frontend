@@ -4,6 +4,57 @@ import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
 
+// Función para gestionar el menú lateral
+function inicializarMenu() {
+    const menuToggle = document.getElementById('menuToggle');
+    const sideMenu = document.getElementById('sideMenu');
+    const closeMenu = document.getElementById('closeMenu');
+    const menuRoutes = document.getElementById('menuRoutes');
+
+    // Definir las rutas disponibles
+    const routes = [
+        { name: 'Consulta de Producto', path: './consulta.html', id: 'consulta' },
+        { name: 'Editar Producto', path: './editar.html', id: 'editar' },
+        { name: 'Inventario', path: './inventario.html', id: 'inventario' },
+        { name: 'Reporte para Inventario', path: './report.html', id: 'reporte' },
+        { name: 'Agregar Productos', path: './agregar.html', id: 'agregar' },
+        { name: 'Administración de Archivos', path: './archivos.html', id: 'archivos' }
+    ];
+
+    // Obtener el rol del usuario
+    const rol = localStorage.getItem('rol');
+    
+    // Filtrar las rutas según el rol
+    const rutasRestringidas = {
+        Operador: ['editar', 'reporte', 'agregar', 'archivos'], // IDs restringidos para operadores
+        Administrador: [], // No hay restricciones para administradores
+        Supervisor: ['reporte'], // IDs restringidos para supervisores
+    };
+    
+    const rutasBloqueadas = rutasRestringidas[rol] || [];
+    
+    // Generar las rutas dinámicamente, excluyendo las restringidas
+    if (menuRoutes) {
+        routes.forEach(route => {
+            if (!rutasBloqueadas.includes(route.id)) {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="${route.path}" id="${route.id}Link" class="text-blue-500 hover:underline">${route.name}</a>`;
+                menuRoutes.appendChild(li);
+            }
+        });
+    }
+
+    // Mostrar el menú
+    menuToggle?.addEventListener('click', () => {
+        sideMenu.classList.remove('-translate-x-full');
+    });
+
+    // Ocultar el menú
+    closeMenu?.addEventListener('click', () => {
+        sideMenu.classList.add('-translate-x-full');
+    });
+}
+
 // Función para mostrar la ubicación actual
 export async function mostrarUbicacionActual() {
     const ubicacion = await obtenerUbicacionEnUso();
@@ -71,6 +122,9 @@ async function init() {
 
         // Ocultar rutas según el rol
         ocultarRutasPorRol(rol);
+        
+        // Inicializar el menú lateral
+        inicializarMenu();
 
         // Obtener áreas por categoría al inicializar
         const { obtenerAreasPorCategoria } = await import('./db-operations.js');

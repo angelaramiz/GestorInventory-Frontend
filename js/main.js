@@ -38,8 +38,9 @@ async function verificarAutenticacion() {
 // Función para ocultar rutas según el rol
 function ocultarRutasPorRol(rol) {
     const rutasRestringidas = {
-        operador: ['editar', 'reporte', 'agregar', 'archivos'], // IDs de los divs restringidos para operadores
-        administrador: [] // No hay restricciones para administradores
+        Operador: ['editar', 'reporte', 'agregar', 'archivos'], // IDs de los divs restringidos para operadores
+        Administrador: [], // No hay restricciones para administradores
+        Supervisor: [ 'reporte'], // IDs de los divs restringidos para supervisores
     };
 
     const rutasBloqueadas = rutasRestringidas[rol] || [];

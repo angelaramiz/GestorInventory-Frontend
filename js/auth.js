@@ -1,5 +1,6 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { mostrarAlertaBurbuja } from './logs.js'; // Importar la nueva función
+import { resetearBaseDeDatos, db } from './db-operations.js';
 
 let supabase = null;
 
@@ -126,6 +127,7 @@ async function iniciarSesion(email, password) {
                 mostrarAlertaBurbuja('Inicio de sesión exitoso', 'success');
                 setTimeout(() => {
                     window.location.href = './plantillas/main.html';
+                    resetearBaseDeDatos(db, "productos"); // Llamar a la función para resetear la base de datos
                 }, 500);
             } else {
                 mostrarAlertaBurbuja('Datos de usuario incompletos', 'error');
@@ -134,6 +136,7 @@ async function iniciarSesion(email, password) {
             mostrarAlertaBurbuja(data.error || 'Error al iniciar sesión', 'error');
         }
     } catch (error) {
+        console.error('Error completo:', error);
         mostrarAlertaBurbuja('Error de conexión con el servidor', 'error');
     }
 }

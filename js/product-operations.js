@@ -27,7 +27,10 @@ export function mostrarResultados(resultados) {
                     "p-6",
                     "mb-4",
                     "border",
-                    "border-gray-200"
+                    "border-gray-200",
+                    "cursor-pointer", // Agregar cursor-pointer para indicar que es clickeable
+                    "hover:bg-gray-100", // Efecto hover
+                    "transition-colors"
                 );
                 productoDiv.innerHTML = `
                     <h3 class="text-xl font-semibold mb-2">${producto.nombre}</h3>
@@ -35,6 +38,12 @@ export function mostrarResultados(resultados) {
                     <p><strong>Categoría:</strong> ${producto.categoria}</p>
                     <p><strong>Marca:</strong> ${producto.marca}</p>
                 `;
+                
+                // Agregar evento de clic para mostrar detalles completos con código de barras
+                productoDiv.addEventListener('click', () => {
+                    mostrarDetallesProductoConBarcode(producto);
+                });
+                
                 resultadoDiv.appendChild(productoDiv);
             } else {
                 mostrarMensaje("Error al buscar en la base de datos", "error");
@@ -1397,5 +1406,304 @@ export async function agregarNuevoProductoDesdeInventario(codigo, permitirModifi
                 mostrarMensaje("Producto guardado localmente. Se sincronizará cuando haya conexión.", "info");
             }
         };
+    }
+}
+
+// Función para mostrar los detalles del producto con código de barras en una vista completa
+export function mostrarDetallesProductoConBarcode(producto) {
+    // Verificar si JsBarcode está disponible
+    if (typeof window.JsBarcode === 'undefined') {
+        console.error('JsBarcode no está disponible');
+        mostrarMensaje("Error: No se pudo cargar la librería de códigos de barras", "error");
+        
+        // Cargar la librería dinámicamente si no está disponible
+        const script = document.createElement('script');
+        script.src = '../librerías/JsBarcode.all.min.js';
+        script.onload = function() {
+            // Una vez cargada, volver a intentar mostrar el código de barras
+            mostrarDetallesProductoConBarcodeImpl(producto);
+        };
+        script.onerror = function() {
+            mostrarMensaje("Error: No se pudo cargar la librería de códigos de barras", "error");
+        };
+        document.head.appendChild(script);
+        return;
+    }
+    
+    // Si JsBarcode está disponible, proceder normalmente
+    mostrarDetallesProductoConBarcodeImpl(producto);
+}
+
+// Implementación real de la función de mostrar detalles
+function mostrarDetallesProductoConBarcodeImpl(producto) {
+    // Crear un contenedor modal para mostrar los detalles
+    const modal = document.createElement("div");
+    modal.classList.add(
+        "fixed", "inset-0", "z-50", "flex", "items-center", "justify-center", 
+        "bg-gray-900", "bg-opacity-75", "overflow-auto", "p-4"
+    );
+    
+    // Crear contenido del modal
+    const contenido = document.createElement("div");
+    contenido.classList.add(
+        "bg-white", "rounded-lg", "shadow-xl", "p-6", "max-w-lg", "w-full",
+        "mx-auto", "max-h-screen", "overflow-y-auto"
+    );
+    
+    // Agregar botón de cerrar
+    const btnCerrar = document.createElement("button");
+    btnCerrar.innerHTML = "×";
+    btnCerrar.classList.add(
+        "absolute", "top-2", "right-4", "text-3xl", "font-bold", 
+        "text-gray-600", "hover:text-gray-800"
+    );
+    btnCerrar.onclick = () => {
+        document.body.removeChild(modal);
+    };
+    
+    // Crear contenido HTML para los detalles del producto
+    contenido.innerHTML = `
+        <h2 class="text-2xl font-bold mb-4 text-center">${producto.nombre}</h2>
+        <div class="mb-6 flex justify-center">
+            <svg id="barcode" class="w-full"></svg>
+        </div>
+        <div class="space-y-2 mb-6">
+            <p class="text-lg"><strong>Código:</strong> ${producto.codigo}</p>
+            <p class="text-lg"><strong>Categoría:</strong> ${producto.categoria}</p>
+            <p class="text-lg"><strong>Marca:</strong> ${producto.marca}</p>
+            <p class="text-lg"><strong>Unidad:</strong> ${producto.unidad || "No especificada"}</p>
+        </div>
+        <div class="mt-6 flex space-x-3 justify-center">
+            <button id="btn-imprimir" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+                Imprimir
+            </button>
+            <button id="btn-descargar" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
+                Descargar PDF
+            </button>
+        </div>
+    `;
+    
+    // Agregar el contenido y el botón de cerrar al modal
+    modal.appendChild(contenido);
+    contenido.appendChild(btnCerrar);
+    
+    // Agregar el modal al cuerpo del documento
+    document.body.appendChild(modal);
+    
+    // Añadir evento para cerrar el modal cuando se hace clic fuera del contenido
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+    
+    // Evitar que los clics dentro del contenido cierren el modal
+    contenido.addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
+    
+    // Esperar a que el modal se renderice en el DOM
+    setTimeout(() => {
+        // Generar el código de barras usando JsBarcode
+        try {
+            window.JsBarcode("#barcode", producto.codigo, {
+                format: determinarFormatoBarcode(producto.codigo),
+                width: 2,
+                height: 80,
+                displayValue: true,
+                fontSize: 18,
+                margin: 10
+            });
+        } catch (error) {
+            console.error("Error al generar el código de barras:", error);
+            document.querySelector("#barcode").innerHTML = 
+                `<p class="text-red-500">Error al generar el código de barras: ${error.message}</p>`;
+        }
+        
+        // Configurar el botón de imprimir
+        document.getElementById("btn-imprimir").addEventListener("click", () => {
+            imprimirDetallesProducto(producto);
+        });
+        
+        // Configurar el botón de descargar PDF
+        document.getElementById("btn-descargar").addEventListener("click", () => {
+            descargarPDFProducto(producto);
+        });
+    }, 100);
+}
+
+// Determina el formato adecuado del código de barras basado en su longitud
+function determinarFormatoBarcode(codigo) {
+    if (!codigo) return "CODE128"; // Formato por defecto
+    
+    const codigoStr = String(codigo);
+    
+    if (codigoStr.length === 13) {
+        return "EAN13";
+    } else if (codigoStr.length === 8) {
+        return "EAN8";
+    } else if (codigoStr.length === 12) {
+        return "UPC";
+    } else if (codigoStr.length <= 4) {
+        // Para códigos cortos como PLU, usar CODE39
+        return "CODE39";
+    } else {
+        // Para el resto de casos
+        return "CODE128";
+    }
+}
+
+// Función para imprimir los detalles del producto
+function imprimirDetallesProducto(producto) {
+    // Crear una ventana de impresión
+    const ventanaImpresion = window.open('', '', 'width=800,height=600');
+    ventanaImpresion.document.write(`
+        <html>
+        <head>
+            <title>Imprimir Producto: ${producto.nombre}</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    padding: 20px;
+                    max-width: 700px;
+                    margin: 0 auto;
+                }
+                .container {
+                    padding: 15px;
+                    border: 1px solid #ddd;
+                    border-radius: 5px;
+                }
+                h1 {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+                .barcode-container {
+                    text-align: center;
+                    margin: 30px 0;
+                }
+                .details {
+                    margin-top: 30px;
+                    font-size: 14px;
+                }
+                .details p {
+                    margin: 8px 0;
+                }
+                @media print {
+                    body {
+                        padding: 0;
+                    }
+                    button {
+                        display: none;
+                    }
+                }
+            </style>
+            <script src="../librerías/JsBarcode.all.min.js"></script>
+        </head>
+        <body>
+            <div class="container">
+                <h1>${producto.nombre}</h1>
+                <div class="barcode-container">
+                    <svg id="print-barcode" width="100%"></svg>
+                </div>
+                <div class="details">
+                    <p><strong>Código:</strong> ${producto.codigo}</p>
+                    <p><strong>Categoría:</strong> ${producto.categoria}</p>
+                    <p><strong>Marca:</strong> ${producto.marca}</p>
+                    <p><strong>Unidad:</strong> ${producto.unidad || "No especificada"}</p>
+                </div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button onclick="window.print();">Imprimir</button>
+                </div>
+            </div>
+            <script>
+                window.onload = function() {
+                    JsBarcode("#print-barcode", "${producto.codigo}", {
+                        format: "${determinarFormatoBarcode(producto.codigo)}",
+                        width: 2,
+                        height: 80,
+                        displayValue: true,
+                        fontSize: 18,
+                        margin: 10
+                    });
+                }
+            </script>
+        </body>
+        </html>
+    `);
+    ventanaImpresion.document.close();
+    
+    // Esperar a que se cargue la página y ejecutar la impresión automáticamente
+    ventanaImpresion.onload = function() {
+        setTimeout(function() {
+            ventanaImpresion.print();
+            // ventanaImpresion.close();
+        }, 500);
+    };
+}
+
+// Función para descargar un PDF con los detalles del producto
+function descargarPDFProducto(producto) {
+    // Verificar si jsPDF está disponible
+    if (typeof jspdf === 'undefined') {
+        console.error('jsPDF no está disponible');
+        mostrarMensaje("Error: No se pudo cargar la librería PDF", "error");
+        return;
+    }
+    
+    try {
+        // Crear un nuevo documento PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Título
+        doc.setFontSize(20);
+        doc.text('Detalles del Producto', 105, 20, { align: 'center' });
+        
+        // Nombre del producto
+        doc.setFontSize(16);
+        doc.text(producto.nombre, 105, 30, { align: 'center' });
+        
+        // Convertir SVG a imagen para el código de barras
+        const svgElement = document.getElementById('barcode');
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        // Obtener la imagen a partir del SVG
+        const data = new XMLSerializer().serializeToString(svgElement);
+        const img = new Image();
+        img.onload = function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            context.drawImage(img, 0, 0);
+            
+            // Obtener la imagen como datos URL
+            const imgData = canvas.toDataURL('image/png');
+            
+            // Agregar la imagen al PDF
+            doc.addImage(imgData, 'PNG', 50, 40, 110, 50);
+            
+            // Detalles del producto
+            doc.setFontSize(12);
+            doc.text(`Código: ${producto.codigo}`, 20, 110);
+            doc.text(`Categoría: ${producto.categoria}`, 20, 120);
+            doc.text(`Marca: ${producto.marca}`, 20, 130);
+            doc.text(`Unidad: ${producto.unidad || "No especificada"}`, 20, 140);
+            
+            // Agregar fecha actual
+            const fecha = new Date().toLocaleDateString();
+            doc.setFontSize(10);
+            doc.text(`Documento generado: ${fecha}`, 20, 160);
+            
+            // Guardar PDF
+            doc.save(`producto-${producto.codigo}.pdf`);
+            
+            mostrarMensaje("PDF descargado correctamente", "success");
+        };
+        
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data)));
+        
+    } catch (error) {
+        console.error("Error al generar el PDF:", error);
+        mostrarMensaje("Error al generar el PDF", "error");
     }
 }

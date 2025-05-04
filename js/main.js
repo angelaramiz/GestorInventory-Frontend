@@ -3,6 +3,10 @@ import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, de
 import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
+import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente, configurarInterceptorSupabase } from './auth.js';
+
+// Variable para almacenar el ID del intervalo de verificación de token
+let tokenCheckInterval;
 
 // Función para gestionar el menú lateral
 function inicializarMenu() {
@@ -101,13 +105,41 @@ async function cambiarUbicacion() {
 
 // Función para verificar la autenticación del usuario
 async function verificarAutenticacion() {
-    // Aquí puedes agregar la lógica para verificar si el usuario está autenticado
-    // Por ejemplo, podrías verificar un token en el localStorage o hacer una llamada a tu backend
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-        window.location.href = '../index.html'; // Redirigir a la página de login si no está autenticado
-        throw new Error('Usuario no autenticado');
+    const token = localStorage.getItem('supabase.auth.token');
+    
+    // Si no hay token o está expirado, mostrar el diálogo de inicio de sesión
+    if (!token || isTokenExpired(token)) {
+        // Esta función ya redirige al usuario si cancela
+        return await mostrarDialogoSesionExpirada();
     }
+    
+    return true;
+}
+
+// Función para iniciar la verificación periódica del token
+function iniciarVerificacionToken() {
+    // Primero verificamos inmediatamente al cargar la página
+    if (verificarTokenAutomaticamente()) {
+        console.log("Token válido al iniciar la aplicación");
+    }
+    
+    // Configurar verificación periódica cada 5 minutos
+    tokenCheckInterval = setInterval(() => {
+        if (!verificarTokenAutomaticamente()) {
+            // Si devuelve falso, el token está expirado o no existe
+            console.log("Sesión expirada detectada en verificación periódica");
+            // La función verificarTokenAutomaticamente ya muestra el diálogo si es necesario
+        }
+    }, 5 * 60 * 1000); // Verificar cada 5 minutos
+    
+    // También monitorear eventos de actividad del usuario para verificar el token
+    document.addEventListener('click', () => {
+        // Solo verificar si han pasado al menos 1 minuto desde la última verificación
+        if (!window.lastTokenCheck || (Date.now() - window.lastTokenCheck) > 60000) {
+            window.lastTokenCheck = Date.now();
+            verificarTokenAutomaticamente();
+        }
+    });
 }
 
 // Función para ocultar rutas según el rol
@@ -138,6 +170,12 @@ function ocultarRutasPorRol(rol) {
 // Función de inicialización
 async function init() {
     try {
+        // Configurar el interceptor para las peticiones a Supabase
+        await configurarInterceptorSupabase();
+        
+        // Iniciar verificación periódica del token
+        iniciarVerificacionToken();
+        
         await inicializarDB();
         await inicializarDBInventario();
 
@@ -475,6 +513,13 @@ function conectarWebSocket() {
 
 // Conectar al WebSocket al cargar la página
 document.addEventListener('DOMContentLoaded', conectarWebSocket);
+
+// Limpiar el intervalo cuando se descarga la página para evitar memory leaks
+window.addEventListener('beforeunload', () => {
+    if (tokenCheckInterval) {
+        clearInterval(tokenCheckInterval);
+    }
+});
 
 // Exportar funciones necesarias
 export { mostrarSeccion, resetearBaseDatos, generarHojaInventario };

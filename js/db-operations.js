@@ -13,7 +13,22 @@ let syncQueue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
 
 // Nueva cola de sincronización
 export function agregarAColaSincronizacion(data) {
-    syncQueue.push(data);
+    // Asegurarse de que el área_id esté presente
+    const areaId = localStorage.getItem('area_id');
+    if (!areaId) {
+        console.error("No se encontró el área_id al intentar agregar a la cola de sincronización");
+        mostrarAlertaBurbuja("Error: No se pudo determinar el área para sincronizar", "error");
+        return;
+    }
+    
+    // Agregar área_id y areaName si no existen
+    const dataCompleta = { 
+        ...data,
+        area_id: data.area_id || areaId,
+        areaName: data.areaName || localStorage.getItem('ubicacion_almacen')
+    };
+    
+    syncQueue.push(dataCompleta);
     localStorage.setItem('syncQueue', JSON.stringify(syncQueue));
     if (navigator.onLine) procesarColaSincronizacion();
 }
@@ -26,33 +41,74 @@ export async function procesarColaSincronizacion() {
         const item = syncQueue.shift();
         try {
             const supabase = await getSupabase();
+            
+            // Verificar que el ítem tenga área_id
+            if (!item.area_id) {
+                const areaId = localStorage.getItem('area_id');
+                if (!areaId) {
+                    console.error("No se encontró ID de área para el elemento:", item);
+                    syncQueue.unshift(item); // Devolver el elemento a la cola
+                    mostrarAlertaBurbuja("Error: falta área en producto", "error");
+                    break;
+                }
+                item.area_id = areaId;
+                item.areaName = localStorage.getItem('ubicacion_almacen');
+            }
+            
+            // Asegurarse de incluir la información del usuario
             const { data, error } = await supabase
                 .from('inventario')
-                .upsert({ ...item, usuario_id: localStorage.getItem('usuario_id') })
+                .upsert({ 
+                    ...item, 
+                    usuario_id: localStorage.getItem('usuario_id'),
+                    area_id: item.area_id // Verificar que estamos incluyendo el área_id
+                })
                 .select();
 
-            if (error) throw error;
+            if (error) {
+                console.error("Error al sincronizar con Supabase:", error, item);
+                throw error;
+            }
 
-            // Actualizar IndexedDB con el ID permanente de Supabase
+            // Actualizar IndexedDB con el ID permanente de Supabase y la información completa
             const transaction = dbInventario.transaction(["inventario"], "readwrite");
             const objectStore = transaction.objectStore("inventario");
+            
+            // Eliminar el registro temporal
             await new Promise((resolve, reject) => {
                 const request = objectStore.delete(item.id);
                 request.onsuccess = resolve;
                 request.onerror = () => reject(request.error);
             });
+            
+            // Agregar el registro actualizado con ID permanente y todos los datos
+            const itemActualizado = { 
+                ...item, 
+                id: data[0].id, 
+                is_temp_id: false,
+                area_id: data[0].area_id || item.area_id // Asegurarse que tenga el área_id correcto
+            };
+            
             await new Promise((resolve, reject) => {
-                const request = objectStore.add({ ...item, id: data[0].id, is_temp_id: false });
+                const request = objectStore.add(itemActualizado);
                 request.onsuccess = resolve;
-                request.onerror = () => reject(request.error);
+                request.onerror = (e) => {
+                    console.error("Error al guardar en IndexedDB:", e.target.error, itemActualizado);
+                    reject(e.target.error);
+                };
             });
 
             localStorage.setItem('syncQueue', JSON.stringify(syncQueue));
         } catch (error) {
             console.error('Error al procesar la cola:', error);
             syncQueue.unshift(item); // Reinsertar el elemento si falla
+            mostrarAlertaBurbuja("Error al sincronizar con el servidor", "error");
             break;
         }
+    }
+    
+    if (syncQueue.length === 0) {
+        mostrarAlertaBurbuja("Sincronización completada", "success");
     }
 }
 
@@ -840,61 +896,81 @@ export async function sincronizarInventarioDesdeSupabase() {
     try {
         const supabase = await getSupabase();
         const userId = localStorage.getItem('usuario_id');
-        let ubicacionNombre = localStorage.getItem('ubicacion_almacen'); // Mover esta línea arriba
+        let ubicacionNombre = localStorage.getItem('ubicacion_almacen');
 
         // Verificar primero si tenemos los datos necesarios
         if (!userId || !ubicacionNombre) {
             console.warn("Usuario o ubicación no definidos. Sincronización cancelada.");
+            mostrarAlertaBurbuja("No hay ubicación seleccionada", "warning");
             return;
         }
 
         // Normalizar el nombre de la ubicación para que coincida con la base de datos
         ubicacionNombre = ubicacionNombre.charAt(0).toUpperCase() + ubicacionNombre.slice(1).toLowerCase();
 
+        // Obtener el área_id correspondiente a la ubicación
         const { data: areaData, error: areaError } = await supabase
             .from('areas')
-            .select('id')
+            .select('id, nombre')
             .ilike('nombre', `%${ubicacionNombre}%`)
             .single();
 
         if (areaError || !areaData) {
             console.error("No se encontró el área en Supabase:", areaError);
+            mostrarAlertaBurbuja("Error: No se encontró el área seleccionada", "error");
             return;
         }
 
+        console.log(`Área encontrada: ${areaData.nombre} (ID: ${areaData.id})`);
         const areaId = areaData.id;
+        
+        // Guardar el área_id en localStorage para utilizarlo en futuras operaciones
+        localStorage.setItem('area_id', areaId);
 
-        // Ahora consulta el inventario con el área correcta
+        // Consulta el inventario con el área correcta
         const { data, error } = await supabase
             .from('inventario')
             .select('*')
-            .eq('area_id', areaId) // Filtramos por 'area_id'
+            .eq('area_id', areaId)
             .order('last_modified', { ascending: false });
 
         if (error) {
             console.error("Error en la sincronización:", error);
-        } else {
-            mostrarAlertaBurbuja("Inventario sincronizado:", "success");
-
-            // Actualizar IndexedDB con los datos sincronizados
-            const transaction = dbInventario.transaction(["inventario"], "readwrite");
-            const objectStore = transaction.objectStore("inventario");
-
-            // Limpiar el almacén de inventario antes de agregar los nuevos datos
-            objectStore.clear().onsuccess = async () => {
-                for (const item of data) {
-                    await new Promise((resolve, reject) => {
-                        const request = objectStore.add(item);
-                        request.onsuccess = resolve;
-                        request.onerror = () => reject(request.error);
-                    });
-                }
-                console.log("Inventario local actualizado con éxito");
-                cargarDatosInventarioEnTablaPlantilla(); // Actualizar la tabla después de la sincronización
-            };
+            mostrarAlertaBurbuja("Error al sincronizar inventario", "error");
+            return;
         }
+
+        mostrarAlertaBurbuja("Inventario sincronizado correctamente", "success");
+
+        // Actualizar IndexedDB con los datos sincronizados
+        const transaction = dbInventario.transaction(["inventario"], "readwrite");
+        const objectStore = transaction.objectStore("inventario");
+
+        // Limpiar el almacén de inventario antes de agregar los nuevos datos
+        objectStore.clear().onsuccess = async () => {
+            for (const item of data) {
+                // Asegurarse de que cada ítem tenga el área_id y el nombre del área
+                const itemConArea = {
+                    ...item,
+                    area_id: areaId,
+                    areaName: ubicacionNombre
+                };
+                
+                await new Promise((resolve, reject) => {
+                    const request = objectStore.add(itemConArea);
+                    request.onsuccess = resolve;
+                    request.onerror = (event) => {
+                        console.error("Error al guardar item:", event.target.error, itemConArea);
+                        reject(event.target.error);
+                    };
+                });
+            }
+            console.log("Inventario local actualizado con éxito");
+            cargarDatosInventarioEnTablaPlantilla();
+        };
     } catch (error) {
         console.error("Error en la sincronización:", error);
+        mostrarAlertaBurbuja("Error de sincronización: " + error.message, "error");
     }
 }
 

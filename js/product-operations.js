@@ -535,6 +535,7 @@ export async function guardarInventario() {
         return;
     }
 
+    // Obtener datos del producto
     const producto = await new Promise((resolve) => {
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
@@ -547,31 +548,72 @@ export async function guardarInventario() {
         return;
     }
 
-    // Obtener la ID de la ubicación actual desde Supabase
+    // Obtener el área_id (llave foránea) desde localStorage o consultarlo si no existe
+    let area_id = localStorage.getItem('area_id');
     const ubicacionNombre = localStorage.getItem('ubicacion_almacen');
-    let ubicacionId;
     
-    // Consultar la ID de ubicación directamente desde Supabase
-    if (navigator.onLine) {
-        const { data, error } = await supabase
-            .from('areas')
-            .select('id')
-            .ilike('nombre', ubicacionNombre)
-            .single();
+    if (!area_id) {
+        if (!ubicacionNombre) {
+            // Si no hay ubicación seleccionada, mostrar mensaje y solicitar selección
+            mostrarMensaje("No hay ubicación seleccionada", "error");
             
-        if (error || !data) {
-            console.error("Error al obtener la ID de ubicación:", error);
-            mostrarMensaje("Error al obtener la ID de ubicación. Usando ID temporal.", "warning");
-            ubicacionId = `temp-${ubicacionNombre}-${Date.now()}`;
+            // Solicitar al usuario que seleccione una ubicación
+            const ubicacion = await seleccionarUbicacionAlmacen();
+            if (!ubicacion) {
+                mostrarMensaje("No se seleccionó ninguna ubicación", "error");
+                return;
+            }
+            
+            // Intentar obtener el area_id nuevamente después de la selección
+            area_id = localStorage.getItem('area_id');
+            if (!area_id) {
+                // Si aún no hay area_id, generar un ID temporal basado en el nombre
+                mostrarMensaje("No se pudo obtener el ID del área, usando ID temporal", "warning");
+                
+                // Usar un formato UUID para asegurar que sea único
+                area_id = `temp-${ubicacionNombre.replace(/\s+/g, '-')}-${Date.now()}`;
+                localStorage.setItem('area_id', area_id); // Guardar temporalmente
+            }
+        } else if (navigator.onLine) {
+            try {
+                const supabase = await import('./auth.js').then(m => m.getSupabase());
+                const { data, error } = await supabase
+                    .from('areas')
+                    .select('id')
+                    .ilike('nombre', `%${ubicacionNombre}%`)
+                    .single();
+                    
+                if (error || !data) {
+                    // Si hay error pero tenemos el nombre, generar un ID temporal
+                    console.error("Error al obtener el ID del área:", error);
+                    mostrarMensaje("Error al obtener el ID del área, usando ID temporal", "warning");
+                    area_id = `temp-${ubicacionNombre.replace(/\s+/g, '-')}-${Date.now()}`;
+                } else {
+                    area_id = data.id;
+                }
+                localStorage.setItem('area_id', area_id); // Guardar para futuro uso
+            } catch (error) {
+                console.error("Error al consultar el área:", error);
+                mostrarMensaje("Error al obtener la información del área, usando ID temporal", "warning");
+                // Generar un ID temporal basado en el nombre
+                area_id = `temp-${ubicacionNombre.replace(/\s+/g, '-')}-${Date.now()}`;
+                localStorage.setItem('area_id', area_id); // Guardar temporalmente
+            }
         } else {
-            ubicacionId = data.id;
+            // Si estamos offline pero tenemos el nombre, generar un ID temporal
+            mostrarMensaje("Sin conexión, usando ID temporal para el área", "warning");
+            area_id = `temp-${ubicacionNombre.replace(/\s+/g, '-')}-${Date.now()}`;
+            localStorage.setItem('area_id', area_id); // Guardar temporalmente
         }
-    } else {
-        // Si está offline, usar un ID temporal para la ubicación
-        mostrarMensaje("Sin conexión, usando ID temporal para la ubicación", "info");
-        ubicacionId = `temp-${ubicacionNombre}-${Date.now()}`;
     }
 
+    // Asegurarnos que tenemos un area_id (ya sea real o temporal)
+    if (!area_id) {
+        mostrarMensaje("No se pudo determinar el área para el inventario", "error");
+        return; // No podemos continuar sin un area_id
+    }
+
+    // Generar ID para el registro de inventario
     let idBase = `${codigo}-${lote}`;
     let idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, lote);
 
@@ -581,6 +623,7 @@ export async function guardarInventario() {
         let nuevoLote = parseInt(lote);
 
         while (existe) {
+            const supabase = await import('./auth.js').then(m => m.getSupabase());
             const { data, error } = await supabase
                 .from('inventario')
                 .select('id')
@@ -592,63 +635,78 @@ export async function guardarInventario() {
                 return;
             }
 
-            if (data.length === 0) {
+            if (!data || data.length === 0) {
                 existe = false;
             } else {
                 nuevoLote++;
                 idBase = `${codigo}-${nuevoLote}`;
-                idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, nuevoLote);
+                idFinal = idBase;
             }
         }
     }
 
+    // Crear el objeto con los datos del inventario
     const inventarioData = {
         id: idFinal,
         codigo: producto.codigo,
         nombre: producto.nombre,
         categoria: producto.categoria,
         marca: producto.marca,
-        lote: idBase.split('-')[1],
+        lote: lote,
         unidad: unidad || "Pz",
         cantidad: parseInt(cantidad),
         caducidad: fechaCaducidad,
         comentarios: comentarios || "N/A",
         last_modified: new Date().toISOString(),
         is_temp_id: !navigator.onLine,
-        area_id: ubicacionId
+        area_id: area_id, // Usar el ID del área como llave foránea
+        areaName: ubicacionNombre // Guardar también el nombre para mostrar en la interfaz
     };
 
-    // Guardar en IndexedDB
-    await new Promise((resolve) => {
-        const transaction = dbInventario.transaction(["inventario"], "readwrite");
-        const objectStore = transaction.objectStore("inventario");
-        const request = objectStore.add(inventarioData);
-        request.onsuccess = () => resolve();
-    });
+    try {
+        // Guardar en IndexedDB
+        await new Promise((resolve, reject) => {
+            const transaction = dbInventario.transaction(["inventario"], "readwrite");
+            const objectStore = transaction.objectStore("inventario");
+            const request = objectStore.add(inventarioData);
+            request.onsuccess = () => resolve();
+            request.onerror = (e) => reject(e.target.error);
+        });
 
-    // Guardar en localStorage
-    const inventarioLocal = cargarInventarioLocal();
-    inventarioLocal.push(inventarioData);
-    guardarInventarioLocal(inventarioLocal);
+        // Guardar en localStorage
+        const inventarioLocal = cargarInventarioLocal();
+        inventarioLocal.push(inventarioData);
+        guardarInventarioLocal(inventarioLocal);
 
-    // Sincronizar con Supabase
-    if (navigator.onLine) {
-        const { error } = await supabase
-            .from('inventario')
-            .insert({ ...inventarioData, usuario_id: localStorage.getItem('usuario_id') });
-        if (error) {
-            console.error("Error al sincronizar con Supabase:", error);
-            mostrarMensaje("Error al sincronizar con Supabase", "error");
+        // Sincronizar con Supabase
+        if (navigator.onLine) {
+            const supabase = await import('./auth.js').then(m => m.getSupabase());
+            const { error } = await supabase
+                .from('inventario')
+                .insert({
+                    ...inventarioData,
+                    usuario_id: localStorage.getItem('usuario_id')
+                });
+                
+            if (error) {
+                console.error("Error al sincronizar con Supabase:", error);
+                agregarAColaSincronizacion(inventarioData); // Agregar a cola si hay error
+                mostrarMensaje("Error al sincronizar. Se reintentará automáticamente.", "warning");
+            } else {
+                mostrarMensaje("Producto guardado y sincronizado exitosamente", "success");
+            }
         } else {
-            mostrarMensaje("Producto guardado y sincronizado exitosamente", "success");
+            agregarAColaSincronizacion(inventarioData); // Agregar a cola para sincronizar cuando haya conexión
+            mostrarMensaje("Producto guardado localmente. Se sincronizará cuando haya conexión.", "info");
         }
-    } else {
-        mostrarMensaje("Producto guardado localmente. Se sincronizará cuando hay conexión.", "info");
-    }
 
-    // Actualizar la tabla después de guardar el producto
-    cargarDatosInventarioEnTablaPlantilla();
-    limpiarFormularioInventario();
+        // Actualizar la tabla después de guardar el producto
+        cargarDatosInventarioEnTablaPlantilla();
+        limpiarFormularioInventario();
+    } catch (error) {
+        console.error("Error al guardar el inventario:", error);
+        mostrarMensaje("Error al guardar el producto en inventario", "error");
+    }
 }
 
 export async function modificarInventario() {

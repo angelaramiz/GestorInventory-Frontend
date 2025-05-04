@@ -1,7 +1,7 @@
 // importaciones 
 import { db, dbInventario, agregarAColaSincronizacion } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
-import { cargarDatosEnTabla, obtenerUbicacionEnUso, sincronizarInventarioDesdeSupabase, cargarDatosInventarioEnTablaPlantilla } from './db-operations.js';
+import { cargarDatosEnTabla, obtenerUbicacionEnUso, sincronizarInventarioDesdeSupabase, cargarDatosInventarioEnTablaPlantilla, guardarAreaIdPersistente } from './db-operations.js';
 import { sanitizarProducto, sanitizarEntrada } from './sanitizacion.js';
 import { supabase } from './auth.js';
 import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm'; // Usar UUID para IDs únicos
@@ -645,8 +645,8 @@ export async function guardarInventario() {
         }
     }
 
-    // Crear el objeto con los datos del inventario
-    const inventarioData = {
+    // Crear el objeto con los datos del inventario para IndexedDB (incluye areaName)
+    const inventarioDataLocal = {
         id: idFinal,
         codigo: producto.codigo,
         nombre: producto.nombre,
@@ -660,7 +660,25 @@ export async function guardarInventario() {
         last_modified: new Date().toISOString(),
         is_temp_id: !navigator.onLine,
         area_id: area_id, // Usar el ID del área como llave foránea
-        areaName: ubicacionNombre // Guardar también el nombre para mostrar en la interfaz
+        areaName: ubicacionNombre // Guardar este campo solo para visualización local
+    };
+
+    // Crear objeto para enviar a Supabase (sin el campo areaName)
+    const inventarioDataRemoto = {
+        id: idFinal,
+        codigo: producto.codigo,
+        nombre: producto.nombre,
+        categoria: producto.categoria,
+        marca: producto.marca,
+        lote: lote,
+        unidad: unidad || "Pz",
+        cantidad: parseInt(cantidad),
+        caducidad: fechaCaducidad,
+        comentarios: comentarios || "N/A",
+        last_modified: new Date().toISOString(),
+        is_temp_id: !navigator.onLine,
+        area_id: area_id, // Usar el ID del área como llave foránea
+        usuario_id: localStorage.getItem('usuario_id') // Siempre incluir el usuario_id
     };
 
     try {
@@ -668,14 +686,14 @@ export async function guardarInventario() {
         await new Promise((resolve, reject) => {
             const transaction = dbInventario.transaction(["inventario"], "readwrite");
             const objectStore = transaction.objectStore("inventario");
-            const request = objectStore.add(inventarioData);
+            const request = objectStore.add(inventarioDataLocal);
             request.onsuccess = () => resolve();
             request.onerror = (e) => reject(e.target.error);
         });
 
         // Guardar en localStorage
         const inventarioLocal = cargarInventarioLocal();
-        inventarioLocal.push(inventarioData);
+        inventarioLocal.push(inventarioDataLocal);
         guardarInventarioLocal(inventarioLocal);
 
         // Sincronizar con Supabase
@@ -683,20 +701,19 @@ export async function guardarInventario() {
             const supabase = await import('./auth.js').then(m => m.getSupabase());
             const { error } = await supabase
                 .from('inventario')
-                .insert({
-                    ...inventarioData,
-                    usuario_id: localStorage.getItem('usuario_id')
-                });
+                .insert(inventarioDataRemoto);
                 
             if (error) {
                 console.error("Error al sincronizar con Supabase:", error);
-                agregarAColaSincronizacion(inventarioData); // Agregar a cola si hay error
+                // Usar versión sin areaName para la cola de sincronización
+                agregarAColaSincronizacion(inventarioDataRemoto); 
                 mostrarMensaje("Error al sincronizar. Se reintentará automáticamente.", "warning");
             } else {
                 mostrarMensaje("Producto guardado y sincronizado exitosamente", "success");
             }
         } else {
-            agregarAColaSincronizacion(inventarioData); // Agregar a cola para sincronizar cuando haya conexión
+            // Usar versión sin areaName para la cola de sincronización
+            agregarAColaSincronizacion(inventarioDataRemoto);
             mostrarMensaje("Producto guardado localmente. Se sincronizará cuando haya conexión.", "info");
         }
 
@@ -1171,7 +1188,7 @@ function mostrarFormularioModificacion(productoInventario) {
 // Función para solicitar al usuario la selección de ubicación
 export async function seleccionarUbicacionAlmacen() {
     try {
-        const { obtenerAreasPorCategoria } = await import('./db-operations.js');
+        const { obtenerAreasPorCategoria, guardarAreaIdPersistente } = await import('./db-operations.js');
         const areas = await obtenerAreasPorCategoria();
         
         if (!areas || areas.length === 0) {
@@ -1182,10 +1199,10 @@ export async function seleccionarUbicacionAlmacen() {
         // Crear opciones para el select basadas en las áreas disponibles
         const opciones = {};
         areas.forEach(area => {
-            opciones[area.nombre] = area.nombre;
+            opciones[area.id] = area.nombre; // Usar ID como clave y nombre como valor para mostrar
         });
         
-        const { value: ubicacionNombre } = await Swal.fire({
+        const { value: areaId } = await Swal.fire({
             title: 'Seleccione la ubicación de almacén',
             input: 'select',
             inputOptions: opciones,
@@ -1193,9 +1210,25 @@ export async function seleccionarUbicacionAlmacen() {
             showCancelButton: true
         });
         
-        if (ubicacionNombre) {
-            await sincronizarInventarioDesdeSupabase(ubicacionNombre);
-            return ubicacionNombre;
+        if (areaId) {
+            // Encontrar el área seleccionada para obtener todos sus datos
+            const areaSeleccionada = areas.find(area => area.id === areaId);
+            
+            if (!areaSeleccionada) {
+                console.error("No se encontró el área con ID:", areaId);
+                return null;
+            }
+            
+            // Usar la nueva función para guardar el area_id de manera persistente
+            guardarAreaIdPersistente(areaId, areaSeleccionada.nombre);
+            
+            console.log(`Seleccionada área: ${areaSeleccionada.nombre} (ID: ${areaId})`);
+            
+            // Devolver un objeto con el ID y el nombre del área
+            return {
+                id: areaId,
+                nombre: areaSeleccionada.nombre
+            };
         }
         
         return null;
@@ -1207,9 +1240,12 @@ export async function seleccionarUbicacionAlmacen() {
 }
 
 export async function verificarYSeleccionarUbicacion() {
+    const { obtenerUbicacionEnUso, obtenerAreaId, guardarAreaIdPersistente } = await import('./db-operations.js');
     const ubicacionGuardada = await obtenerUbicacionEnUso();
+    const areaIdGuardado = obtenerAreaId();
 
-    if (!ubicacionGuardada) {
+    if (!ubicacionGuardada || !areaIdGuardado) {
+        console.log("No se encontró ubicación o area_id guardados. Solicitando selección al usuario.");
         try {
             const { obtenerAreasPorCategoria } = await import('./db-operations.js');
             const areas = await obtenerAreasPorCategoria();
@@ -1222,10 +1258,10 @@ export async function verificarYSeleccionarUbicacion() {
             // Crear opciones para el select basadas en las áreas disponibles
             const opciones = {};
             areas.forEach(area => {
-                opciones[area.nombre] = area.nombre;
+                opciones[area.id] = area.nombre; // Usar ID como clave y nombre como valor
             });
             
-            const { value: ubicacionSeleccionada } = await Swal.fire({
+            const { value: areaId } = await Swal.fire({
                 title: 'Selecciona una ubicación',
                 input: 'select',
                 inputOptions: opciones,
@@ -1236,15 +1272,31 @@ export async function verificarYSeleccionarUbicacion() {
                 }
             });
 
-            if (ubicacionSeleccionada) {
-                localStorage.setItem('ubicacion_almacen', ubicacionSeleccionada);
+            if (areaId) {
+                // Encontrar el área seleccionada para obtener el nombre
+                const areaSeleccionada = areas.find(area => area.id === areaId);
+                
+                if (!areaSeleccionada) {
+                    console.error("No se encontró el área con ID:", areaId);
+                    return;
+                }
+                
+                // Usar la nueva función para guardar el area_id de manera persistente
+                guardarAreaIdPersistente(areaId, areaSeleccionada.nombre);
+                
                 sessionStorage.setItem("ubicacion_seleccionada", "true");
+                
+                console.log(`Ubicación inicial seleccionada: ${areaSeleccionada.nombre} (ID: ${areaId})`);
+                
+                // Actualizar la interfaz
                 mostrarUbicacionActual();
             }
         } catch (error) {
             console.error("Error al obtener áreas:", error);
             mostrarMensaje("Error al cargar ubicaciones", "error");
         }
+    } else {
+        console.log(`Usando ubicación guardada: ${ubicacionGuardada} (ID: ${areaIdGuardado})`);
     }
 }
 

@@ -1,5 +1,5 @@
 // Importaciones
-import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion } from './db-operations.js';
+import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion, guardarAreaIdPersistente, obtenerAreaId } from './db-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
@@ -67,12 +67,35 @@ export async function mostrarUbicacionActual() {
 
 // Función para cambiar la ubicación manualmente
 async function cambiarUbicacion() {
-    const nuevaUbicacion = await seleccionarUbicacionAlmacen();
-    if (nuevaUbicacion) {
+    const resultado = await seleccionarUbicacionAlmacen();
+    if (resultado && resultado.id) {
+        const nuevaUbicacion = resultado.nombre;
+        const nuevaAreaId = resultado.id;
+        console.log(`Cambiando a ubicación: ${nuevaUbicacion} (ID: ${nuevaAreaId})`);
+        
+        // Usar la nueva función de persistencia para guardar el ID del área
+        const guardadoExitoso = guardarAreaIdPersistente(nuevaAreaId, nuevaUbicacion);
+        if (!guardadoExitoso) {
+            console.error("Error al guardar el ID del área de manera persistente");
+            mostrarAlertaBurbuja("Error al cambiar de ubicación", "error");
+            return;
+        }
+        
+        // Iniciar inventario con la nueva ubicación
         iniciarInventario(nuevaUbicacion);
         sessionStorage.setItem("ubicacion_seleccionada", "true");
+        
+        // Actualizar la interfaz
         await mostrarUbicacionActual();
-        await sincronizarInventarioDesdeSupabase();
+        
+        // Verificar que el area_id aún exista antes de sincronizar
+        const areaIdActual = obtenerAreaId();
+        if (areaIdActual !== nuevaAreaId) {
+            console.error(`Error de consistencia: area_id actual (${areaIdActual}) no coincide con el esperado (${nuevaAreaId})`);
+        }
+        
+        // Sincronizar pasando explícitamente el ID del área seleccionada
+        await sincronizarInventarioDesdeSupabase(nuevaUbicacion, nuevaAreaId);
     }
 }
 

@@ -3,6 +3,7 @@ import { getSupabase } from './auth.js';
 
 let productosInventario = [];
 let supabase;
+let todasLasAreas = [];
 
 // Inicializar la página
 document.addEventListener('DOMContentLoaded', async () => {
@@ -18,13 +19,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         await cargarProductos();
 
         // Event listeners
-        document.getElementById('areaSelect').addEventListener('change', filtrarProductosPorArea);
+        document.getElementById('area-todas').addEventListener('change', toggleTodasLasAreas);
+        document.getElementById('aplicarFiltroBtn').addEventListener('click', filtrarProductosPorAreasSeleccionadas);
         document.getElementById('generarReporteBtn').addEventListener('click', mostrarOpcionesReporte);
     } catch (error) {
         console.error('Error al inicializar la página:', error);
         Swal.fire('Error', 'Ocurrió un error al inicializar la página.', 'error');
     }
 });
+
+// Función para manejar la selección de "Todas las áreas"
+function toggleTodasLasAreas(e) {
+    const isChecked = e.target.checked;
+    document.querySelectorAll('.areaCheckbox').forEach(checkbox => {
+        if (checkbox.id !== 'area-todas') {
+            checkbox.checked = false;
+            checkbox.disabled = isChecked;
+        }
+    });
+}
+
+// Maneja el evento cuando se selecciona un área específica
+function handleAreaSpecificSelection() {
+    const areaCheckboxes = document.querySelectorAll('.areaCheckbox:not(#area-todas)');
+    const todasCheckbox = document.getElementById('area-todas');
+    
+    // Si hay al menos un área específica seleccionada, desmarcar "Todas las áreas"
+    const hayAreasSeleccionadas = Array.from(areaCheckboxes).some(cb => cb.checked);
+    if (hayAreasSeleccionadas) {
+        todasCheckbox.checked = false;
+    }
+}
 
 // Cargar áreas disponibles usando la función obtenerAreasPorCategoria
 async function cargarAreas() {
@@ -37,16 +62,32 @@ async function cargarAreas() {
             return;
         }
 
-        console.log('Áreas disponibles:', areas);
+        // console.log('Áreas disponibles:', areas);
+        todasLasAreas = areas; // Guardar todas las áreas
 
-        const selectArea = document.getElementById('areaSelect');
-        if (selectArea) {
-            selectArea.innerHTML = '<option value="todas">Todas las áreas</option>';
+        const areasContainer = document.getElementById('areasContainer');
+        if (areasContainer) {
+            // Mantener el checkbox de "Todas las áreas" que ya existe en el HTML
             areas.forEach(area => {
-                const option = document.createElement('option');
-                option.value = area.id; // Usar el ID del área como valor
-                option.textContent = area.nombre;
-                selectArea.appendChild(option);
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.className = 'flex items-center';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `area-${area.id}`;
+                checkbox.value = area.id;
+                checkbox.className = 'areaCheckbox mr-2';
+                checkbox.disabled = document.getElementById('area-todas').checked; // Desactivado si "Todas" está marcado
+                
+                checkbox.addEventListener('change', handleAreaSpecificSelection);
+                
+                const label = document.createElement('label');
+                label.htmlFor = `area-${area.id}`;
+                label.textContent = area.nombre;
+                
+                checkboxDiv.appendChild(checkbox);
+                checkboxDiv.appendChild(label);
+                areasContainer.appendChild(checkboxDiv);
             });
         }
     } catch (error) {
@@ -79,11 +120,12 @@ async function cargarProductos() {
     }
 }
 
-// Filtrar productos por área seleccionada
-async function filtrarProductosPorArea() {
-    const areaSeleccionada = document.getElementById('areaSelect').value;
-
-    if (areaSeleccionada === 'todas') {
+// Filtrar productos por áreas seleccionadas
+async function filtrarProductosPorAreasSeleccionadas() {
+    const todasSeleccionadas = document.getElementById('area-todas').checked;
+    
+    if (todasSeleccionadas) {
+        // Si "Todas las áreas" está seleccionado, mostrar todos los productos
         mostrarProductosEnLista(productosInventario);
         return;
     }
@@ -91,18 +133,31 @@ async function filtrarProductosPorArea() {
     try {
         mostrarCargando(true);
 
+        // Obtener IDs de todas las áreas seleccionadas
+        const areasSeleccionadas = Array.from(
+            document.querySelectorAll('.areaCheckbox:checked:not(#area-todas)')
+        ).map(checkbox => checkbox.value);
+
+        if (areasSeleccionadas.length === 0) {
+            // Si no hay áreas seleccionadas, no mostrar productos
+            mostrarProductosEnLista([]);
+            Swal.fire('Atención', 'Por favor, selecciona al menos un área para mostrar productos.', 'info');
+            return;
+        }
+
+        // Filtrar productos por las áreas seleccionadas
         const { data, error } = await supabase
             .from('inventario')
             .select('*')
-            .eq('area_id', areaSeleccionada) // Usar el valor como cadena
+            .in('area_id', areasSeleccionadas) // Usar IN para filtrar por múltiples áreas
             .order('nombre', { ascending: true });
 
         if (error) throw error;
 
         mostrarProductosEnLista(data);
     } catch (error) {
-        console.error('Error al filtrar productos por área:', error);
-        Swal.fire('Error', 'No se pudieron cargar los productos para esta área.', 'error');
+        console.error('Error al filtrar productos por áreas:', error);
+        Swal.fire('Error', 'No se pudieron cargar los productos para las áreas seleccionadas.', 'error');
     } finally {
         mostrarCargando(false);
     }
@@ -121,7 +176,12 @@ function mostrarProductosEnLista(productos) {
     productos.forEach(producto => {
         const li = document.createElement('li');
         li.className = 'py-1';
-        li.innerHTML = `<span class="font-semibold">${producto.nombre || 'Sin nombre'}</span> - Código: ${producto.codigo || 'Sin código'}`;
+        
+        // Buscar el nombre del área si está disponible
+        const area = todasLasAreas.find(a => a.id === producto.area_id);
+        const areaNombre = area ? area.nombre : 'Área desconocida';
+        
+        li.innerHTML = `<span class="font-semibold">${producto.nombre || 'Sin nombre'}</span> - Código: ${producto.codigo || 'Sin código'} <span class="text-gray-500 text-sm">(${areaNombre})</span>`;
         container.appendChild(li);
     });
 }
@@ -133,8 +193,15 @@ function mostrarCargando(mostrar) {
 
 // Mostrar opciones para generar el reporte
 function mostrarOpcionesReporte() {
-    const areaSeleccionada = document.getElementById('areaSelect')?.value || 'todas';
-    const esTodasLasAreas = areaSeleccionada === 'todas';
+    const todasSeleccionadas = document.getElementById('area-todas').checked;
+    const areasSeleccionadas = Array.from(
+        document.querySelectorAll('.areaCheckbox:checked:not(#area-todas)')
+    ).map(checkbox => checkbox.value);
+    
+    if (!todasSeleccionadas && areasSeleccionadas.length === 0) {
+        Swal.fire('Atención', 'Por favor, selecciona al menos un área para generar el reporte.', 'warning');
+        return;
+    }
 
     Swal.fire({
         title: 'Configuración del reporte',
@@ -145,7 +212,7 @@ function mostrarOpcionesReporte() {
                     <select id="ordenReporte" class="w-full border rounded p-2">
                         <option value="caducidad">Fecha de caducidad (primero las más próximas)</option>
                         <option value="alfabetico">Orden alfabético por nombre</option>
-                        ${esTodasLasAreas ? '<option value="area">Por área</option>' : ''}
+                        ${!todasSeleccionadas && areasSeleccionadas.length > 1 ? '<option value="area">Por área</option>' : ''}
                     </select>
                 </div>
                 <div class="mb-3">
@@ -183,20 +250,28 @@ async function generarReportePDF(opciones) {
     try {
         mostrarCargando(true);
 
-        // Obtener productos filtrados por área
-        const areaSeleccionada = document.getElementById('areaSelect').value;
-        let productos;
-
-        if (areaSeleccionada === 'todas') {
+        // Determinar qué productos incluir en el reporte
+        let productos = [];
+        const todasSeleccionadas = document.getElementById('area-todas').checked;
+        
+        if (todasSeleccionadas) {
             productos = productosInventario;
         } else {
-            productos = productosInventario.filter(p => p.area_id === areaSeleccionada);
+            const areasSeleccionadas = Array.from(
+                document.querySelectorAll('.areaCheckbox:checked:not(#area-todas)')
+            ).map(checkbox => checkbox.value);
+            
+            // Filtrar los productos por las áreas seleccionadas
+            productos = productosInventario.filter(p => areasSeleccionadas.includes(p.area_id));
         }
 
         if (productos.length === 0) {
             Swal.fire('Advertencia', 'No hay productos para generar el reporte.', 'warning');
             return;
         }
+
+        // Ordenar productos según criterio seleccionado
+        ordenarProductos(productos, opciones.orden);
 
         // Generar códigos de barras si es necesario
         if (opciones.incluirCodigo) {
@@ -218,69 +293,59 @@ async function generarReportePDF(opciones) {
         let x = margin;
         let y = margin;
 
-        // Procesar productos
-        for (let i = 0; i < productos.length; i++) {
-            const producto = productos[i];
-
-            // Calcular la posición de la tarjeta
-            const column = i % 2; // 0: izquierda, 1: derecha
-            x = margin + column * (cardWidth + margin / 2);
-            if (i > 0 && column === 0) {
-                y += cardHeight + 5; // Mover hacia abajo para la siguiente fila
-            }
-
-            // Verificar si necesitamos una nueva página
-            if (y + cardHeight > pageHeight - margin) {
-                doc.addPage();
-                y = margin;
-            }
-
-            // Dibujar borde de la tarjeta
-            doc.setDrawColor(200, 200, 200);
-            doc.rect(x, y, cardWidth, cardHeight);
-
-            // Contenido de la tarjeta
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(9);
-            const nombreProducto = producto.nombre || 'Sin nombre';
-            const fechaCaducidad = producto.caducidad
-                ? new Date(producto.caducidad).toLocaleDateString('es-ES')
-                : 'Sin caducidad';
-            doc.text(`${nombreProducto} - ${fechaCaducidad}`, x + 3, y + 6);
-
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
-
-            // Cantidad y unidad
-            const cantidadTexto = `Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
-            doc.text(cantidadTexto, x + 3, y + 12);
-
-            // Código de barras (si la opción está activada)
-            if (opciones.incluirCodigo && producto.codigo) {
-                try {
-                    const barcodeCanvas = document.getElementById(`barcode-${producto.codigo}`);
-                    if (barcodeCanvas) {
-                        const barcodeDataUrl = barcodeCanvas.toDataURL('image/png');
-                        doc.addImage(
-                            barcodeDataUrl,
-                            'PNG',
-                            x + (cardWidth - 60) / 2, // Centrar horizontalmente
-                            y + cardHeight - 20, // Cerca del fondo
-                            60, // Ancho ajustado
-                            15 // Altura ajustada
-                        );
-                    } else {
-                        console.warn(`No se encontró el código de barras para el producto con código: ${producto.codigo}`);
+        // Si se ordena por área, agrupar productos por área
+        if (opciones.orden === 'area') {
+            // Agrupar productos por área
+            const productosPorArea = {};
+            productos.forEach(producto => {
+                if (!productosPorArea[producto.area_id]) {
+                    productosPorArea[producto.area_id] = [];
+                }
+                productosPorArea[producto.area_id].push(producto);
+            });
+            
+            let primeraArea = true;
+            for (const areaId in productosPorArea) {
+                // Buscar el nombre del área
+                const area = todasLasAreas.find(a => a.id === areaId);
+                const areaNombre = area ? area.nombre : 'Área desconocida';
+                
+                // Si no es la primera área, agregar una nueva página
+                if (!primeraArea) {
+                    doc.addPage();
+                    y = margin;
+                }
+                primeraArea = false;
+                
+                // Agregar título del área
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`Área: ${areaNombre}`, x, y);
+                y += 10;
+                
+                // Procesar productos de esta área
+                for (let i = 0; i < productosPorArea[areaId].length; i++) {
+                    const producto = productosPorArea[areaId][i];
+                    agregarProductoAlPDF(doc, producto, i, x, y, margin, cardWidth, cardHeight, pageHeight, opciones);
+                    
+                    // Actualizar posición para el siguiente producto
+                    const column = i % 2; // 0: izquierda, 1: derecha
+                    if (column === 1) {
+                        y += cardHeight + 5; // Mover hacia abajo para la siguiente fila
                     }
-                } catch (error) {
-                    console.error(`Error al agregar código de barras para ${producto.codigo}:`, error);
                 }
             }
-
-            // Comentarios (si existen)
-            if (producto.comentarios) {
-                const comentarios = `Comentarios: ${producto.comentarios}`;
-                doc.text(comentarios, x + 3, y + cardHeight - 5, { maxWidth: cardWidth - 6 });
+        } else {
+            // Procesamiento normal (sin agrupar por área)
+            for (let i = 0; i < productos.length; i++) {
+                const producto = productos[i];
+                agregarProductoAlPDF(doc, producto, i, x, y, margin, cardWidth, cardHeight, pageHeight, opciones);
+                
+                // Actualizar posición para el siguiente producto
+                const column = i % 2; // 0: izquierda, 1: derecha
+                if (column === 1) {
+                    y += cardHeight + 5; // Mover hacia abajo para la siguiente fila
+                }
             }
         }
 
@@ -293,6 +358,80 @@ async function generarReportePDF(opciones) {
         Swal.fire('Error', 'No se pudo generar el reporte.', 'error');
     } finally {
         mostrarCargando(false);
+    }
+}
+
+// Función auxiliar para agregar un producto al PDF
+function agregarProductoAlPDF(doc, producto, index, x, y, margin, cardWidth, cardHeight, pageHeight, opciones) {
+    // Calcular la posición de la tarjeta
+    const column = index % 2; // 0: izquierda, 1: derecha
+    x = margin + column * (cardWidth + margin / 2);
+    
+    // Verificar si necesitamos una nueva página
+    if (y + cardHeight > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+    }
+
+    // Dibujar borde de la tarjeta
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(x, y, cardWidth, cardHeight);
+
+    // Contenido de la tarjeta
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    const nombreProducto = producto.nombre || 'Sin nombre';
+    const fechaCaducidad = producto.caducidad
+        ? new Date(producto.caducidad).toLocaleDateString('es-ES')
+        : 'Sin caducidad';
+        
+    let titulo = nombreProducto;
+    if (opciones.incluirCaducidad) {
+        titulo += ` - ${fechaCaducidad}`;
+    }
+    
+    doc.text(titulo, x + 3, y + 6);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+
+    // Cantidad y unidad
+    const cantidadTexto = `Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
+    doc.text(cantidadTexto, x + 3, y + 12);
+    
+    // Área (si la opción está activada)
+    if (opciones.incluirArea) {
+        const area = todasLasAreas.find(a => a.id === producto.area_id);
+        const areaNombre = area ? area.nombre : 'Área desconocida';
+        doc.text(`Área: ${areaNombre}`, x + 3, y + 17);
+    }
+
+    // Código de barras (si la opción está activada)
+    if (opciones.incluirCodigo && producto.codigo) {
+        try {
+            const barcodeCanvas = document.getElementById(`barcode-${producto.codigo}`);
+            if (barcodeCanvas) {
+                const barcodeDataUrl = barcodeCanvas.toDataURL('image/png');
+                doc.addImage(
+                    barcodeDataUrl,
+                    'PNG',
+                    x + (cardWidth - 60) / 2, // Centrar horizontalmente
+                    y + cardHeight - 20, // Cerca del fondo
+                    60, // Ancho ajustado
+                    15 // Altura ajustada
+                );
+            } else {
+                console.warn(`No se encontró el código de barras para el producto con código: ${producto.codigo}`);
+            }
+        } catch (error) {
+            console.error(`Error al agregar código de barras para ${producto.codigo}:`, error);
+        }
+    }
+
+    // Comentarios (si existen y la opción está activada)
+    if (opciones.incluirComentarios && producto.comentarios) {
+        const comentarios = `Comentarios: ${producto.comentarios}`;
+        doc.text(comentarios, x + 3, y + cardHeight - 5, { maxWidth: cardWidth - 6 });
     }
 }
 
@@ -314,7 +453,13 @@ function ordenarProductos(productos, criterio) {
                 return nombreA.localeCompare(nombreB);
             });
             break;
-        // 'area' no necesita ordenamiento especial, ya que lo manejamos por grupos
+        case 'area':
+            productos.sort((a, b) => {
+                const areaA = todasLasAreas.find(area => area.id === a.area_id)?.nombre || '';
+                const areaB = todasLasAreas.find(area => area.id === b.area_id)?.nombre || '';
+                return areaA.localeCompare(areaB);
+            });
+            break;
     }
 }
 

@@ -170,91 +170,50 @@ export function isTokenExpired(token) {
     }
 }
 
-// Función para mostrar el diálogo de inicio de sesión cuando el token está expirado
+// Función para mostrar mensaje cuando el token está expirado (sin modal de login)
 export function mostrarDialogoSesionExpirada() {
-    return Swal.fire({
+    // Mostrar solo una notificación sin forzar inicio de sesión
+    Swal.fire({
         title: 'Sesión expirada',
-        html: `
-            <p>Tu sesión ha expirado. Por favor, inicia sesión nuevamente.</p>
-            <form id="formLoginSwal">
-                <input type="email" id="emailSwal" class="swal2-input" placeholder="Email" required>
-                <input type="password" id="passwordSwal" class="swal2-input" placeholder="Contraseña" required>
-            </form>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Iniciar sesión',
-        cancelButtonText: 'Cerrar',
-        allowOutsideClick: false,
-        preConfirm: () => {
-            const email = document.getElementById('emailSwal').value;
-            const password = document.getElementById('passwordSwal').value;
-            if (!email || !password) {
-                Swal.showValidationMessage('Por favor completa todos los campos');
-                return false;
-            }
-            return { email, password };
-        }
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            const { email, password } = result.value;
-            try {
-                const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const data = await response.json();
-                if (data.success && data.user) {
-                    const { access_token, refresh_token, user } = data.user;
-                    if (access_token && refresh_token && user) {
-                        localStorage.setItem('supabase.auth.token', access_token);
-                        localStorage.setItem('supabase.auth.refresh', refresh_token);
-                        localStorage.setItem('usuario_id', user.id);
-                        localStorage.setItem('categoria_id', user.categoria_id);
-                        localStorage.setItem('rol', user.rol);
-
-                        // Configurar el token en el cliente Supabase
-                        await supabase.auth.setSession({
-                            access_token: access_token,
-                            refresh_token: refresh_token
-                        });
-
-                        mostrarAlertaBurbuja('Sesión renovada exitosamente', 'success');
-                        return true;
-                    }
-                } else {
-                    mostrarAlertaBurbuja(data.error || 'Error al iniciar sesión', 'error');
-                }
-            } catch (error) {
-                console.error('Error al renovar la sesión:', error);
-                mostrarAlertaBurbuja('Error de conexión con el servidor', 'error');
-            }
-        } else {
-            // Si el usuario cancela, lo redirigimos a la página de login
-            window.location.href = '/index.html';
-        }
-        return false;
+        text: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente cuando lo necesites.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido',
+        allowOutsideClick: true
     });
+    
+    // Limpiar el token expirado
+    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('supabase.auth.refresh');
+    
+    // Para mantener compatibilidad con el código que espera un valor booleano
+    return false;
 }
 
 // Función para verificar automáticamente la expiración del token
 export function verificarTokenAutomaticamente() {
+    // Determinar si estamos en la página de login o registro
+    const currentPath = window.location.pathname;
+    const isLoginPage = 
+        currentPath.endsWith('index.html') || 
+        currentPath === '/' || 
+        currentPath.endsWith('/') || 
+        currentPath.endsWith('register.html');
+    
+    // Si estamos en la página de login o registro, no verificamos token
+    if (isLoginPage) {
+        console.log("En página de login/registro, no se verifica el token");
+        return true;
+    }
+    
     const token = localStorage.getItem('supabase.auth.token');
     
     if (!token) {
-        // Si no hay token, redirigir al login solo si no estamos ya en la página de login
-        const isLoginPage = window.location.pathname.includes('index.html') || 
-                           window.location.pathname === '/' || 
-                           window.location.pathname === '/register.html';
-        
-        if (!isLoginPage) {
-            console.log("No hay token de autenticación. Redirigiendo al login...");
-            mostrarAlertaBurbuja('Sesión no iniciada. Por favor, inicia sesión.', 'warning');
-            setTimeout(() => {
-                window.location.href = '/index.html';
-            }, 1500);
-        }
+        // Si no hay token y no estamos en la página de login
+        console.log("No hay token de autenticación. Redirigiendo al login...");
+        mostrarAlertaBurbuja('Sesión no iniciada. Por favor, inicia sesión.', 'warning');
+        setTimeout(() => {
+            window.location.href = '/index.html';
+        }, 1500);
         return false;
     }
     
@@ -282,17 +241,14 @@ export async function configurarInterceptorSupabase() {
             // Verificar si el token está expirado
             if (token && isTokenExpired(token)) {
                 console.log("Token expirado detectado antes de una petición a Supabase");
-                const renovado = await mostrarDialogoSesionExpirada();
-                if (!renovado) {
-                    // Si no se pudo renovar el token, rechazar la petición
-                    return Promise.reject(new Error("Sesión expirada y no renovada"));
+                // Solo mostrar alerta una vez por sesión
+                if (!window.tokenExpirationNotified) {
+                    mostrarAlertaBurbuja('Tu sesión ha expirado. Algunas funciones pueden no estar disponibles.', 'warning');
+                    window.tokenExpirationNotified = true;
                 }
                 
-                // Si se renovó el token, actualizar los headers con el nuevo token
-                const newToken = localStorage.getItem('supabase.auth.token');
-                if (options.headers && options.headers['Authorization']) {
-                    options.headers['Authorization'] = `Bearer ${newToken}`;
-                }
+                // No rechazamos la petición, dejamos que continúe aunque fallará
+                // De esta manera la aplicación sigue funcionando sin interrupciones
             }
         }
         

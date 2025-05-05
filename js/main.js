@@ -445,19 +445,7 @@ function ocultarSpinner() {
     }
 }
 
-// Ejemplo de uso en una operación asíncrona
-// async function sincronizarDatos() {
-//     mostrarSpinner();
-//     try {
-//         await sincronizarProductosDesdeBackend();
-//         mostrarMensaje('Sincronización exitosa', 'success');
-//     } catch (error) {
-//         mostrarMensaje('Error al sincronizar', 'error');
-//     } finally {
-//         ocultarSpinner();
-//     }
-// }
-
+// Función para mostrar el indicador de conexión
 function actualizarIndicadorConexion() {
     const indicador = document.getElementById('conexion-indicador');
     if (navigator.onLine) {

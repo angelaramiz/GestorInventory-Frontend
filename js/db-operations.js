@@ -1521,7 +1521,7 @@ export async function obtenerAreasPorCategoria() {
         // Almacenar las áreas en localStorage para uso futuro
         localStorage.setItem('areas_disponibles', JSON.stringify(areas));
         
-        console.log("Áreas cargadas correctamente:", areas.length);
+        // console.log("Áreas cargadas correctamente:", areas.length);
         return areas;
     } catch (error) {
         console.error("Error al obtener áreas:", error);

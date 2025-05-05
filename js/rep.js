@@ -224,6 +224,12 @@ function mostrarOpcionesReporte() {
                         <label><input type="checkbox" id="incluirArea" checked> Área</label>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label class="block mb-1">Opciones adicionales:</label>
+                    <div class="flex flex-col space-y-1">
+                        <label><input type="checkbox" id="fusionarLotes" checked> Fusionar productos idénticos (combinar lotes)</label>
+                    </div>
+                </div>
             </div>
         `,
         showCancelButton: true,
@@ -235,7 +241,8 @@ function mostrarOpcionesReporte() {
                 incluirCaducidad: document.getElementById('incluirCaducidad').checked,
                 incluirComentarios: document.getElementById('incluirComentarios').checked,
                 incluirCodigo: document.getElementById('incluirCodigo').checked,
-                incluirArea: document.getElementById('incluirArea').checked
+                incluirArea: document.getElementById('incluirArea').checked,
+                fusionarLotes: document.getElementById('fusionarLotes').checked
             };
         }
     }).then((result) => {
@@ -243,6 +250,92 @@ function mostrarOpcionesReporte() {
             generarReportePDF(result.value);
         }
     });
+}
+
+// Función para fusionar productos que son el mismo pero tienen diferentes lotes
+function fusionarProductosPorCodigo(productos) {
+    const productosFusionados = [];
+    const mapaProductos = new Map(); // Usamos un mapa para agrupar por código
+    
+    // Agrupar productos por código
+    productos.forEach(producto => {
+        const codigo = producto.codigo || 'sincodigo';
+        
+        // Si el código ya existe, actualizamos el producto existente
+        if (mapaProductos.has(codigo)) {
+            const productoExistente = mapaProductos.get(codigo);
+            
+            // Sumar cantidades (como números)
+            const cantidadOriginal = parseFloat(productoExistente.cantidad) || 0;
+            const cantidadNueva = parseFloat(producto.cantidad) || 0;
+            productoExistente.cantidad = (cantidadOriginal + cantidadNueva).toString();
+            
+            // Acumular información de lotes en los comentarios
+            let comentarioLote = `Lote: ${producto.lote || 'Sin especificar'}, Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
+            if (producto.caducidad) {
+                comentarioLote += `, Caducidad: ${new Date(producto.caducidad).toLocaleDateString('es-ES')}`;
+            }
+            
+            // Agregar el área si está disponible
+            const area = todasLasAreas.find(a => a.id === producto.area_id);
+            if (area) {
+                comentarioLote += `, Área: ${area.nombre}`;
+            }
+            
+            // Agregar comentarios originales del producto si existen
+            if (producto.comentarios) {
+                comentarioLote += `, Notas: ${producto.comentarios}`;
+            }
+            
+            // Actualizar comentarios del producto fusionado
+            if (!productoExistente.comentariosFusionados) {
+                // Primera fusión: inicializar el array con el lote original
+                const comentarioOriginal = `Lote: ${productoExistente.lote || 'Sin especificar'}, Cantidad: ${cantidadOriginal} ${productoExistente.unidad || 'unidades'}`;
+                if (productoExistente.caducidad) {
+                    comentarioOriginal += `, Caducidad: ${new Date(productoExistente.caducidad).toLocaleDateString('es-ES')}`;
+                }
+                productoExistente.comentariosFusionados = [comentarioOriginal];
+                
+                // Agregar los comentarios originales si existen
+                if (productoExistente.comentarios) {
+                    productoExistente.comentariosFusionados[0] += `, Notas: ${productoExistente.comentarios}`;
+                }
+            }
+            
+            // Añadir el comentario del nuevo lote
+            productoExistente.comentariosFusionados.push(comentarioLote);
+            
+            // Actualizar el campo de comentarios para reflejar todos los lotes
+            productoExistente.comentarios = `Producto fusionado con múltiples lotes:\n- ${productoExistente.comentariosFusionados.join('\n- ')}`;
+            
+            // Conservar la fecha de caducidad más próxima
+            if (producto.caducidad && productoExistente.caducidad) {
+                const fechaExistente = new Date(productoExistente.caducidad);
+                const fechaNueva = new Date(producto.caducidad);
+                if (fechaNueva < fechaExistente) {
+                    productoExistente.caducidad = producto.caducidad;
+                }
+            } else if (producto.caducidad) {
+                productoExistente.caducidad = producto.caducidad;
+            }
+            
+        } else {
+            // Si es un producto nuevo, simplemente lo agregamos al mapa
+            // Creamos una copia para no modificar el original
+            const productoCopia = { ...producto };
+            // Inicializar campo para lotes fusionados (para uso interno)
+            productoCopia.comentariosFusionados = [];
+            mapaProductos.set(codigo, productoCopia);
+        }
+    });
+    
+    // Convertir el mapa a array para retornarlo
+    mapaProductos.forEach(producto => {
+        productosFusionados.push(producto);
+    });
+    
+    console.log(`Se han fusionado ${productos.length} productos en ${productosFusionados.length} elementos únicos`);
+    return productosFusionados;
 }
 
 // Generar el reporte en PDF
@@ -268,6 +361,11 @@ async function generarReportePDF(opciones) {
         if (productos.length === 0) {
             Swal.fire('Advertencia', 'No hay productos para generar el reporte.', 'warning');
             return;
+        }
+        
+        // Aplicar fusión de productos si la opción está activada
+        if (opciones.fusionarLotes) {
+            productos = fusionarProductosPorCodigo(productos);
         }
 
         // Ordenar productos según criterio seleccionado
@@ -430,8 +528,26 @@ function agregarProductoAlPDF(doc, producto, index, x, y, margin, cardWidth, car
 
     // Comentarios (si existen y la opción está activada)
     if (opciones.incluirComentarios && producto.comentarios) {
-        const comentarios = `Comentarios: ${producto.comentarios}`;
-        doc.text(comentarios, x + 3, y + cardHeight - 5, { maxWidth: cardWidth - 6 });
+        // Determinar si son comentarios fusionados (múltiples lotes) o regulares
+        const esProductoFusionado = producto.comentariosFusionados && producto.comentariosFusionados.length > 1;
+        
+        // Si es producto fusionado, utilizar altura de texto más pequeña
+        const fontSize = esProductoFusionado ? 6 : 7;
+        doc.setFontSize(fontSize);
+        
+        // Limitar el texto para que quepa en la tarjeta
+        const maxCharsPorLinea = Math.floor(cardWidth / (fontSize * 0.5)); // Cálculo aproximado
+        
+        let comentariosTexto;
+        if (esProductoFusionado) {
+            comentariosTexto = `Lotes: (${producto.comentariosFusionados.length})`;
+            // Ajustar la altura del comentario según el espacio disponible
+            const yComentario = y + cardHeight - 5 - (fontSize * 0.5);
+            doc.text(comentariosTexto, x + 3, yComentario, { maxWidth: cardWidth - 6 });
+        } else {
+            comentariosTexto = `Comentarios: ${producto.comentarios}`;
+            doc.text(comentariosTexto, x + 3, y + cardHeight - 5, { maxWidth: cardWidth - 6 });
+        }
     }
 }
 

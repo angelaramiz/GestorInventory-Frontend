@@ -4,20 +4,45 @@ import { resetearBaseDeDatos, db } from './db-operations.js';
 
 let supabase = null;
 
+// Configuración de respaldo para cuando no se pueda conectar al servidor
+const SUPABASE_CONFIG_BACKUP = {
+    supabaseUrl: 'https://mkzyehqtvaopsfjrcgvq.supabase.co',
+    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1renplaHF0dmFvcHNmanJjZ3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODMyMzE0NjQsImV4cCI6MTk5ODgwNzQ2NH0.Sa8HFh2901UiRwuCrY6dNonSs6iml5GxCACGHxILPas'
+};
+
 // Función para inicializar Supabase
 async function inicializeSupabase() {
     if (!supabase) { // ✅ Evita crear más de una instancia
         try {
-            const response = await fetch('https://gestorinventory-backend-production.up.railway.app/api/supabase-config');
+            // Intentar obtener la configuración del servidor
+            const response = await fetch('https://gestorinventory-backend-production.up.railway.app/api/supabase-config', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                // Reducir el tiempo de espera para una respuesta más rápida si hay problemas
+                signal: AbortSignal.timeout(5000) // 5 segundos de timeout
+            });
+            
             if (!response.ok) throw new Error('No se pudo obtener la configuración de Supabase');
+            
             const config = await response.json();
             supabase = createClient(config.supabaseUrl, config.supabaseKey);
-            console.log('Supabase inicializado correctamente');
+            console.log('Supabase inicializado correctamente con configuración del servidor');
         } catch (error) {
-            console.error('Error al inicializar Supabase:', error);
-            mostrarAlertaBurbuja('Error al inicializar Supabase. Verifica tu conexión.', 'error');
+            console.error('Error al obtener configuración del servidor:', error);
+            mostrarAlertaBurbuja('Usando configuración local de respaldo para Supabase', 'warning');
+            
+            // Usar configuración de respaldo
+            try {
+                supabase = createClient(SUPABASE_CONFIG_BACKUP.supabaseUrl, SUPABASE_CONFIG_BACKUP.supabaseKey);
+                console.log('Supabase inicializado con configuración de respaldo');
+            } catch (backupError) {
+                console.error('Error al inicializar Supabase con configuración de respaldo:', backupError);
+                mostrarAlertaBurbuja('Error crítico al inicializar Supabase', 'error');
+                throw new Error('No se pudo inicializar Supabase');
+            }
         }
     }
+    return supabase;
 }
 
 // Función para obtener el cliente de Supabase
@@ -34,7 +59,11 @@ export { supabase };
 // Login
 document.addEventListener('DOMContentLoaded', async () => {
     // Inicializar Supabase al cargar la página
-    await inicializeSupabase();
+    try {
+        await inicializeSupabase();
+    } catch (error) {
+        console.error('Error al inicializar Supabase en carga de página:', error);
+    }
 
     const formLogin = document.getElementById('formLogin');
     if (formLogin) {

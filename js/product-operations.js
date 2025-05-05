@@ -1109,12 +1109,12 @@ function mostrarFormularioNuevoLote(productoOriginal, nuevoLote) {
     document.getElementById("datosInventario").style.display = "block";
 
     // Mantener los datos del producto original
-    document.getElementById("codigo").value = productoOriginal.codigo;
+    document.getElementById("codigoProductoInventario").value = productoOriginal.codigo;
     document.getElementById("nombreProductoInventario").value = productoOriginal.nombre;
 
-    // Mostrar la unidad del producto
+    // Mostrar la unidad del producto (corregido)
     const unidadProductoElement = document.getElementById("unidadProducto");
-    unidadProductoElement.textContent = productoOriginal.unidad || "Pz"; // Valor por defecto si no hay unidad
+    unidadProductoElement.value = productoOriginal.unidad || "Pz"; // Usar value en lugar de textContent
 
     // Limpiar campos de inventario
     document.getElementById("cantidad").value = "";

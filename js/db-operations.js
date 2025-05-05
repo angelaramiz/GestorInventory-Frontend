@@ -1490,6 +1490,18 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
  */
 export async function obtenerAreasPorCategoria() {
     try {
+        // Primero intentar usar áreas almacenadas localmente si existen
+        const areasGuardadas = localStorage.getItem('areas_disponibles');
+        if (areasGuardadas) {
+            // Si tenemos áreas guardadas, mostrar mensaje de que estamos usando datos en caché
+            console.log("Usando áreas desde caché local");
+            mostrarAlertaBurbuja("Usando datos de áreas almacenados localmente", "info");
+            return JSON.parse(areasGuardadas);
+        }
+        
+        // Si no hay áreas guardadas, intentar obtenerlas de Supabase
+        console.log("Intentando obtener áreas desde Supabase...");
+        
         // Obtener instancia de Supabase
         const supabase = await getSupabase();
         if (!supabase) {
@@ -1500,7 +1512,8 @@ export async function obtenerAreasPorCategoria() {
         const categoriaId = localStorage.getItem('categoria_id');
         if (!categoriaId) {
             mostrarAlertaBurbuja("No hay categoría seleccionada", "warning");
-            return [];
+            // Usar datos de respaldo locales si no hay categoría
+            return AREAS_RESPALDO;
         }
         
         // Consultar áreas filtradas por categoría
@@ -1515,20 +1528,50 @@ export async function obtenerAreasPorCategoria() {
         
         if (!areas || areas.length === 0) {
             mostrarAlertaBurbuja("No hay áreas disponibles para esta categoría", "info");
-            return [];
+            // Usar datos de respaldo si no se encontraron áreas
+            return AREAS_RESPALDO;
         }
         
         // Almacenar las áreas en localStorage para uso futuro
         localStorage.setItem('areas_disponibles', JSON.stringify(areas));
-        
-        // console.log("Áreas cargadas correctamente:", areas.length);
+        console.log("Áreas cargadas correctamente desde Supabase:", areas.length);
         return areas;
     } catch (error) {
         console.error("Error al obtener áreas:", error);
-        mostrarAlertaBurbuja("Error al cargar las áreas", "error");
-        return [];
+        mostrarAlertaBurbuja("Usando configuración local para áreas", "warning");
+        // Retornar un conjunto de datos de respaldo cuando hay errores
+        return AREAS_RESPALDO;
     }
 }
+
+// Datos de respaldo para cuando no se pueda conectar al servidor
+const AREAS_RESPALDO = [
+    {
+        id: '10000000-0000-0000-0000-000000000001',
+        nombre: 'Cámara Fría',
+        categoria_id: '00000000-0000-0000-0000-000000000000'
+    },
+    {
+        id: '10000000-0000-0000-0000-000000000002',
+        nombre: 'Congelador Interior',
+        categoria_id: '00000000-0000-0000-0000-000000000000'
+    },
+    {
+        id: '10000000-0000-0000-0000-000000000003',
+        nombre: 'Bunker',
+        categoria_id: '00000000-0000-0000-0000-000000000000'
+    },
+    {
+        id: '10000000-0000-0000-0000-000000000004',
+        nombre: 'Rishin',
+        categoria_id: '00000000-0000-0000-0000-000000000000'
+    },
+    {
+        id: '10000000-0000-0000-0000-000000000005',
+        nombre: 'Piso',
+        categoria_id: '00000000-0000-0000-0000-000000000000'
+    }
+];
 
 // Función para guardar el ID del área de manera persistente
 export function guardarAreaIdPersistente(areaId, nombreArea) {

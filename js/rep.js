@@ -518,16 +518,24 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
     }
 
     if (opciones.incluirComentarios && producto.comentarios) {
+        const originalFontSize = doc.getFontSize(); // Guardar tamaño de fuente actual (debería ser 8)
+        doc.setFontSize(7); // Reducir para comentarios/lotes
+        const lineHeightComentarios = 2.8; // Altura de línea estimada para fuente 7pt en mm
+
         const comentarios = producto.comentariosFusionados && producto.comentariosFusionados.length > 0 
                             ? `Lotes: \n- ${producto.comentariosFusionados.join('\n- ')}`
                             : producto.comentarios;
         
         const commentLines = doc.splitTextToSize(comentarios, cardWidth - 6);
-        const maxCommentLines = Math.floor((yCurrent + cardHeight - textY - 3) / 3.5);
+        
+        // yLimiteParaTexto se calcula antes para reservar espacio para el código de barras
+        const espacioVerticalParaComentarios = yCurrent + cardHeight - textY - 3;
+        const maxCommentLines = Math.max(0, Math.floor(espacioVerticalParaComentarios / lineHeightComentarios));
         
         if (maxCommentLines > 0) {
             doc.text(commentLines.slice(0, maxCommentLines), xCurrent + 3, textY);
         }
+        doc.setFontSize(originalFontSize); // Restaurar tamaño de fuente original
     }
 
     if (opciones.incluirCodigo && producto.codigo && producto.barcodeCanvas) {

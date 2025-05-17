@@ -188,14 +188,14 @@ async function init() {
         // Inicializar el menú lateral
         inicializarMenu();
 
-        // Obtener áreas por categoría al inicializar
-        const { obtenerAreasPorCategoria } = await import('./db-operations.js');
-        await obtenerAreasPorCategoria();
-
         // Inicializar suscripciones en tiempo real para ambas páginas
         const esPaginaInventario = window.location.pathname.includes('./inventario.html');
         
         if (esPaginaInventario ) {
+            // Obtener áreas por categoría al inicializar solo en la página de inventario
+            const { obtenerAreasPorCategoria } = await import('./db-operations.js');
+            await obtenerAreasPorCategoria();
+
             await inicializarSuscripciones();
         }
         

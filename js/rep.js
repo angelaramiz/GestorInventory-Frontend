@@ -354,7 +354,6 @@ async function generarReportePDF(opciones) {
                 document.querySelectorAll('.areaCheckbox:checked:not(#area-todas)')
             ).map(checkbox => checkbox.value);
             
-            // Filtrar los productos por las áreas seleccionadas
             productos = productosInventario.filter(p => areasSeleccionadas.includes(p.area_id));
         }
 
@@ -363,37 +362,30 @@ async function generarReportePDF(opciones) {
             return;
         }
         
-        // Aplicar fusión de productos si la opción está activada
         if (opciones.fusionarLotes) {
             productos = fusionarProductosPorCodigo(productos);
         }
 
-        // Ordenar productos según criterio seleccionado
         ordenarProductos(productos, opciones.orden);
 
-        // Generar códigos de barras si es necesario
         if (opciones.incluirCodigo) {
             await generarCodigosDeBarras(productos);
         }
 
-        // Crear documento PDF
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        // Dimensiones de la página
         const pageWidth = 210;
         const pageHeight = 297;
         const margin = 10;
-        const cardWidth = (pageWidth - (margin * 3)) / 2; // Ancho de las tarjetas (2 columnas)
-        const cardHeight = 45; // Altura compacta de las tarjetas
+        const cardWidth = (pageWidth - (margin * 3)) / 2;
+        const cardHeight = 45; 
 
-        // Variables para controlar la posición
-        let x = margin;
-        let y = margin;
+        let y = margin; // Posición Y actual en la página
+        let x = margin; // Posición X actual, se recalculará por columna
 
         // Si se ordena por área, agrupar productos por área
         if (opciones.orden === 'area') {
-            // Agrupar productos por área
             const productosPorArea = {};
             productos.forEach(producto => {
                 if (!productosPorArea[producto.area_id]) {
@@ -404,50 +396,73 @@ async function generarReportePDF(opciones) {
             
             let primeraArea = true;
             for (const areaId in productosPorArea) {
-                // Buscar el nombre del área
                 const area = todasLasAreas.find(a => a.id === areaId);
                 const areaNombre = area ? area.nombre : 'Área desconocida';
                 
-                // Si no es la primera área, agregar una nueva página
                 if (!primeraArea) {
                     doc.addPage();
-                    y = margin;
+                    y = margin; // Reiniciar Y para la nueva página
                 }
                 primeraArea = false;
                 
-                // Agregar título del área
                 doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`Área: ${areaNombre}`, x, y);
-                y += 10;
+                doc.text(`Área: ${areaNombre}`, margin, y);
+                y += 10; // Espacio después del título del área
                 
-                // Procesar productos de esta área
+                let currentX = margin; // X para la primera columna del área
+                let columnInArea = 0;
+
                 for (let i = 0; i < productosPorArea[areaId].length; i++) {
                     const producto = productosPorArea[areaId][i];
-                    agregarProductoAlPDF(doc, producto, i, x, y, margin, cardWidth, cardHeight, pageHeight, opciones);
                     
-                    // Actualizar posición para el siguiente producto
-                    const column = i % 2; // 0: izquierda, 1: derecha
-                    if (column === 1) {
-                        y += cardHeight + 5; // Mover hacia abajo para la siguiente fila
+                    // Calcular X para la columna actual
+                    currentX = margin + columnInArea * (cardWidth + margin / 2);
+
+                    // Verificar si necesitamos una nueva página ANTES de agregar el producto
+                    if (y + cardHeight > pageHeight - margin) {
+                        doc.addPage();
+                        y = margin; // Reiniciar Y para la nueva página
+                        columnInArea = 0; 
+                        currentX = margin + columnInArea * (cardWidth + margin / 2);
+                    }
+                    
+                    y = agregarProductoAlPDF(doc, producto, currentX, y, margin, cardWidth, cardHeight, pageHeight, opciones);
+                    
+                    columnInArea++;
+                    if (columnInArea === 2) { // Si se completó la segunda columna
+                        columnInArea = 0; // Reiniciar para la siguiente fila
+                        y = y + cardHeight + 5; // Mover y para la siguiente fila
                     }
                 }
             }
         } else {
             // Procesamiento normal (sin agrupar por área)
+            let currentColumn = 0;
             for (let i = 0; i < productos.length; i++) {
                 const producto = productos[i];
-                agregarProductoAlPDF(doc, producto, i, x, y, margin, cardWidth, cardHeight, pageHeight, opciones);
                 
-                // Actualizar posición para el siguiente producto
-                const column = i % 2; // 0: izquierda, 1: derecha
-                if (column === 1) {
-                    y += cardHeight + 5; // Mover hacia abajo para la siguiente fila
+                // Calcular X para la columna actual
+                x = margin + currentColumn * (cardWidth + margin / 2);
+
+                // Verificar si necesitamos una nueva página ANTES de agregar el producto
+                if (y + cardHeight > pageHeight - margin) {
+                    doc.addPage();
+                    y = margin; // Reiniciar Y para la nueva página
+                    currentColumn = 0; // Reiniciar a la primera columna
+                    x = margin + currentColumn * (cardWidth + margin / 2);
+                }
+                
+                y = agregarProductoAlPDF(doc, producto, x, y, margin, cardWidth, cardHeight, pageHeight, opciones);
+                
+                currentColumn++;
+                if (currentColumn === 2) { // Si se completó la segunda columna
+                    currentColumn = 0; // Reiniciar para la siguiente fila
+                    y = y + cardHeight + 5; // Mover y para la siguiente fila
                 }
             }
         }
 
-        // Guardar el PDF
         const fechaActual = new Date().toISOString().slice(0, 10);
         doc.save(`reporte_preconteo_${fechaActual}.pdf`);
         Swal.fire('¡Éxito!', 'Reporte de preconteo generado correctamente.', 'success');
@@ -460,22 +475,10 @@ async function generarReportePDF(opciones) {
 }
 
 // Función auxiliar para agregar un producto al PDF
-function agregarProductoAlPDF(doc, producto, index, x, y, margin, cardWidth, cardHeight, pageHeight, opciones) {
-    // Calcular la posición de la tarjeta
-    const column = index % 2; // 0: izquierda, 1: derecha
-    x = margin + column * (cardWidth + margin / 2);
-    
-    // Verificar si necesitamos una nueva página
-    if (y + cardHeight > pageHeight - margin) {
-        doc.addPage();
-        y = margin;
-    }
-
-    // Dibujar borde de la tarjeta
+function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWidth, cardHeight, pageHeight, opciones) {
     doc.setDrawColor(200, 200, 200);
-    doc.rect(x, y, cardWidth, cardHeight);
+    doc.rect(xCurrent, yCurrent, cardWidth, cardHeight);
 
-    // Contenido de la tarjeta
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     const nombreProducto = producto.nombre || 'Sin nombre';
@@ -488,67 +491,63 @@ function agregarProductoAlPDF(doc, producto, index, x, y, margin, cardWidth, car
         titulo += ` - ${fechaCaducidad}`;
     }
     
-    doc.text(titulo, x + 3, y + 6);
+    // Ajustar el espacio para el título si se incluye el código de barras
+    // Usaremos las nuevas dimensiones del código de barras para esto
+    const espacioReservadoParaCodigo = opciones.incluirCodigo ? 35 : 0; // Aprox. barcodeWidth + margen
+    const tituloLines = doc.splitTextToSize(titulo, cardWidth - 6 - espacioReservadoParaCodigo);
+    doc.text(tituloLines, xCurrent + 3, yCurrent + 6);
+    let textY = yCurrent + 6 + (tituloLines.length * 4);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
 
-    // Cantidad y unidad
-    const cantidadTexto = `Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
-    doc.text(cantidadTexto, x + 3, y + 12);
+    const cantidadTexto = `Cant: ${producto.cantidad || '0'} ${producto.unidad || 'uds.'}`;
+    if (textY + 4 <= yCurrent + cardHeight - 3) {
+        doc.text(cantidadTexto, xCurrent + 3, textY);
+        textY += 4;
+    }
     
-    // Área (si la opción está activada)
     if (opciones.incluirArea) {
         const area = todasLasAreas.find(a => a.id === producto.area_id);
-        const areaNombre = area ? area.nombre : 'Área desconocida';
-        doc.text(`Área: ${areaNombre}`, x + 3, y + 17);
-    }
-
-    // Código de barras (si la opción está activada)
-    if (opciones.incluirCodigo && producto.codigo) {
-        try {
-            const barcodeCanvas = document.getElementById(`barcode-${producto.codigo}`);
-            if (barcodeCanvas) {
-                const barcodeDataUrl = barcodeCanvas.toDataURL('image/png');
-                doc.addImage(
-                    barcodeDataUrl,
-                    'PNG',
-                    x + (cardWidth - 60) / 2, // Centrar horizontalmente
-                    y + cardHeight - 20, // Cerca del fondo
-                    60, // Ancho ajustado
-                    15 // Altura ajustada
-                );
-            } else {
-                console.warn(`No se encontró el código de barras para el producto con código: ${producto.codigo}`);
-            }
-        } catch (error) {
-            console.error(`Error al agregar código de barras para ${producto.codigo}:`, error);
+        const areaNombre = area ? area.nombre : 'N/A';
+        const areaTexto = `Área: ${areaNombre}`;
+        if (textY + 4 <= yCurrent + cardHeight - 3) {
+            doc.text(areaTexto, xCurrent + 3, textY);
+            textY += 4;
         }
     }
 
-    // Comentarios (si existen y la opción está activada)
     if (opciones.incluirComentarios && producto.comentarios) {
-        // Determinar si son comentarios fusionados (múltiples lotes) o regulares
-        const esProductoFusionado = producto.comentariosFusionados && producto.comentariosFusionados.length > 1;
+        const comentarios = producto.comentariosFusionados && producto.comentariosFusionados.length > 0 
+                            ? `Lotes: \n- ${producto.comentariosFusionados.join('\n- ')}`
+                            : producto.comentarios;
         
-        // Si es producto fusionado, utilizar altura de texto más pequeña
-        const fontSize = esProductoFusionado ? 6 : 7;
-        doc.setFontSize(fontSize);
+        const commentLines = doc.splitTextToSize(comentarios, cardWidth - 6);
+        const maxCommentLines = Math.floor((yCurrent + cardHeight - textY - 3) / 3.5);
         
-        // Limitar el texto para que quepa en la tarjeta
-        const maxCharsPorLinea = Math.floor(cardWidth / (fontSize * 0.5)); // Cálculo aproximado
-        
-        let comentariosTexto;
-        if (esProductoFusionado) {
-            comentariosTexto = `Lotes: (${producto.comentariosFusionados.length})`;
-            // Ajustar la altura del comentario según el espacio disponible
-            const yComentario = y + cardHeight - 5 - (fontSize * 0.5);
-            doc.text(comentariosTexto, x + 3, yComentario, { maxWidth: cardWidth - 6 });
-        } else {
-            comentariosTexto = `Comentarios: ${producto.comentarios}`;
-            doc.text(comentariosTexto, x + 3, y + cardHeight - 5, { maxWidth: cardWidth - 6 });
+        if (maxCommentLines > 0) {
+            doc.text(commentLines.slice(0, maxCommentLines), xCurrent + 3, textY);
         }
     }
+
+    if (opciones.incluirCodigo && producto.codigo && producto.barcodeCanvas) {
+        const barcodeRenderWidth = 30; // Aumentado de 20
+        const barcodeRenderHeight = 15; // Aumentado de 10
+        const barcodeX = xCurrent + cardWidth - barcodeRenderWidth - 3;
+        const barcodeY = yCurrent + cardHeight - barcodeRenderHeight - 3;
+        
+        // Asegurarse de que el código de barras no se superponga con el texto superior
+        if (barcodeY > textY && barcodeY > yCurrent + 5) { 
+            try {
+                doc.addImage(producto.barcodeCanvas.toDataURL(), 'PNG', barcodeX, barcodeY, barcodeRenderWidth, barcodeRenderHeight);
+            } catch (e) {
+                console.error("Error al añadir imagen del código de barras:", e);
+                doc.text("Error BC", barcodeX, barcodeY + barcodeRenderHeight / 2);
+            }
+        }
+    }
+    
+    return yCurrent; 
 }
 
 // Ordenar productos según el criterio seleccionado
@@ -556,7 +555,6 @@ function ordenarProductos(productos, criterio) {
     switch (criterio) {
         case 'caducidad':
             productos.sort((a, b) => {
-                // Productos sin fecha de caducidad van al final
                 if (!a.caducidad) return 1;
                 if (!b.caducidad) return -1;
                 return new Date(a.caducidad) - new Date(b.caducidad);
@@ -581,35 +579,56 @@ function ordenarProductos(productos, criterio) {
 
 // Generar códigos de barras para todos los productos
 async function generarCodigosDeBarras(productos) {
-    // Limpiar el contenedor
     const container = document.getElementById('barcodeContainer');
-    container.innerHTML = '';
+    if (!container) {
+        console.error('El contenedor de códigos de barras no existe en el DOM.');
+    } else {
+        container.innerHTML = ''; // Limpiar el contenedor si ya existe
+    }
 
-    // Crear elementos canvas para cada código
     for (const producto of productos) {
         if (!producto.codigo) continue;
 
         const canvas = document.createElement('canvas');
-        canvas.id = `barcode-${producto.codigo}`; // Usar el código como ID único
-        container.appendChild(canvas);
 
         try {
-            // Determinar el formato del código de barras
-            let formato = 'CODE128';
+            let formato = 'CODE128'; // Formato por defecto
             if (/^\d{13}$/.test(producto.codigo)) formato = 'EAN13';
+            else if (/^\d{8}$/.test(producto.codigo)) formato = 'EAN8';
             else if (/^\d{12}$/.test(producto.codigo)) formato = 'UPC';
 
-            // Generar el código de barras con tamaño ajustado
             JsBarcode(canvas, producto.codigo, {
                 format: formato,
-                width: 2, // Ancho de las barras
-                height: 40, // Altura de las barras
-                displayValue: true,
-                fontSize: 10, // Tamaño de la fuente
-                margin: 5 // Margen alrededor del código
+                width: 2.5, 
+                height: 60, // Aumentado de 50 a 60
+                displayValue: true, 
+                fontSize: 12, 
+                textMargin: 2, 
+                margin: 2      // Reducido de 5 a 2
             });
+            producto.barcodeCanvas = canvas;
         } catch (error) {
-            console.error(`Error al generar código de barras para ${producto.codigo}:`, error);
+            console.error(`Error al generar código de barras para ${producto.codigo} (Formato: ${formato}):`, error);
+            if (formato !== 'CODE128') {
+                try {
+                    JsBarcode(canvas, producto.codigo, {
+                        format: 'CODE128',
+                        width: 2.5,
+                        height: 60, // Aumentado de 50 a 60
+                        displayValue: true,
+                        fontSize: 12,
+                        textMargin: 2,
+                        margin: 2 // Reducido de 5 a 2
+                    });
+                    producto.barcodeCanvas = canvas;
+                    console.log(`Código de barras para ${producto.codigo} generado con CODE128 como fallback.`);
+                } catch (fallbackError) {
+                    console.error(`Error al generar código de barras para ${producto.codigo} con CODE128 (fallback):`, fallbackError);
+                    producto.barcodeCanvas = null;
+                }
+            } else {
+                producto.barcodeCanvas = null;
+            }
         }
     }
 }

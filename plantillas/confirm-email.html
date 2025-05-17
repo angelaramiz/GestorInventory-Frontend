@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Correo</title>
+    <link href="../librerías/tailwind.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="container mx-auto p-4 max-w-md bg-white shadow-md rounded-lg text-center">
+        <h1 class="text-2xl font-bold mb-4 text-green-600">¡Correo Confirmado!</h1>
+        <p class="text-gray-700 mb-6">Tu dirección de correo electrónico ha sido confirmada exitosamente.</p>
+        <p id="message" class="text-gray-600 mb-4"></p>
+        <a href="../index.html" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            Ir al Inicio de Sesión
+        </a>
+    </div>
+    <script type="module">
+        import { supabase } from '../js/auth.js';
+
+        // Supabase maneja la confirmación a través de la URL a la que redirige.
+        // Esta página es principalmente para mostrar un mensaje al usuario.
+        // Podrías añadir lógica aquí si necesitas manejar el evento de sesión o errores específicos.
+
+        const messageEl = document.getElementById('message');
+
+        // Escuchar cambios en el estado de autenticación
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN') {
+                messageEl.textContent = 'Ahora puedes iniciar sesión.';
+            } else if (event === 'PASSWORD_RECOVERY') {
+                // Esto no debería ocurrir aquí, pero es bueno saberlo
+                messageEl.textContent = 'Proceso de recuperación de contraseña iniciado.';
+            }
+        });
+
+        // Verificar si hay algún error en la URL (Supabase podría añadir parámetros de error)
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorDescription = urlParams.get('error_description');
+        if (errorDescription) {
+            messageEl.textContent = `Error: ${decodeURIComponent(errorDescription)}`;
+            messageEl.classList.add('text-red-500');
+        } else if (!supabase.auth.getSession()) {
+             // Si no hay sesión activa y no hay error, es probable que la confirmación haya sido exitosa
+             // o el token ya fue usado.
+             // Supabase maneja la confirmación del lado del servidor cuando el usuario hace clic en el enlace.
+        }
+
+    </script>
+</body>
+</html>

@@ -802,6 +802,9 @@ export async function modificarInventario() {
         mostrarMensaje("Actualizado localmente, sincronizará cuando haya conexión", "warning");
     }
 
+    // Sincronizar la base de datos local desde Supabase después de la modificación
+    await sincronizarInventarioDesdeSupabase();
+    cargarDatosInventarioEnTablaPlantilla(); // Asegúrate de que esta línea también esté para actualizar la vista localmente.
     limpiarFormularioInventario();
 }
 

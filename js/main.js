@@ -32,7 +32,7 @@ function inicializarMenu() {
     const rutasRestringidas = {
         Operador: ['editar', 'reporte', 'agregar', 'archivos'], // IDs restringidos para operadores
         Administrador: [], // No hay restricciones para administradores
-        Supervisor: ['reporte'], // IDs restringidos para supervisores
+        Supervisor: ['reporte', 'archivos', 'editar'], // IDs restringidos para supervisores
     };
     
     const rutasBloqueadas = rutasRestringidas[rol] || [];
@@ -147,7 +147,7 @@ function ocultarRutasPorRol(rol) {
     const rutasRestringidas = {
         Operador: ['editar', 'reporte', 'agregar', 'archivos'], // IDs de los divs restringidos para operadores
         Administrador: [], // No hay restricciones para administradores
-        Supervisor: [ 'reporte'], // IDs de los divs restringidos para supervisores
+        Supervisor: [ 'reporte', 'archivos', 'editar'], // IDs de los divs restringidos para supervisores
     };
 
     const rutasBloqueadas = rutasRestringidas[rol] || [];

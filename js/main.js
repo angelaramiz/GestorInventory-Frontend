@@ -189,7 +189,7 @@ async function init() {
         inicializarMenu();
 
         // Inicializar suscripciones en tiempo real para ambas páginas
-        const esPaginaInventario = window.location.pathname.includes('./inventario.html');
+        const esPaginaInventario = window.location.pathname.includes('inventario.html');
         
         if (esPaginaInventario ) {
             // Obtener áreas por categoría al inicializar solo en la página de inventario

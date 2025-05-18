@@ -737,7 +737,7 @@ export async function guardarInventario() {
 
 export async function modificarInventario() {
     const codigo = document.getElementById("codigoProductoInventario")?.value;
-    const lote = document.getElementById("loteInventario")?.value || "1";
+    const lote = document.getElementById("loteInventario")?.value || "1"; // Lote es parte del ID compuesto
     const cantidad = document.getElementById("cantidad").value;
     const comentarios = document.getElementById("comentarios").value;
     const fechaCaducidad = document.getElementById("fechaCaducidad").value;
@@ -748,61 +748,152 @@ export async function modificarInventario() {
         return;
     }
 
-    const producto = await new Promise((resolve) => {
+    const productoInfoBase = await new Promise((resolve) => {
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
         const request = objectStore.get(codigo);
         request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
     });
 
-    if (!producto) {
-        mostrarMensaje("Producto no encontrado", "error");
+    if (!productoInfoBase) {
+        mostrarMensaje("Información base del producto no encontrada.", "error");
         return;
     }
 
-    const idBase = `${codigo}-${lote}`;
-    const idFinal = navigator.onLine ? idBase : generarIdTemporal(codigo, lote);
+    const idInventario = `${codigo}-${lote}`;
 
-    const inventarioData = {
-        id: idFinal,
-        codigo: producto.codigo,
-        nombre: producto.nombre,
-        categoria: producto.categoria,
-        marca: producto.marca,
+    let registroInventarioActual = await new Promise((resolve) => {
+        const transaction = dbInventario.transaction(["inventario"], "readonly");
+        const objectStore = transaction.objectStore("inventario");
+        const request = objectStore.get(idInventario);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+    });
+
+    if (!registroInventarioActual) {
+        mostrarMensaje(`No se encontró el registro de inventario con ID ${idInventario} para modificar.`, "error");
+        return;
+    }
+    
+    const area_id_actual = registroInventarioActual.area_id;
+    const areaName_actual = registroInventarioActual.areaName || localStorage.getItem('ubicacion_almacen') || 'Desconocida';
+
+    const datosParaActualizarRemoto = {
+        id: idInventario,
+        codigo: productoInfoBase.codigo,
+        nombre: productoInfoBase.nombre,
+        categoria: productoInfoBase.categoria,
+        marca: productoInfoBase.marca,
         lote: lote,
-        unidad: unidad || "Pz",
+        unidad: unidad || productoInfoBase.unidad || "Pz",
         cantidad: parseInt(cantidad),
         caducidad: fechaCaducidad,
         comentarios: comentarios || "N/A",
         last_modified: new Date().toISOString(),
-        is_temp_id: !navigator.onLine,
+        is_temp_id: false,
+        area_id: area_id_actual,
+        usuario_id: localStorage.getItem('usuario_id')
     };
 
-    // Actualizar en IndexedDB
-    await new Promise((resolve) => {
+    try {
+        if (navigator.onLine) {
+            const { data, error } = await supabase
+                .from('inventario')
+                .update({
+                    codigo: datosParaActualizarRemoto.codigo,
+                    nombre: datosParaActualizarRemoto.nombre,
+                    categoria: datosParaActualizarRemoto.categoria,
+                    marca: datosParaActualizarRemoto.marca,
+                    lote: datosParaActualizarRemoto.lote,
+                    unidad: datosParaActualizarRemoto.unidad,
+                    cantidad: datosParaActualizarRemoto.cantidad,
+                    caducidad: datosParaActualizarRemoto.caducidad,
+                    comentarios: datosParaActualizarRemoto.comentarios,
+                    last_modified: datosParaActualizarRemoto.last_modified,
+                    is_temp_id: false,
+                    area_id: datosParaActualizarRemoto.area_id,
+                    usuario_id: datosParaActualizarRemoto.usuario_id
+                })
+                .eq('id', idInventario)
+                .select()
+                .single();
+
+            if (error) {
+                console.error("Error al actualizar en Supabase:", error);
+                const datosParaIndexedDBError = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
+                delete datosParaIndexedDBError.usuario_id;
+                await actualizarEnIndexedDB(datosParaIndexedDBError);
+                agregarAColaSincronizacion({type: 'update', payload: datosParaActualizarRemoto});
+                mostrarMensaje("Error al sincronizar. Modificación guardada localmente.", "warning");
+            } else if (data) {
+                const datosDesdeSupabase = data;
+                const areaNameParaIndexedDB = areaName_actual;
+
+                const datosParaIndexedDBExito = {
+                    id: datosDesdeSupabase.id,
+                    codigo: datosDesdeSupabase.codigo,
+                    nombre: datosDesdeSupabase.nombre,
+                    categoria: datosDesdeSupabase.categoria,
+                    marca: datosDesdeSupabase.marca,
+                    lote: datosDesdeSupabase.lote,
+                    unidad: datosDesdeSupabase.unidad,
+                    cantidad: datosDesdeSupabase.cantidad,
+                    caducidad: datosDesdeSupabase.caducidad,
+                    comentarios: datosDesdeSupabase.comentarios,
+                    last_modified: datosDesdeSupabase.last_modified,
+                    is_temp_id: false,
+                    area_id: datosDesdeSupabase.area_id,
+                    areaName: areaNameParaIndexedDB
+                };
+                await actualizarEnIndexedDB(datosParaIndexedDBExito);
+                mostrarMensaje("Inventario modificado y sincronizado correctamente.", "success");
+            } else {
+                console.warn("Supabase no devolvió datos después de la actualización.");
+                const datosParaIndexedDBWarn = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
+                delete datosParaIndexedDBWarn.usuario_id;
+                await actualizarEnIndexedDB(datosParaIndexedDBWarn);
+                agregarAColaSincronizacion({type: 'update', payload: datosParaActualizarRemoto});
+                mostrarMensaje("Modificación guardada localmente. Problema con respuesta del servidor.", "warning");
+            }
+        } else { // Offline
+            const datosParaIndexedDBOffline = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
+            delete datosParaIndexedDBOffline.usuario_id;
+            await actualizarEnIndexedDB(datosParaIndexedDBOffline);
+            agregarAColaSincronizacion({type: 'update', payload: datosParaActualizarRemoto});
+            mostrarMensaje("Modificado localmente (offline). Se sincronizará al reconectar.", "info");
+        }
+    } catch (error) {
+        console.error("Error general al modificar el inventario:", error);
+        try {
+            const datosParaIndexedDBFallback = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
+            delete datosParaIndexedDBFallback.usuario_id;
+            await actualizarEnIndexedDB(datosParaIndexedDBFallback);
+            agregarAColaSincronizacion({type: 'update', payload: datosParaActualizarRemoto});
+            mostrarMensaje("Error crítico. Modificación guardada localmente.", "error");
+        } catch (dbError) {
+            console.error("Error al guardar en IndexedDB durante el fallback:", dbError);
+            mostrarMensaje("Error crítico. No se pudo guardar la modificación localmente.", "error");
+        }
+    } finally {
+        limpiarFormularioInventario();
+        if (typeof cargarDatosInventarioEnTablaPlantilla === "function") {
+            cargarDatosInventarioEnTablaPlantilla();
+        } else {
+            console.warn("La función cargarDatosInventarioEnTablaPlantilla no está definida.");
+        }
+    }
+}
+
+// Función auxiliar para actualizar en IndexedDB
+async function actualizarEnIndexedDB(data) {
+    return new Promise((resolve, reject) => {
         const transaction = dbInventario.transaction(["inventario"], "readwrite");
         const objectStore = transaction.objectStore("inventario");
-        const request = objectStore.put(inventarioData);
-        request.onsuccess = () => resolve();
+        const request = objectStore.put(data);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = (event) => reject(event.target.error);
     });
-
-    // Sincronizar con Supabase
-    if (navigator.onLine) {
-        const { error } = await supabase
-            .from('inventario')
-            .upsert({ ...inventarioData, usuario_id: localStorage.getItem('usuario_id') });
-        if (error) {
-            agregarAColaSincronizacion(inventarioData);
-            mostrarMensaje("Actualizado localmente, sincronizará cuando haya conexión", "warning");
-        } else {
-            mostrarMensaje("Inventario modificado y sincronizado", "success");
-        }
-    } else {
-        agregarAColaSincronizacion(inventarioData);
-        mostrarMensaje("Actualizado localmente, sincronizará cuando haya conexión", "warning");
-    }
-
-    limpiarFormularioInventario();
 }
 
 // Función para buscar inventario en nueva base de datos

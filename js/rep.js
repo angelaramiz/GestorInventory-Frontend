@@ -283,7 +283,7 @@ function fusionarProductosPorCodigo(productos) {
             }
             
             // Agregar comentarios originales del producto si existen
-            if (producto.comentarios) {
+            if (producto.comentarios && producto.comentarios !== 'N/A') {
                 comentarioLote += `, Notas: ${producto.comentarios}`;
             }
             
@@ -291,19 +291,50 @@ function fusionarProductosPorCodigo(productos) {
             if (!productoExistente.comentariosFusionados) {
                 // Primera fusión: inicializar el array con el lote original
                 const comentarioOriginal = `Lote: ${productoExistente.lote || 'Sin especificar'}, Cantidad: ${cantidadOriginal} ${productoExistente.unidad || 'unidades'}`;
-                if (productoExistente.caducidad) {
-                    comentarioOriginal += `, Caducidad: ${new Date(productoExistente.caducidad).toLocaleDateString('es-ES')}`;
-                }
-                productoExistente.comentariosFusionados = [comentarioOriginal];
                 
-                // Agregar los comentarios originales si existen
-                if (productoExistente.comentarios) {
+                let comentarioOriginalCompleto = comentarioOriginal;
+                if (productoExistente.caducidad) {
+                    comentarioOriginalCompleto += `, Caducidad: ${new Date(productoExistente.caducidad).toLocaleDateString('es-ES')}`;
+                }
+                
+                // Agregar el área para el lote original
+                const areaOriginal = todasLasAreas.find(a => a.id === productoExistente.area_id);
+                if (areaOriginal) {
+                    comentarioOriginalCompleto += `, Área: ${areaOriginal.nombre}`;
+                }
+                
+                productoExistente.comentariosFusionados = [comentarioOriginalCompleto];
+                
+                // Agregar los comentarios originales si existen y no son "N/A"
+                if (productoExistente.comentarios && productoExistente.comentarios !== 'N/A') {
                     productoExistente.comentariosFusionados[0] += `, Notas: ${productoExistente.comentarios}`;
                 }
             }
             
             // Añadir el comentario del nuevo lote
             productoExistente.comentariosFusionados.push(comentarioLote);
+            
+            // Guardar lotes individuales para mejor visualización
+            if (!productoExistente.lotesFusionados) {
+                productoExistente.lotesFusionados = [
+                    {
+                        lote: productoExistente.lote || '1',
+                        cantidad: cantidadOriginal,
+                        caducidad: productoExistente.caducidad,
+                        area_id: productoExistente.area_id,
+                        comentarios: productoExistente.comentarios
+                    }
+                ];
+            }
+            
+            // Añadir el nuevo lote a la lista
+            productoExistente.lotesFusionados.push({
+                lote: producto.lote || '1',
+                cantidad: cantidadNueva,
+                caducidad: producto.caducidad,
+                area_id: producto.area_id,
+                comentarios: producto.comentarios
+            });
             
             // Actualizar el campo de comentarios para reflejar todos los lotes
             productoExistente.comentarios = `Producto fusionado con múltiples lotes:\n- ${productoExistente.comentariosFusionados.join('\n- ')}`;
@@ -325,6 +356,13 @@ function fusionarProductosPorCodigo(productos) {
             const productoCopia = { ...producto };
             // Inicializar campo para lotes fusionados (para uso interno)
             productoCopia.comentariosFusionados = [];
+            productoCopia.lotesFusionados = [{
+                lote: producto.lote || '1',
+                cantidad: parseFloat(producto.cantidad) || 0,
+                caducidad: producto.caducidad,
+                area_id: producto.area_id,
+                comentarios: producto.comentarios
+            }];
             mapaProductos.set(codigo, productoCopia);
         }
     });
@@ -485,18 +523,33 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
     const fechaCaducidad = producto.caducidad
         ? new Date(producto.caducidad).toLocaleDateString('es-ES')
         : 'Sin caducidad';
-        
-    let titulo = nombreProducto;
-    if (opciones.incluirCaducidad) {
-        titulo += ` - ${fechaCaducidad}`;
-    }
     
-    // Ajustar el espacio para el título si se incluye el código de barras
-    // Usaremos las nuevas dimensiones del código de barras para esto
-    const espacioReservadoParaCodigo = opciones.incluirCodigo ? 35 : 0; // Aprox. barcodeWidth + margen
-    const tituloLines = doc.splitTextToSize(titulo, cardWidth - 6 - espacioReservadoParaCodigo);
-    doc.text(tituloLines, xCurrent + 3, yCurrent + 6);
-    let textY = yCurrent + 6 + (tituloLines.length * 4);
+    // Primero, mostrar solo el nombre del producto
+    const anchoDiponibleTitulo = opciones.incluirCodigo ? cardWidth - 40 : cardWidth - 6;
+    const nombreLines = doc.splitTextToSize(nombreProducto, anchoDiponibleTitulo);
+    doc.text(nombreLines, xCurrent + 3, yCurrent + 6);
+    let textY = yCurrent + 6 + (nombreLines.length * 4);
+    
+    // Luego, si es necesario, mostrar la fecha de caducidad en una línea separada
+    if (opciones.incluirCaducidad) {
+        doc.setFontSize(8);
+        doc.text(`Cad: ${fechaCaducidad}`, xCurrent + 3, textY);
+        textY += 4;
+    }
+
+    // Agregar el código de barras a la derecha del título y la información básica del producto
+    if (opciones.incluirCodigo && producto.codigo && producto.barcodeCanvas) {
+        const barcodeRenderWidth = 30;
+        const barcodeRenderHeight = 15;
+        const barcodeX = xCurrent + cardWidth - barcodeRenderWidth - 3;
+        const barcodeY = yCurrent + 5; // Posicionarlo arriba a la derecha
+        
+        try {
+            doc.addImage(producto.barcodeCanvas.toDataURL(), 'PNG', barcodeX, barcodeY, barcodeRenderWidth, barcodeRenderHeight);
+        } catch (e) {
+            console.error('Error al agregar imagen de código de barras:', e);
+        }
+    }
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
@@ -517,45 +570,72 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
         }
     }
 
-    if (opciones.incluirComentarios && producto.comentarios) {
-        const originalFontSize = doc.getFontSize(); // Guardar tamaño de fuente actual (debería ser 8)
-        doc.setFontSize(7); // Reducir para comentarios/lotes
-        const lineHeightComentarios = 2.8; // Altura de línea estimada para fuente 7pt en mm
+    if (opciones.incluirComentarios) {
+        const originalFontSize = doc.getFontSize();
+        doc.setFontSize(7);
+        const lineHeightComentarios = 2.8;
 
-        const comentarios = producto.comentariosFusionados && producto.comentariosFusionados.length > 0 
-                            ? `Lotes: \n- ${producto.comentariosFusionados.join('\n- ')}`
-                            : producto.comentarios;
-        
-        const commentLines = doc.splitTextToSize(comentarios, cardWidth - 6);
-        
-        // yLimiteParaTexto se calcula antes para reservar espacio para el código de barras
-        const espacioVerticalParaComentarios = yCurrent + cardHeight - textY - 3;
-        const maxCommentLines = Math.max(0, Math.floor(espacioVerticalParaComentarios / lineHeightComentarios));
-        
-        if (maxCommentLines > 0) {
-            doc.text(commentLines.slice(0, maxCommentLines), xCurrent + 3, textY);
-        }
-        doc.setFontSize(originalFontSize); // Restaurar tamaño de fuente original
-    }
-
-    if (opciones.incluirCodigo && producto.codigo && producto.barcodeCanvas) {
-        const barcodeRenderWidth = 30; // Aumentado de 20
-        const barcodeRenderHeight = 15; // Aumentado de 10
-        const barcodeX = xCurrent + cardWidth - barcodeRenderWidth - 3;
-        const barcodeY = yCurrent + cardHeight - barcodeRenderHeight - 3;
-        
-        // Asegurarse de que el código de barras no se superponga con el texto superior
-        if (barcodeY > textY && barcodeY > yCurrent + 5) { 
-            try {
-                doc.addImage(producto.barcodeCanvas.toDataURL(), 'PNG', barcodeX, barcodeY, barcodeRenderWidth, barcodeRenderHeight);
-            } catch (e) {
-                console.error("Error al añadir imagen del código de barras:", e);
-                doc.text("Error BC", barcodeX, barcodeY + barcodeRenderHeight / 2);
+        // Verificar si el producto tiene lotes fusionados
+        if (producto.lotesFusionados && producto.lotesFusionados.length > 1) {
+            // Crear detalle de lotes
+            let lotesTexto = ['Lotes:'];
+            
+            producto.lotesFusionados.forEach(lote => {
+                let loteInfo = `- Lote: ${lote.lote}, Cantidad: ${lote.cantidad} ${producto.unidad || 'uds.'}`;
+                
+                if (lote.caducidad) {
+                    loteInfo += `, Caducidad: ${new Date(lote.caducidad).toLocaleDateString('es-ES')}`;
+                }
+                
+                const areaLote = todasLasAreas.find(a => a.id === lote.area_id);
+                if (areaLote) {
+                    loteInfo += `, Área: ${areaLote.nombre}`;
+                }
+                
+                if (lote.comentarios && lote.comentarios !== 'N/A') {
+                    loteInfo += `, Notas: ${lote.comentarios}`;
+                }
+                
+                lotesTexto.push(loteInfo);
+            });
+            
+            const commentLines = doc.splitTextToSize(lotesTexto.join('\n'), cardWidth - 6);
+            
+            // Asegurar que los lotes se muestren después del código de barras y no se solapen
+            if (opciones.incluirCodigo && producto.codigo) {
+                textY = Math.max(textY, yCurrent + 22); // 5 (posición Y del código) + 15 (altura del código) + 2 (espacio adicional)
+            }
+            
+            const espacioVerticalParaComentarios = yCurrent + cardHeight - textY - 3;
+            const maxCommentLines = Math.max(0, Math.floor(espacioVerticalParaComentarios / lineHeightComentarios));
+            
+            if (maxCommentLines > 0) {
+                doc.text(commentLines.slice(0, maxCommentLines), xCurrent + 3, textY);
+            }
+        } 
+        // Si no hay múltiples lotes o comentariosFusionados, mostrar solo los comentarios si los hay
+        else if (producto.comentarios && producto.comentarios !== 'N/A') {
+            const commentLines = doc.splitTextToSize(producto.comentarios, cardWidth - 6);
+            
+            // Asegurar que los comentarios se muestren después del código de barras y no se solapen
+            if (opciones.incluirCodigo && producto.codigo) {
+                textY = Math.max(textY, yCurrent + 22); // 5 (posición Y del código) + 15 (altura del código) + 2 (espacio adicional)
+            }
+            
+            const espacioVerticalParaComentarios = yCurrent + cardHeight - textY - 3;
+            const maxCommentLines = Math.max(0, Math.floor(espacioVerticalParaComentarios / lineHeightComentarios));
+            
+            if (maxCommentLines > 0) {
+                doc.text(commentLines.slice(0, maxCommentLines), xCurrent + 3, textY);
             }
         }
+        
+        doc.setFontSize(originalFontSize);
     }
-    
-    return yCurrent; 
+
+    // Si estamos en la primera columna, devolver la misma Y
+    // Si estamos en la segunda columna, avanzar Y para la siguiente fila
+    return yCurrent;
 }
 
 // Ordenar productos según el criterio seleccionado

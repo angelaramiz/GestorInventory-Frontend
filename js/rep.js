@@ -518,7 +518,7 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
     doc.rect(xCurrent, yCurrent, cardWidth, cardHeight);
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     const nombreProducto = producto.nombre || 'Sin nombre';
     const fechaCaducidad = producto.caducidad
         ? new Date(producto.caducidad).toLocaleDateString('es-ES')
@@ -539,10 +539,10 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
 
     // Agregar el código de barras a la derecha del título y la información básica del producto
     if (opciones.incluirCodigo && producto.codigo && producto.barcodeCanvas) {
-        const barcodeRenderWidth = 30;
-        const barcodeRenderHeight = 15;
-        const barcodeX = xCurrent + cardWidth - barcodeRenderWidth - 3;
-        const barcodeY = yCurrent + 5; // Posicionarlo arriba a la derecha
+        const barcodeRenderWidth = 40;
+        const barcodeRenderHeight = 18;
+        const barcodeX = xCurrent + cardWidth - barcodeRenderWidth - 1;
+        const barcodeY = yCurrent + 3; // Posicionarlo arriba a la derecha
 
         try {
             doc.addImage(producto.barcodeCanvas.toDataURL(), 'PNG', barcodeX, barcodeY, barcodeRenderWidth, barcodeRenderHeight);
@@ -688,7 +688,7 @@ async function generarCodigosDeBarras(productos) {
                 height: 60, // Aumentado de 50 a 60
                 displayValue: true,
                 fontSize: 12,
-                textMargin: 2,
+                textMargin: 2.5,
                 margin: 2      // Reducido de 5 a 2
             });
             producto.barcodeCanvas = canvas;
@@ -698,11 +698,11 @@ async function generarCodigosDeBarras(productos) {
                 try {
                     JsBarcode(canvas, producto.codigo, {
                         format: 'CODE128',
-                        width: 2.5,
+                        width: 1.5,
                         height: 60, // Aumentado de 50 a 60
                         displayValue: true,
                         fontSize: 12,
-                        textMargin: 2,
+                        textMargin: 2.5,
                         margin: 2 // Reducido de 5 a 2
                     });
                     producto.barcodeCanvas = canvas;

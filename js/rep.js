@@ -43,7 +43,7 @@ function toggleTodasLasAreas(e) {
 function handleAreaSpecificSelection() {
     const areaCheckboxes = document.querySelectorAll('.areaCheckbox:not(#area-todas)');
     const todasCheckbox = document.getElementById('area-todas');
-    
+
     // Si hay al menos un área específica seleccionada, desmarcar "Todas las áreas"
     const hayAreasSeleccionadas = Array.from(areaCheckboxes).some(cb => cb.checked);
     if (hayAreasSeleccionadas) {
@@ -71,20 +71,20 @@ async function cargarAreas() {
             areas.forEach(area => {
                 const checkboxDiv = document.createElement('div');
                 checkboxDiv.className = 'flex items-center';
-                
+
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.id = `area-${area.id}`;
                 checkbox.value = area.id;
                 checkbox.className = 'areaCheckbox mr-2';
                 checkbox.disabled = document.getElementById('area-todas').checked; // Desactivado si "Todas" está marcado
-                
+
                 checkbox.addEventListener('change', handleAreaSpecificSelection);
-                
+
                 const label = document.createElement('label');
                 label.htmlFor = `area-${area.id}`;
                 label.textContent = area.nombre;
-                
+
                 checkboxDiv.appendChild(checkbox);
                 checkboxDiv.appendChild(label);
                 areasContainer.appendChild(checkboxDiv);
@@ -123,7 +123,7 @@ async function cargarProductos() {
 // Filtrar productos por áreas seleccionadas
 async function filtrarProductosPorAreasSeleccionadas() {
     const todasSeleccionadas = document.getElementById('area-todas').checked;
-    
+
     if (todasSeleccionadas) {
         // Si "Todas las áreas" está seleccionado, mostrar todos los productos
         mostrarProductosEnLista(productosInventario);
@@ -176,11 +176,11 @@ function mostrarProductosEnLista(productos) {
     productos.forEach(producto => {
         const li = document.createElement('li');
         li.className = 'py-1';
-        
+
         // Buscar el nombre del área si está disponible
         const area = todasLasAreas.find(a => a.id === producto.area_id);
         const areaNombre = area ? area.nombre : 'Área desconocida';
-        
+
         li.innerHTML = `<span class="font-semibold">${producto.nombre || 'Sin nombre'}</span> - Código: ${producto.codigo || 'Sin código'} <span class="text-gray-500 text-sm">(${areaNombre})</span>`;
         container.appendChild(li);
     });
@@ -197,7 +197,7 @@ function mostrarOpcionesReporte() {
     const areasSeleccionadas = Array.from(
         document.querySelectorAll('.areaCheckbox:checked:not(#area-todas)')
     ).map(checkbox => checkbox.value);
-    
+
     if (!todasSeleccionadas && areasSeleccionadas.length === 0) {
         Swal.fire('Atención', 'Por favor, selecciona al menos un área para generar el reporte.', 'warning');
         return;
@@ -256,64 +256,64 @@ function mostrarOpcionesReporte() {
 function fusionarProductosPorCodigo(productos) {
     const productosFusionados = [];
     const mapaProductos = new Map(); // Usamos un mapa para agrupar por código
-    
+
     // Agrupar productos por código
     productos.forEach(producto => {
         const codigo = producto.codigo || 'sincodigo';
-        
+
         // Si el código ya existe, actualizamos el producto existente
         if (mapaProductos.has(codigo)) {
             const productoExistente = mapaProductos.get(codigo);
-            
+
             // Sumar cantidades (como números)
             const cantidadOriginal = parseFloat(productoExistente.cantidad) || 0;
             const cantidadNueva = parseFloat(producto.cantidad) || 0;
             productoExistente.cantidad = (cantidadOriginal + cantidadNueva).toString();
-            
+
             // Acumular información de lotes en los comentarios
             let comentarioLote = `Lote: ${producto.lote || 'Sin especificar'}, Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
             if (producto.caducidad) {
                 comentarioLote += `, Caducidad: ${new Date(producto.caducidad).toLocaleDateString('es-ES')}`;
             }
-            
+
             // Agregar el área si está disponible
             const area = todasLasAreas.find(a => a.id === producto.area_id);
             if (area) {
                 comentarioLote += `, Área: ${area.nombre}`;
             }
-            
+
             // Agregar comentarios originales del producto si existen
             if (producto.comentarios && producto.comentarios !== 'N/A') {
                 comentarioLote += `, Notas: ${producto.comentarios}`;
             }
-            
+
             // Actualizar comentarios del producto fusionado
             if (!productoExistente.comentariosFusionados) {
                 // Primera fusión: inicializar el array con el lote original
                 const comentarioOriginal = `Lote: ${productoExistente.lote || 'Sin especificar'}, Cantidad: ${cantidadOriginal} ${productoExistente.unidad || 'unidades'}`;
-                
+
                 let comentarioOriginalCompleto = comentarioOriginal;
                 if (productoExistente.caducidad) {
                     comentarioOriginalCompleto += `, Caducidad: ${new Date(productoExistente.caducidad).toLocaleDateString('es-ES')}`;
                 }
-                
+
                 // Agregar el área para el lote original
                 const areaOriginal = todasLasAreas.find(a => a.id === productoExistente.area_id);
                 if (areaOriginal) {
                     comentarioOriginalCompleto += `, Área: ${areaOriginal.nombre}`;
                 }
-                
+
                 productoExistente.comentariosFusionados = [comentarioOriginalCompleto];
-                
+
                 // Agregar los comentarios originales si existen y no son "N/A"
                 if (productoExistente.comentarios && productoExistente.comentarios !== 'N/A') {
                     productoExistente.comentariosFusionados[0] += `, Notas: ${productoExistente.comentarios}`;
                 }
             }
-            
+
             // Añadir el comentario del nuevo lote
             productoExistente.comentariosFusionados.push(comentarioLote);
-            
+
             // Guardar lotes individuales para mejor visualización
             if (!productoExistente.lotesFusionados) {
                 productoExistente.lotesFusionados = [
@@ -326,7 +326,7 @@ function fusionarProductosPorCodigo(productos) {
                     }
                 ];
             }
-            
+
             // Añadir el nuevo lote a la lista
             productoExistente.lotesFusionados.push({
                 lote: producto.lote || '1',
@@ -335,10 +335,10 @@ function fusionarProductosPorCodigo(productos) {
                 area_id: producto.area_id,
                 comentarios: producto.comentarios
             });
-            
+
             // Actualizar el campo de comentarios para reflejar todos los lotes
             productoExistente.comentarios = `Producto fusionado con múltiples lotes:\n- ${productoExistente.comentariosFusionados.join('\n- ')}`;
-            
+
             // Conservar la fecha de caducidad más próxima
             if (producto.caducidad && productoExistente.caducidad) {
                 const fechaExistente = new Date(productoExistente.caducidad);
@@ -349,7 +349,7 @@ function fusionarProductosPorCodigo(productos) {
             } else if (producto.caducidad) {
                 productoExistente.caducidad = producto.caducidad;
             }
-            
+
         } else {
             // Si es un producto nuevo, simplemente lo agregamos al mapa
             // Creamos una copia para no modificar el original
@@ -366,12 +366,12 @@ function fusionarProductosPorCodigo(productos) {
             mapaProductos.set(codigo, productoCopia);
         }
     });
-    
+
     // Convertir el mapa a array para retornarlo
     mapaProductos.forEach(producto => {
         productosFusionados.push(producto);
     });
-    
+
     console.log(`Se han fusionado ${productos.length} productos en ${productosFusionados.length} elementos únicos`);
     return productosFusionados;
 }
@@ -384,14 +384,14 @@ async function generarReportePDF(opciones) {
         // Determinar qué productos incluir en el reporte
         let productos = [];
         const todasSeleccionadas = document.getElementById('area-todas').checked;
-        
+
         if (todasSeleccionadas) {
             productos = productosInventario;
         } else {
             const areasSeleccionadas = Array.from(
                 document.querySelectorAll('.areaCheckbox:checked:not(#area-todas)')
             ).map(checkbox => checkbox.value);
-            
+
             productos = productosInventario.filter(p => areasSeleccionadas.includes(p.area_id));
         }
 
@@ -399,7 +399,7 @@ async function generarReportePDF(opciones) {
             Swal.fire('Advertencia', 'No hay productos para generar el reporte.', 'warning');
             return;
         }
-        
+
         if (opciones.fusionarLotes) {
             productos = fusionarProductosPorCodigo(productos);
         }
@@ -417,7 +417,7 @@ async function generarReportePDF(opciones) {
         const pageHeight = 297;
         const margin = 10;
         const cardWidth = (pageWidth - (margin * 3)) / 2;
-        const cardHeight = 45; 
+        const cardHeight = 45;
 
         let y = margin; // Posición Y actual en la página
         let x = margin; // Posición X actual, se recalculará por columna
@@ -431,29 +431,29 @@ async function generarReportePDF(opciones) {
                 }
                 productosPorArea[producto.area_id].push(producto);
             });
-            
+
             let primeraArea = true;
             for (const areaId in productosPorArea) {
                 const area = todasLasAreas.find(a => a.id === areaId);
                 const areaNombre = area ? area.nombre : 'Área desconocida';
-                
+
                 if (!primeraArea) {
                     doc.addPage();
                     y = margin; // Reiniciar Y para la nueva página
                 }
                 primeraArea = false;
-                
+
                 doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
                 doc.text(`Área: ${areaNombre}`, margin, y);
                 y += 10; // Espacio después del título del área
-                
+
                 let currentX = margin; // X para la primera columna del área
                 let columnInArea = 0;
 
                 for (let i = 0; i < productosPorArea[areaId].length; i++) {
                     const producto = productosPorArea[areaId][i];
-                    
+
                     // Calcular X para la columna actual
                     currentX = margin + columnInArea * (cardWidth + margin / 2);
 
@@ -461,12 +461,12 @@ async function generarReportePDF(opciones) {
                     if (y + cardHeight > pageHeight - margin) {
                         doc.addPage();
                         y = margin; // Reiniciar Y para la nueva página
-                        columnInArea = 0; 
+                        columnInArea = 0;
                         currentX = margin + columnInArea * (cardWidth + margin / 2);
                     }
-                    
+
                     y = agregarProductoAlPDF(doc, producto, currentX, y, margin, cardWidth, cardHeight, pageHeight, opciones);
-                    
+
                     columnInArea++;
                     if (columnInArea === 2) { // Si se completó la segunda columna
                         columnInArea = 0; // Reiniciar para la siguiente fila
@@ -479,7 +479,7 @@ async function generarReportePDF(opciones) {
             let currentColumn = 0;
             for (let i = 0; i < productos.length; i++) {
                 const producto = productos[i];
-                
+
                 // Calcular X para la columna actual
                 x = margin + currentColumn * (cardWidth + margin / 2);
 
@@ -490,9 +490,9 @@ async function generarReportePDF(opciones) {
                     currentColumn = 0; // Reiniciar a la primera columna
                     x = margin + currentColumn * (cardWidth + margin / 2);
                 }
-                
+
                 y = agregarProductoAlPDF(doc, producto, x, y, margin, cardWidth, cardHeight, pageHeight, opciones);
-                
+
                 currentColumn++;
                 if (currentColumn === 2) { // Si se completó la segunda columna
                     currentColumn = 0; // Reiniciar para la siguiente fila
@@ -523,13 +523,13 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
     const fechaCaducidad = producto.caducidad
         ? new Date(producto.caducidad).toLocaleDateString('es-ES')
         : 'Sin caducidad';
-    
+
     // Primero, mostrar solo el nombre del producto
     const anchoDiponibleTitulo = opciones.incluirCodigo ? cardWidth - 40 : cardWidth - 6;
     const nombreLines = doc.splitTextToSize(nombreProducto, anchoDiponibleTitulo);
     doc.text(nombreLines, xCurrent + 3, yCurrent + 6);
     let textY = yCurrent + 6 + (nombreLines.length * 4);
-    
+
     // Luego, si es necesario, mostrar la fecha de caducidad en una línea separada
     if (opciones.incluirCaducidad) {
         doc.setFontSize(8);
@@ -543,7 +543,7 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
         const barcodeRenderHeight = 15;
         const barcodeX = xCurrent + cardWidth - barcodeRenderWidth - 3;
         const barcodeY = yCurrent + 5; // Posicionarlo arriba a la derecha
-        
+
         try {
             doc.addImage(producto.barcodeCanvas.toDataURL(), 'PNG', barcodeX, barcodeY, barcodeRenderWidth, barcodeRenderHeight);
         } catch (e) {
@@ -559,7 +559,7 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
         doc.text(cantidadTexto, xCurrent + 3, textY);
         textY += 4;
     }
-    
+
     if (opciones.incluirArea) {
         const area = todasLasAreas.find(a => a.id === producto.area_id);
         const areaNombre = area ? area.nombre : 'N/A';
@@ -579,57 +579,57 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
         if (producto.lotesFusionados && producto.lotesFusionados.length > 1) {
             // Crear detalle de lotes
             let lotesTexto = ['Lotes:'];
-            
+
             producto.lotesFusionados.forEach(lote => {
                 let loteInfo = `- Lote: ${lote.lote}, Cantidad: ${lote.cantidad} ${producto.unidad || 'uds.'}`;
-                
+
                 if (lote.caducidad) {
                     loteInfo += `, Caducidad: ${new Date(lote.caducidad).toLocaleDateString('es-ES')}`;
                 }
-                
+
                 const areaLote = todasLasAreas.find(a => a.id === lote.area_id);
                 if (areaLote) {
                     loteInfo += `, Área: ${areaLote.nombre}`;
                 }
-                
+
                 if (lote.comentarios && lote.comentarios !== 'N/A') {
                     loteInfo += `, Notas: ${lote.comentarios}`;
                 }
-                
+
                 lotesTexto.push(loteInfo);
             });
-            
+
             const commentLines = doc.splitTextToSize(lotesTexto.join('\n'), cardWidth - 6);
-            
+
             // Asegurar que los lotes se muestren después del código de barras y no se solapen
             if (opciones.incluirCodigo && producto.codigo) {
                 textY = Math.max(textY, yCurrent + 22); // 5 (posición Y del código) + 15 (altura del código) + 2 (espacio adicional)
             }
-            
+
             const espacioVerticalParaComentarios = yCurrent + cardHeight - textY - 3;
             const maxCommentLines = Math.max(0, Math.floor(espacioVerticalParaComentarios / lineHeightComentarios));
-            
-            if (maxCommentLines > 0) {
-                doc.text(commentLines.slice(0, maxCommentLines), xCurrent + 3, textY);
-            }
-        } 
-        // Si no hay múltiples lotes o comentariosFusionados, mostrar solo los comentarios si los hay
-        else if (producto.comentarios && producto.comentarios !== 'N/A') {
-            const commentLines = doc.splitTextToSize(producto.comentarios, cardWidth - 6);
-            
-            // Asegurar que los comentarios se muestren después del código de barras y no se solapen
-            if (opciones.incluirCodigo && producto.codigo) {
-                textY = Math.max(textY, yCurrent + 22); // 5 (posición Y del código) + 15 (altura del código) + 2 (espacio adicional)
-            }
-            
-            const espacioVerticalParaComentarios = yCurrent + cardHeight - textY - 3;
-            const maxCommentLines = Math.max(0, Math.floor(espacioVerticalParaComentarios / lineHeightComentarios));
-            
+
             if (maxCommentLines > 0) {
                 doc.text(commentLines.slice(0, maxCommentLines), xCurrent + 3, textY);
             }
         }
-        
+        // Si no hay múltiples lotes o comentariosFusionados, mostrar solo los comentarios si los hay
+        else if (producto.comentarios && producto.comentarios !== 'N/A') {
+            const commentLines = doc.splitTextToSize(producto.comentarios, cardWidth - 6);
+
+            // Asegurar que los comentarios se muestren después del código de barras y no se solapen
+            if (opciones.incluirCodigo && producto.codigo) {
+                textY = Math.max(textY, yCurrent + 22); // 5 (posición Y del código) + 15 (altura del código) + 2 (espacio adicional)
+            }
+
+            const espacioVerticalParaComentarios = yCurrent + cardHeight - textY - 3;
+            const maxCommentLines = Math.max(0, Math.floor(espacioVerticalParaComentarios / lineHeightComentarios));
+
+            if (maxCommentLines > 0) {
+                doc.text(commentLines.slice(0, maxCommentLines), xCurrent + 3, textY);
+            }
+        }
+
         doc.setFontSize(originalFontSize);
     }
 
@@ -677,21 +677,18 @@ async function generarCodigosDeBarras(productos) {
     for (const producto of productos) {
         if (!producto.codigo) continue;
 
-        const canvas = document.createElement('canvas');
-
+        const canvas = document.createElement('canvas'); let formato = 'CODE128'; // Formato por defecto - Definido fuera del try para evitar errores de referencia
         try {
-            let formato = 'CODE128'; // Formato por defecto
             if (/^\d{13}$/.test(producto.codigo)) formato = 'EAN13';
-            else if (/^\d{8}$/.test(producto.codigo)) formato = 'EAN8';
             else if (/^\d{12}$/.test(producto.codigo)) formato = 'UPC';
 
             JsBarcode(canvas, producto.codigo, {
                 format: formato,
-                width: 2.5, 
+                width: 1.5,
                 height: 60, // Aumentado de 50 a 60
-                displayValue: true, 
-                fontSize: 12, 
-                textMargin: 2, 
+                displayValue: true,
+                fontSize: 12,
+                textMargin: 2,
                 margin: 2      // Reducido de 5 a 2
             });
             producto.barcodeCanvas = canvas;

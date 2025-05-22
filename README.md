@@ -1,5 +1,7 @@
 # GestorInventory
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/angelaramiz/GestorInventory-Frontend)
+
 GestorInventory es un sistema completo de gestión de inventario basado en web que permite a empresas y negocios administrar eficientemente sus productos e inventarios. Desarrollado con tecnologías modernas como JavaScript, Supabase para almacenamiento en la nube y capacidades offline mediante IndexedDB.
 
 ![GestorInventory Logo](ruta/al/logo.png) *(Incluir logo si está disponible)*
@@ -313,6 +315,7 @@ Para cualquier consulta, problema técnico o sugerencia, contacta con el equipo 
 - **Correo electrónico**: soporte@gestorinventory.com
 - **GitHub**: [Reportar un problema](https://github.com/tu-usuario/GestorInventory/issues)
 - **Documentación completa**: [Wiki del proyecto](https://github.com/tu-usuario/GestorInventory/wiki)
+- **DeepWiki**: [https://deepwiki.com/angelaramiz/GestorInventory-Frontend](https://deepwiki.com/angelaramiz/GestorInventory-Frontend)
 
 ---
 

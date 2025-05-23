@@ -1,4 +1,3 @@
-// importaciones 
 import { db, dbInventario, agregarAColaSincronizacion } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
 import { cargarDatosEnTabla, obtenerUbicacionEnUso, sincronizarInventarioDesdeSupabase, cargarDatosInventarioEnTablaPlantilla, guardarAreaIdPersistente } from './db-operations.js';

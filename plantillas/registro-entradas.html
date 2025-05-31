@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Entradas</title>
+    <link href="../librerías/tailwind.min.css" rel="stylesheet">
+    <script src="../librerías/sweetalert2@11.js"></script>
+    <script src="../librerías/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body class="bg-gray-100 page-enter">    <header class="header-enhanced text-white p-4 flex justify-between items-center shadow-lg">
+        <div class="flex items-center">
+            <div class="status-indicator status-success pulse-indicator"></div>
+            <h1 class="text-3xl font-bold text-gradient-animated">Registro de Entradas</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div id="conexionStatus" class="text-sm">
+                <span class="status-indicator status-success"></span>
+                Conectado
+            </div>
+            <div id="clockDisplay" class="text-sm font-mono"></div>
+        </div>
+    </header>
+
+    <div id="sideMenu"
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform z-50">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-bold">Menú de Navegación</h2>
+            <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
+        </div>
+        <ul id="menuRoutes" class="p-4 space-y-2">
+            <!-- Las rutas se generarán dinámicamente -->
+        </ul>
+    </div>
+
+    <div class="container mx-auto mt-8 p-4">
+        <div class="mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">Registro de Entradas</h1>
+                <a href="./main.html" class="text-blue-500 hover:underline">← Regresar</a>
+            </div>
+            <button id="menuToggle"
+                class="bg-white text-green-600 px-4 py-2 rounded hover:bg-gray-200 border border-green-600">
+                Menú
+            </button>
+        </div>        <!-- Sección de búsqueda de productos -->
+        <div class="section-card card-hover fade-in-up">
+            <h2 class="text-xl font-bold mb-4 text-green-600 flex items-center">
+                🔍 Buscar Producto
+                <span id="searchStatus" class="ml-3 text-sm"></span>
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="transform-scale-hover">
+                    <label for="busquedaCodigo" class="block text-sm font-medium text-gray-700 mb-2">Buscar por
+                        Código:</label>
+                    <div class="flex">                        <input type="text" id="busquedaCodigo"
+                            class="flex-1 border border-gray-300 rounded-l-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 input-focus input-enhanced"
+                            placeholder="Ingrese código del producto"><button id="buscarPorCodigo"
+                            class="bg-green-500 text-white px-4 py-2 rounded-r-md hover:bg-green-600 button-dynamic button-ripple">
+                            <span id="btnCodigoText">Buscar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="transform-scale-hover">
+                    <label for="busquedaNombre" class="block text-sm font-medium text-gray-700 mb-2">Buscar por
+                        Nombre:</label>
+                    <div class="flex">                        <input type="text" id="busquedaNombre"
+                            class="flex-1 border border-gray-300 rounded-l-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 input-focus input-enhanced"
+                            placeholder="Ingrese nombre del producto"><button id="buscarPorNombre"
+                            class="bg-green-500 text-white px-4 py-2 rounded-r-md hover:bg-green-600 button-dynamic button-ripple">
+                            <span id="btnNombreText">Buscar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="transform-scale-hover">
+                    <label for="busquedaMarca" class="block text-sm font-medium text-gray-700 mb-2">Buscar por
+                        Marca:</label>
+                    <div class="flex">                        <input type="text" id="busquedaMarca"
+                            class="flex-1 border border-gray-300 rounded-l-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 input-focus input-enhanced"
+                            placeholder="Ingrese marca del producto"><button id="buscarPorMarca"
+                            class="bg-green-500 text-white px-4 py-2 rounded-r-md hover:bg-green-600 button-dynamic button-ripple">
+                            <span id="btnMarcaText">Buscar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>            <div class="flex justify-center">
+                <button id="escanearBtn"
+                    class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 button-dynamic pulse-hover button-scale">
+                    📷 Escanear Código de Barras
+                </button>
+            </div>
+        </div>        <!-- Formulario de datos del producto y entrada -->
+        <div id="productForm" class="section-card card-hover fade-in-up"
+            style="display: none;">
+            <h2 class="text-xl font-bold mb-4 text-green-600 flex items-center">
+                📦 Datos del Producto
+                <div id="productLoadingIndicator" class="ml-3" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    Cargando...
+                </div>
+            </h2>
+
+            <div id="productInfo"
+                class="grid md:grid-cols-2 gap-4 mb-6 p-4 rounded-lg bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-green-500">
+                <div class="transform-scale-hover">
+                    <label for="codigoProducto" class="block text-sm font-medium text-gray-700 mb-2">Código:</label>
+                    <input type="text" id="codigoProducto"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 font-mono" readonly>
+                </div>
+
+                <div class="transform-scale-hover">
+                    <label for="nombreProducto" class="block text-sm font-medium text-gray-700 mb-2">Nombre:</label>
+                    <input type="text" id="nombreProducto"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 font-semibold" readonly>
+                </div>
+
+                <div class="transform-scale-hover">
+                    <label for="marcaProducto" class="block text-sm font-medium text-gray-700 mb-2">Marca:</label>
+                    <input type="text" id="marcaProducto"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100" readonly>
+                </div>
+
+                <div class="transform-scale-hover">
+                    <label for="categoriaProducto"
+                        class="block text-sm font-medium text-gray-700 mb-2">Categoría:</label>
+                    <input type="text" id="categoriaProducto"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100" readonly>
+                </div>
+
+                <div class="transform-scale-hover">
+                    <label for="unidadProducto" class="block text-sm font-medium text-gray-700 mb-2">Unidad:</label>
+                    <input type="text" id="unidadProducto"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100" readonly>
+                </div>
+            </div>
+
+            <div class="border-t pt-6">
+                <h3 class="text-lg font-semibold mb-4 text-green-600 flex items-center">
+                    📝 Datos de la Entrada
+                    <span class="ml-2 text-sm text-gray-500">(* Campos obligatorios)</span>
+                </h3>                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                    <div class="transform-scale-hover">
+                        <label for="cantidadEntrada" class="block text-sm font-medium text-gray-700 mb-2">
+                            Cantidad Recibida: *
+                        </label>                        <input type="number" id="cantidadEntrada"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 input-focus input-enhanced"
+                            min="0.01" step="0.01" required>
+                    </div>
+
+                    <div class="transform-scale-hover">
+                        <label for="fechaEntrada" class="block text-sm font-medium text-gray-700 mb-2">
+                            Fecha de Entrada: *
+                        </label>                        <input type="date" id="fechaEntrada"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 input-focus input-enhanced"
+                            required>
+                    </div>
+
+                    <div class="md:col-span-1 transform-scale-hover">
+                        <label for="comentariosEntrada"
+                            class="block text-sm font-medium text-gray-700 mb-2">Comentarios:</label>                        <textarea id="comentariosEntrada"
+                            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 input-focus input-enhanced"
+                            rows="3" placeholder="Información adicional..."></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-between">
+                    <button id="limpiarFormulario"
+                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 button-dynamic button-scale">
+                        🗑️ Limpiar
+                    </button>
+                    <button id="registrarEntrada"
+                        class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 button-dynamic pulse-hover button-scale">
+                        <span id="btnRegistrarText">✅ Registrar Entrada</span>
+                    </button>
+                </div>
+            </div>
+        </div>        <!-- Filtros y controles -->
+        <div class="section-card card-hover fade-in-up">
+            <h2 class="text-xl font-bold mb-4 text-green-600 flex items-center">
+                🔧 Filtros y Controles
+                <div id="syncStatus" class="ml-3 text-sm"></div>
+            </h2>
+
+            <div class="grid md:grid-cols-4 gap-4 mb-4">
+                <div class="transform-scale-hover">
+                    <label for="filtroCodigo" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por
+                        Código:</label>                    <input type="text" id="filtroCodigo"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 input-focus input-enhanced"
+                        placeholder="Código...">
+                </div>
+
+                <div class="transform-scale-hover">
+                    <label for="filtroNombre" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por
+                        Nombre:</label>                    <input type="text" id="filtroNombre"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 input-focus input-enhanced"
+                        placeholder="Nombre...">
+                </div>
+
+                <div class="transform-scale-hover">
+                    <label for="filtroMarca" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por
+                        Marca:</label>                    <input type="text" id="filtroMarca"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 input-focus input-enhanced"
+                        placeholder="Marca...">
+                </div>
+
+                <div class="flex items-end space-x-2">
+                    <button id="filtrarEntradas"
+                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 button-dynamic button-scale">
+                        🔍 Filtrar
+                    </button>
+                    <button id="limpiarFiltros"
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 button-dynamic button-scale">
+                        🗑️ Limpiar
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <button id="sincronizarEntradas"
+                    class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 button-dynamic pulse-hover button-scale">
+                    <span id="btnSincText">🔄 Sincronizar con Servidor</span>
+                </button>
+                <button id="generarReporte"
+                    class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 button-dynamic button-scale">
+                    📊 Generar Reporte CSV
+                </button>
+                <button id="autoRefresh"
+                    class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 button-dynamic button-scale">
+                    ⚡ Auto-actualización: OFF
+                </button>
+            </div>
+        </div>        <!-- Tabla de entradas -->
+        <div class="section-card card-hover fade-in-up">
+            <div class="gradient-bg p-4 border-b">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center">
+                            📋 Historial de Entradas
+                            <div id="tableLoadingIndicator" class="ml-3" style="display: none;">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </h2>
+                        <p id="contadorEntradas" class="text-sm text-green-100">Total: 0 entradas</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button id="refreshTable"
+                            class="bg-white bg-opacity-20 text-white px-3 py-1 rounded hover:bg-opacity-30 transition-all button-scale">
+                            🔄
+                        </button>
+                        <button id="exportVisible"
+                            class="bg-white bg-opacity-20 text-white px-3 py-1 rounded hover:bg-opacity-30 transition-all button-scale">
+                            📥
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                                Código ↕️</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                                Nombre ↕️</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                                Marca ↕️</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                                Categoría ↕️</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                                Unidad ↕️</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                                Cantidad ↕️</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                                Fecha ↕️</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Comentarios</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaEntradasBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Las entradas se cargarán dinámicamente aquí -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Scanner container -->
+        <div id="scanner-container" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            style="display: none;">
+            <div class="bg-white p-4 rounded-lg max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold">Escaner de Código de Barras</h3>
+                    <button id="cerrarEscaner" class="text-red-500 hover:text-red-700">✕</button>
+                </div>
+                <div id="reader" class="w-full"></div>
+                <button id="detenerEscaner" class="bg-red-500 text-white px-4 py-2 rounded mt-4 w-full">
+                    Detener Escáner
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../librerías/html5-qrcode.min.js"></script>
+    <script type="module" src="../js/main.js"></script>
+    <script type="module" src="../js/registro-entradas-operations.js"></script>
+    <script type="module">
+        import { inicializarRegistroEntradas } from '../js/registro-entradas-operations.js';
+        import { inicializarDB } from '../js/db-operations.js';
+        import { toggleEscaner } from '../js/scanner.js';        // Inicializar cuando el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                // Inicializar base de datos principal
+                await inicializarDB();
+
+                // Inicializar página de registro de entradas
+                await inicializarRegistroEntradas();
+
+                // Configurar escáner
+                const escanearBtn = document.getElementById('escanearBtn');
+                if (escanearBtn) {
+                    escanearBtn.addEventListener('click', () => {
+                        toggleEscaner('busquedaCodigo', 'scanner-container');
+                    });
+                }
+
+                const cerrarEscaner = document.getElementById('cerrarEscaner');
+                const detenerEscaner = document.getElementById('detenerEscaner');
+
+                if (cerrarEscaner) {
+                    cerrarEscaner.addEventListener('click', () => {
+                        document.getElementById('scanner-container').style.display = 'none';
+                    });
+                }
+
+                if (detenerEscaner) {
+                    detenerEscaner.addEventListener('click', () => {
+                        document.getElementById('scanner-container').style.display = 'none';
+                    });
+                }
+
+                // Inicializar funcionalidades dinámicas
+                initializeDynamicFeatures();
+
+                console.log('Página de registro de entradas inicializada correctamente');
+
+            } catch (error) {
+                console.error('Error al inicializar página de registro de entradas:', error);
+            }
+        });
+
+        // Funcionalidades dinámicas
+        function initializeDynamicFeatures() {
+            // Reloj en tiempo real
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            // Estado de conexión
+            updateConnectionStatus();
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+
+            // Auto-actualización
+            setupAutoRefresh();
+
+            // Efectos de carga
+            setupLoadingEffects();
+
+            // Animaciones de entrada
+            setupEntranceAnimations();
+
+            // Notificaciones dinámicas
+            setupDynamicNotifications();
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateString = now.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            const clockDisplay = document.getElementById('clockDisplay');
+            if (clockDisplay) {
+                clockDisplay.innerHTML = `${dateString} ${timeString}`;
+            }
+        }
+
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('conexionStatus');
+            if (statusElement) {
+                const isOnline = navigator.onLine;
+                statusElement.innerHTML = isOnline
+                    ? '<span class="status-indicator status-success"></span>Conectado'
+                    : '<span class="status-indicator status-error"></span>Sin conexión';
+            }
+        }
+
+        function setupAutoRefresh() {
+            let autoRefreshEnabled = false;
+            let autoRefreshInterval;
+
+            const autoRefreshBtn = document.getElementById('autoRefresh');
+            if (autoRefreshBtn) {
+                autoRefreshBtn.addEventListener('click', () => {
+                    autoRefreshEnabled = !autoRefreshEnabled;
+
+                    if (autoRefreshEnabled) {
+                        autoRefreshBtn.textContent = '⚡ Auto-actualización: ON';
+                        autoRefreshBtn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
+                        autoRefreshBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+
+                        autoRefreshInterval = setInterval(() => {
+                            refreshTableData();
+                        }, 30000); // Cada 30 segundos
+                    } else {
+                        autoRefreshBtn.textContent = '⚡ Auto-actualización: OFF';
+                        autoRefreshBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                        autoRefreshBtn.classList.add('bg-indigo-500', 'hover:bg-indigo-600');
+
+                        if (autoRefreshInterval) {
+                            clearInterval(autoRefreshInterval);
+                        }
+                    }
+                });
+            }
+        }
+
+        function setupLoadingEffects() {
+            // Interceptar clicks en botones de búsqueda
+            ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca'].forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        showButtonLoading(btn);
+                        setTimeout(() => hideButtonLoading(btn), 2000);
+                    });
+                }
+            });
+
+            // Interceptar registro de entrada
+            const registrarBtn = document.getElementById('registrarEntrada');
+            if (registrarBtn) {
+                registrarBtn.addEventListener('click', () => {
+                    showButtonLoading(registrarBtn, 'btnRegistrarText', '⏳ Registrando...');
+                    setTimeout(() => hideButtonLoading(registrarBtn, 'btnRegistrarText', '✅ Registrar Entrada'), 3000);
+                });
+            }
+
+            // Interceptar sincronización
+            const sincBtn = document.getElementById('sincronizarEntradas');
+            if (sincBtn) {
+                sincBtn.addEventListener('click', () => {
+                    showButtonLoading(sincBtn, 'btnSincText', '🔄 Sincronizando...');
+                    setTimeout(() => hideButtonLoading(sincBtn, 'btnSincText', '🔄 Sincronizar con Servidor'), 4000);
+                });
+            }
+        }
+
+        function showButtonLoading(button, textElementId = null, loadingText = 'Cargando...') {
+            button.disabled = true;
+            button.classList.add('opacity-75', 'cursor-not-allowed');
+
+            if (textElementId) {
+                const textElement = document.getElementById(textElementId);
+                if (textElement) {
+                    textElement.innerHTML = `<div class="loading-spinner"></div>${loadingText}`;
+                }
+            } else {
+                button.innerHTML = `<div class="loading-spinner"></div>${loadingText}`;
+            }
+        }
+
+        function hideButtonLoading(button, textElementId = null, originalText = 'Buscar') {
+            button.disabled = false;
+            button.classList.remove('opacity-75', 'cursor-not-allowed');
+
+            if (textElementId) {
+                const textElement = document.getElementById(textElementId);
+                if (textElement) {
+                    textElement.textContent = originalText;
+                }
+            } else {
+                button.textContent = originalText;
+            }
+        }
+
+        function setupEntranceAnimations() {
+            // Animar elementos cuando aparecen
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in-up');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.card-hover').forEach(card => {
+                observer.observe(card);
+            });
+        }
+
+        function setupDynamicNotifications() {
+            // Mostrar formulario solo cuando se selecciona un producto
+            const originalBuscarFunctions = [];
+
+            // Override de las funciones de búsqueda para mostrar el formulario
+            ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca'].forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        setTimeout(() => {
+                            const productForm = document.getElementById('productForm');
+                            if (productForm && document.getElementById('codigoProducto').value) {
+                                productForm.style.display = 'block';
+                                productForm.scrollIntoView({ behavior: 'smooth' });
+
+                                // Animación de aparición
+                                productForm.style.opacity = '0';
+                                productForm.style.transform = 'translateY(20px)';
+
+                                setTimeout(() => {
+                                    productForm.style.transition = 'all 0.5s ease';
+                                    productForm.style.opacity = '1';
+                                    productForm.style.transform = 'translateY(0)';
+                                }, 100);
+                            }
+                        }, 500);
+                    });
+                }
+            });
+
+            // Feedback visual en inputs
+            document.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('focus', (e) => {
+                    e.target.parentElement.classList.add('transform', 'scale-105');
+                });
+
+                input.addEventListener('blur', (e) => {
+                    e.target.parentElement.classList.remove('transform', 'scale-105');
+                });
+            });
+        }
+
+        function refreshTableData() {
+            const indicator = document.getElementById('tableLoadingIndicator');
+            if (indicator) {
+                indicator.style.display = 'block';
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 2000);
+            }
+
+            // Aquí iría la lógica para recargar los datos
+            console.log('Actualizando datos de la tabla...');
+        }
+
+        // Efectos adicionales para las filas de la tabla
+        function addTableRowEffects() {
+            document.querySelectorAll('#tablaEntradasBody tr').forEach(row => {
+                row.addEventListener('mouseenter', () => {
+                    row.classList.add('bg-green-50', 'transform', 'scale-105');
+                });
+
+                row.addEventListener('mouseleave', () => {
+                    row.classList.remove('bg-green-50', 'transform', 'scale-105');
+                });
+            });
+        }
+
+        // Llamar después de cargar datos en la tabla
+        window.addEventListener('load', () => {
+            setTimeout(addTableRowEffects, 1000);
+        });
+    </script>
+</body>
+
+</html>

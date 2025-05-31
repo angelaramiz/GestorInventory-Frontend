@@ -126,6 +126,7 @@ export async function procesarColaSincronizacion() {
 
 // Escuchar eventos de conexión
 window.addEventListener('online', procesarColaSincronizacion);
+window.addEventListener('online', procesarColaSincronizacionEntradas);
 
 // Inicialización de la base de datos
 export function inicializarDB() {
@@ -1629,5 +1630,420 @@ export function obtenerAreaId() {
     }
     
     return areaId;
+}
+
+// Funciones específicas para el registro de entradas
+
+// Inicializar la base de datos para registro de entradas
+export let dbEntradas;
+
+export function inicializarDBEntradas() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("RegistroEntradasDB", 1);
+
+        request.onerror = function(event) {
+            console.error("Error al abrir la base de datos de entradas:", event.target.error);
+            reject(event.target.error);
+        };
+
+        request.onsuccess = function(event) {
+            dbEntradas = event.target.result;
+            console.log("Base de datos de entradas inicializada correctamente");
+            resolve(dbEntradas);
+        };
+
+        request.onupgradeneeded = function(event) {
+            const db = event.target.result;
+
+            // Crear object store para registro_entradas si no existe
+            if (!db.objectStoreNames.contains("registro_entradas")) {
+                const objectStore = db.createObjectStore("registro_entradas", { keyPath: "id", autoIncrement: true });
+                
+                // Crear índices para búsquedas eficientes
+                objectStore.createIndex("codigo", "codigo", { unique: false });
+                objectStore.createIndex("nombre", "nombre", { unique: false });
+                objectStore.createIndex("marca", "marca", { unique: false });
+                objectStore.createIndex("categoria", "categoria", { unique: false });
+                objectStore.createIndex("fecha_entrada", "fecha_entrada", { unique: false });
+                objectStore.createIndex("area_id", "area_id", { unique: false });
+                
+                console.log("Object store 'registro_entradas' creado con índices");
+            }
+        };
+    });
+}
+
+// Función para agregar una entrada al registro
+export async function agregarRegistroEntrada(entradaData) {
+    try {
+        const areaId = obtenerAreaId();
+        if (!areaId) {
+            throw new Error("No se encontró ID de área");
+        }
+
+        // Preparar los datos de la entrada
+        const entrada = {
+            ...entradaData,
+            area_id: areaId,
+            fecha_entrada: entradaData.fecha_entrada || new Date().toISOString().split('T')[0],
+            created_at: new Date().toISOString(),
+            usuario_id: localStorage.getItem('usuario_id'),
+            is_temp_id: true // Marcar como ID temporal hasta sincronizar
+        };
+
+        // Guardar en IndexedDB
+        const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
+        const objectStore = transaction.objectStore("registro_entradas");
+        
+        const request = objectStore.add(entrada);
+        
+        return new Promise((resolve, reject) => {
+            request.onsuccess = function(event) {
+                const entradaId = event.target.result;
+                entrada.id = entradaId;
+                
+                console.log("Entrada registrada en IndexedDB:", entrada);
+                
+                // Agregar a la cola de sincronización
+                agregarAColaSincronizacionEntradas(entrada);
+                
+                resolve(entrada);
+            };
+            
+            request.onerror = function(event) {
+                console.error("Error al agregar entrada:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+        
+    } catch (error) {
+        console.error("Error en agregarRegistroEntrada:", error);
+        throw error;
+    }
+}
+
+// Función para cargar entradas en la tabla
+export async function cargarEntradasEnTabla(filtros = {}) {
+    try {
+        if (!dbEntradas) {
+            await inicializarDBEntradas();
+        }
+
+        const areaId = obtenerAreaId();
+        if (!areaId) {
+            console.warn("No se encontró área_id al cargar entradas");
+            return [];
+        }
+
+        const transaction = dbEntradas.transaction(["registro_entradas"], "readonly");
+        const objectStore = transaction.objectStore("registro_entradas");
+        
+        return new Promise((resolve, reject) => {
+            const request = objectStore.getAll();
+            
+            request.onsuccess = function(event) {
+                let entradas = event.target.result;
+                
+                // Filtrar por área
+                entradas = entradas.filter(entrada => entrada.area_id === areaId);
+                
+                // Aplicar filtros adicionales si existen
+                if (filtros.codigo) {
+                    entradas = entradas.filter(entrada => 
+                        entrada.codigo && entrada.codigo.toLowerCase().includes(filtros.codigo.toLowerCase())
+                    );
+                }
+                
+                if (filtros.nombre) {
+                    entradas = entradas.filter(entrada => 
+                        entrada.nombre && entrada.nombre.toLowerCase().includes(filtros.nombre.toLowerCase())
+                    );
+                }
+                
+                if (filtros.marca) {
+                    entradas = entradas.filter(entrada => 
+                        entrada.marca && entrada.marca.toLowerCase().includes(filtros.marca.toLowerCase())
+                    );
+                }
+                
+                // Ordenar por fecha de entrada (más recientes primero)
+                entradas.sort((a, b) => new Date(b.fecha_entrada) - new Date(a.fecha_entrada));
+                
+                resolve(entradas);
+            };
+            
+            request.onerror = function(event) {
+                console.error("Error al cargar entradas:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+        
+    } catch (error) {
+        console.error("Error en cargarEntradasEnTabla:", error);
+        throw error;
+    }
+}
+
+// Cola de sincronización específica para entradas
+let syncQueueEntradas = JSON.parse(localStorage.getItem('syncQueueEntradas') || '[]');
+
+export function agregarAColaSincronizacionEntradas(data) {
+    const areaId = obtenerAreaId();
+    if (!areaId) {
+        console.error("No se encontró el área_id al intentar agregar entrada a la cola de sincronización");
+        mostrarAlertaBurbuja("Error: No se pudo determinar el área para sincronizar", "error");
+        return;
+    }
+    
+    const dataSupabase = { ...data };
+    dataSupabase.area_id = dataSupabase.area_id || areaId;
+    
+    syncQueueEntradas.push(dataSupabase);
+    localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
+    
+    if (navigator.onLine) procesarColaSincronizacionEntradas();
+}
+
+// Procesar la cola de sincronización de entradas
+export async function procesarColaSincronizacionEntradas() {
+    if (!navigator.onLine) return;
+
+    while (syncQueueEntradas.length > 0) {
+        const item = syncQueueEntradas.shift();
+        try {
+            const supabase = await getSupabase();
+            
+            if (!item.area_id) {
+                const areaId = obtenerAreaId();
+                if (!areaId) {
+                    console.error("No se encontró ID de área para la entrada:", item);
+                    syncQueueEntradas.unshift(item);
+                    mostrarAlertaBurbuja("Error: falta área en entrada", "error");
+                    break;
+                }
+                item.area_id = areaId;
+            }
+            
+            const datosParaSupabase = { ...item };
+            delete datosParaSupabase.is_temp_id;
+            
+            const { data, error } = await supabase
+                .from('registro_entradas')
+                .upsert({ 
+                    ...datosParaSupabase, 
+                    usuario_id: localStorage.getItem('usuario_id')
+                })
+                .select();
+
+            if (error) {
+                console.error("Error al sincronizar entrada con Supabase:", error, datosParaSupabase);
+                throw error;
+            }
+
+            // Actualizar IndexedDB con el ID permanente
+            const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
+            const objectStore = transaction.objectStore("registro_entradas");
+            
+            await new Promise((resolve, reject) => {
+                const request = objectStore.delete(item.id);
+                request.onsuccess = resolve;
+                request.onerror = () => reject(request.error);
+            });
+            
+            const itemActualizado = { 
+                ...item, 
+                id: data[0].id, 
+                is_temp_id: false,
+                area_id: data[0].area_id || item.area_id
+            };
+            
+            await new Promise((resolve, reject) => {
+                const request = objectStore.add(itemActualizado);
+                request.onsuccess = resolve;
+                request.onerror = () => reject(request.error);
+            });
+
+            console.log("Entrada sincronizada correctamente:", data[0]);
+            
+        } catch (error) {
+            console.error("Error al procesar cola de sincronización de entradas:", error);
+            syncQueueEntradas.unshift(item);
+            break;
+        }
+    }
+    
+    localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
+}
+
+// Sincronizar entradas desde Supabase
+export async function sincronizarEntradasDesdeSupabase() {
+    try {
+        const areaId = obtenerAreaId();
+        if (!areaId) {
+            console.warn("No se encontró área_id para sincronizar entradas");
+            return;
+        }
+
+        const supabase = await getSupabase();
+        const { data: entradas, error } = await supabase
+            .from('registro_entradas')
+            .select('*')
+            .eq('area_id', areaId)
+            .order('fecha_entrada', { ascending: false });
+
+        if (error) {
+            console.error("Error al obtener entradas de Supabase:", error);
+            throw error;
+        }
+
+        if (!dbEntradas) {
+            await inicializarDBEntradas();
+        }
+
+        // Limpiar datos locales y cargar los de Supabase
+        const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
+        const objectStore = transaction.objectStore("registro_entradas");
+
+        // Limpiar registros existentes del área actual
+        const index = objectStore.index("area_id");
+        const deleteRequest = index.openCursor(IDBKeyRange.only(areaId));
+        
+        deleteRequest.onsuccess = function(event) {
+            const cursor = event.target.result;
+            if (cursor) {
+                cursor.delete();
+                cursor.continue();
+            }
+        };
+
+        // Esperar a que termine la limpieza y luego agregar nuevos datos
+        await new Promise((resolve) => {
+            deleteRequest.onsuccess = function(event) {
+                const cursor = event.target.result;
+                if (cursor) {
+                    cursor.delete();
+                    cursor.continue();
+                } else {
+                    resolve();
+                }
+            };
+        });
+
+        // Agregar las entradas sincronizadas
+        for (const entrada of entradas) {
+            const entradaConFlags = {
+                ...entrada,
+                is_temp_id: false
+            };
+            
+            await new Promise((resolve, reject) => {
+                const request = objectStore.add(entradaConFlags);
+                request.onsuccess = resolve;
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        console.log(`${entradas.length} entradas sincronizadas desde Supabase`);
+        mostrarAlertaBurbuja(`${entradas.length} entradas sincronizadas correctamente`, "success");
+        
+        return entradas;
+        
+    } catch (error) {
+        console.error("Error al sincronizar entradas desde Supabase:", error);
+        mostrarAlertaBurbuja("Error al sincronizar entradas desde el servidor", "error");
+        throw error;
+    }
+}
+
+// Función para eliminar una entrada del registro
+export async function eliminarRegistroEntrada(entradaId) {
+    try {
+        if (!dbEntradas) {
+            await inicializarDBEntradas();
+        }
+
+        const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
+        const objectStore = transaction.objectStore("registro_entradas");
+        
+        return new Promise((resolve, reject) => {
+            const request = objectStore.delete(entradaId);
+            
+            request.onsuccess = function() {
+                console.log("Entrada eliminada de IndexedDB:", entradaId);
+                
+                // También eliminar de Supabase si no es un ID temporal
+                eliminarEntradaDeSupabase(entradaId);
+                
+                resolve();
+            };
+            
+            request.onerror = function(event) {
+                console.error("Error al eliminar entrada:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+        
+    } catch (error) {
+        console.error("Error en eliminarRegistroEntrada:", error);
+        throw error;
+    }
+}
+
+// Función auxiliar para eliminar entrada de Supabase
+async function eliminarEntradaDeSupabase(entradaId) {
+    try {
+        const supabase = await getSupabase();
+        const { error } = await supabase
+            .from('registro_entradas')
+            .delete()
+            .eq('id', entradaId);
+
+        if (error) {
+            console.error("Error al eliminar entrada de Supabase:", error);
+        } else {
+            console.log("Entrada eliminada de Supabase:", entradaId);
+        }
+        
+    } catch (error) {
+        console.error("Error al conectar con Supabase para eliminar entrada:", error);
+    }
+}
+
+// Función para generar reporte de entradas
+export async function generarReporteEntradas(filtros = {}) {
+    try {
+        const entradas = await cargarEntradasEnTabla(filtros);
+        
+        const csv = [
+            ['Código', 'Nombre', 'Marca', 'Categoría', 'Unidad', 'Cantidad', 'Fecha Entrada', 'Comentarios'].join(','),
+            ...entradas.map(entrada => [
+                entrada.codigo || '',
+                entrada.nombre || '',
+                entrada.marca || '',
+                entrada.categoria || '',
+                entrada.unidad || '',
+                entrada.cantidad || '',
+                entrada.fecha_entrada || '',
+                entrada.comentarios || ''
+            ].map(field => `"${field}"`).join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `registro-entradas-${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        mostrarAlertaBurbuja("Reporte generado correctamente", "success");
+        
+    } catch (error) {
+        console.error("Error al generar reporte de entradas:", error);
+        mostrarAlertaBurbuja("Error al generar reporte", "error");
+        throw error;
+    }
 }
 

@@ -1,5 +1,5 @@
 // Importaciones
-import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion, guardarAreaIdPersistente, obtenerAreaId } from './db-operations.js';
+import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion, guardarAreaIdPersistente, obtenerAreaId, inicializarDBEntradas, procesarColaSincronizacionEntradas } from './db-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
@@ -13,13 +13,12 @@ function inicializarMenu() {
     const menuToggle = document.getElementById('menuToggle');
     const sideMenu = document.getElementById('sideMenu');
     const closeMenu = document.getElementById('closeMenu');
-    const menuRoutes = document.getElementById('menuRoutes');
-
-    // Definir las rutas disponibles
+    const menuRoutes = document.getElementById('menuRoutes');    // Definir las rutas disponibles
     const routes = [
         { name: 'Consulta de Producto', path: './consulta.html', id: 'consulta' },
         { name: 'Editar Producto', path: './editar.html', id: 'editar' },
         { name: 'Inventario', path: './inventario.html', id: 'inventario' },
+        { name: 'Registro de Entradas', path: './registro-entradas.html', id: 'registro-entradas' },
         { name: 'Reporte para Inventario', path: './report.html', id: 'reporte' },
         { name: 'Agregar Productos', path: './agregar.html', id: 'agregar' },
         { name: 'Administración de Archivos', path: './archivos.html', id: 'archivos' }
@@ -27,8 +26,7 @@ function inicializarMenu() {
 
     // Obtener el rol del usuario
     const rol = localStorage.getItem('rol');
-    
-    // Filtrar las rutas según el rol
+      // Filtrar las rutas según el rol
     const rutasRestringidas = {
         Operador: ['editar', 'reporte', 'agregar', 'archivos'], // IDs restringidos para operadores
         Administrador: [], // No hay restricciones para administradores
@@ -175,9 +173,9 @@ async function init() {
         
         // Iniciar verificación periódica del token
         iniciarVerificacionToken();
-        
-        await inicializarDB();
+          await inicializarDB();
         await inicializarDBInventario();
+        await inicializarDBEntradas();
 
         // Obtener el rol del usuario
         const rol = localStorage.getItem('rol');

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,13 +9,15 @@
     <script src="../librerías/sweetalert2@11.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
 </head>
+
 <body class="bg-gray-100">
     <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
         <h1 class="text-3xl font-bold">Sistema de Gestión de Productos</h1>
-        
+
     </header>
 
-    <div id="sideMenu" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
+    <div id="sideMenu"
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
         <div class="p-4 border-b">
             <h2 class="text-xl font-bold">Menú de Navegación</h2>
             <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
@@ -28,43 +31,56 @@
     <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">
         Menú
     </button>
-    
+
     <main class="container mx-auto mt-8">
-        <section id="consulta" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section id="dashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div id="consulta" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-semibold mb-4">Consulta de Producto</h2>
                 <p class="mb-4">Busca productos en la base de datos por diferentes criterios.</p>
-                <a id="consultaLink" href="./consulta.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Consulta Producto</a>
+                <a id="consultaLink" href="./consulta.html"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Consulta Producto</a>
             </div>
 
             <div id="editar" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-semibold mb-4">Editar Producto</h2>
                 <p class="mb-4">Edita los atributos de los productos existentes en la base de datos.</p>
-                <a id="editarLink" href="./editar.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Editar Producto</a>
+                <a id="editarLink" href="./editar.html"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Editar Producto</a>
             </div>
-
+            
             <div id="inventario" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-semibold mb-4">Inventario</h2>
                 <p class="mb-4">Gestiona el inventario de productos con datos adicionales.</p>
-                <a id="inventarioLink" href="./inventario.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Inventario</a>
+                <a id="inventarioLink" href="./inventario.html"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Inventario</a>
+            </div>
+
+            <div id="registro-entradas" class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4">Registro de Entradas</h2>
+                <p class="mb-4">Registra las entradas de productos recibidos en el almacén.</p>
+                <a id="registroEntradasLink" href="./registro-entradas.html"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Registro de Entradas</a>
             </div>
 
             <div id="reporte" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-semibold mb-4">Reporte para Inventario</h2>
                 <p class="mb-4">Genera reportes detallados del inventario de productos.</p>
-                <a id="reporteLink" href="./report.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Reporte para Inventario</a>
+                <a id="reporteLink" href="./report.html"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Reporte para Inventario</a>
             </div>
 
             <div id="agregar" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-semibold mb-4">Agregar Productos</h2>
                 <p class="mb-4">Escanea y agrega nuevos productos a la base de datos.</p>
-                <a id="agregarLink" href="./agregar.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Agregar Productos</a>
+                <a id="agregarLink" href="./agregar.html"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Agregar Productos</a>
             </div>
 
             <div id="archivos" class="bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-semibold mb-4">Administración de Archivos</h2>
                 <p class="mb-4">Sube o descarga archivos CSV para la base de datos.</p>
-                <a id="archivosLink" href="./archivos.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Archivos</a>
+                <a id="archivosLink" href="./archivos.html"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Archivos</a>
             </div>
         </section>
     </main>
@@ -72,19 +88,19 @@
     <footer class="bg-blue-600 text-white p-4 mt-8">
         <p class="text-center">&copy; 2024 Sistema de Gestión de Productos. Todos los derechos reservados.</p>
     </footer>
-    
+
     <script type="module" src="../js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const menuToggle = document.getElementById('menuToggle');
             const sideMenu = document.getElementById('sideMenu');
             const closeMenu = document.getElementById('closeMenu');
-            const menuRoutes = document.getElementById('menuRoutes');
-
+            const menuRoutes = document.getElementById('menuRoutes'); 
             const routes = [
                 { name: 'Consulta de Producto', path: './consulta.html' },
                 { name: 'Editar Producto', path: './editar.html' },
                 { name: 'Inventario', path: './inventario.html' },
+                { name: 'Registro de Entradas', path: './registro-entradas.html' },
                 { name: 'Reporte para Inventario', path: './report.html' },
                 { name: 'Agregar Productos', path: './agregar.html' },
                 { name: 'Administración de Archivos', path: './archivos.html' }
@@ -109,4 +125,5 @@
         });
     </script>
 </body>
+
 </html>

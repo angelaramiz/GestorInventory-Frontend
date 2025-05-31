@@ -241,7 +241,7 @@ export function verificarTokenAutomaticamente() {
         console.log("No hay token de autenticación. Redirigiendo al login...");
         mostrarAlertaBurbuja('Sesión no iniciada. Por favor, inicia sesión.', 'warning');
         setTimeout(() => {
-            window.location.href = '/index.html';
+            window.location.href = '/GestorInventory/index.html';
         }, 1500);
         return false;
     }

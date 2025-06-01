@@ -245,7 +245,7 @@ export function verificarTokenAutomaticamente() {
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             window.location.href = './index.html';
             } else {
-            window.location.href = '/GestorInventory/index.html';
+            window.location.href = '/GestorInventory-Frontend/index.html';
             }
         }, 1500);
         return false;

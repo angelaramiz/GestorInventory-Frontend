@@ -8,121 +8,75 @@
     <link href="../librerías/tailwind.min.css" rel="stylesheet">
     <script src="../librerías/sweetalert2@11.js"></script>
     <script src="../librerías/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="../css/styles.css">    <style>
-        /* Variables CSS para Registro de Entradas */
-        :root {
-            --registro-primary: #10b981;
-            --registro-secondary: #3b82f6;
-            --registro-accent: #f59e0b;
-            --registro-success: #22c55e;
-            --registro-error: #ef4444;
-        }
-
-        /* Fondo específico para registro de entradas */
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-
-        /* Clases específicas para esta página */
-        .registro-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .section-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
 
-<body class="bg-gray-100 page-enter">    <header class="header-enhanced text-white p-4 flex justify-between items-center shadow-lg">
-        <div class="flex items-center">
-            <div class="status-indicator status-success pulse-indicator"></div>
-            <h1 class="text-3xl font-bold text-gradient-animated">Registro de Entradas</h1>
-        </div>
+<body class="bg-gray-100">
+    <header class="bg-green-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-3xl font-bold">Registro de Entradas</h1>
         <div class="flex items-center space-x-4">
             <div id="conexionStatus" class="text-sm">
-                <span class="status-indicator status-success"></span>
+                <span class="inline-block w-2 h-2 bg-green-400 rounded-full mr-1"></span>
                 Conectado
             </div>
             <div id="clockDisplay" class="text-sm font-mono"></div>
         </div>
-    </header>
-
-    <div id="sideMenu"
-        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform z-50">
+    </header>    <div id="sideMenu" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform z-50">
         <div class="p-4 border-b">
             <h2 class="text-xl font-bold">Menú de Navegación</h2>
-            <button id="closeMenu" class="registro-button-danger text-sm px-3 py-1 mt-2">Cerrar</button>
+            <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
         </div>
         <ul id="menuRoutes" class="p-4 space-y-2">
             <!-- Las rutas se generarán dinámicamente -->
         </ul>
-    </div>
-
-    <div class="container mx-auto mt-8 p-4">
-        <div class="mb-6 flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold mb-2">Registro de Entradas</h1>
-                <a href="./main.html" class="text-blue-500 hover:underline">← Regresar</a>
-            </div>
-            <button id="menuToggle"
-                class="bg-white text-green-600 px-4 py-2 rounded hover:bg-gray-200 border border-green-600">
-                Menú
-            </button>
-        </div>        <!-- Sección de búsqueda de productos -->
-        <div class="registro-card card-hover fade-in-up">
+    </div>    <div class="container mx-auto mt-8 p-4">
+        <h1 class="text-3xl font-bold mb-6">Registro de Entradas</h1>
+        
+        <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
+        <button id="menuToggle" class="bg-white text-green-600 px-4 py-2 rounded hover:bg-gray-200 border border-green-600">
+            Menú
+        </button>        <!-- Sección de búsqueda de productos -->
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <h2 class="text-xl font-bold mb-4 text-green-600 flex items-center">
                 🔍 Buscar Producto
                 <span id="searchStatus" class="ml-3 text-sm"></span>
             </h2>
 
             <div class="grid md:grid-cols-3 gap-4 mb-4">
-                <div class="transform-scale-hover">
-                    <label for="busquedaCodigo" class="block text-sm font-medium text-gray-700 mb-2">Buscar por
-                        Código:</label>
+                <div>
+                    <label for="busquedaCodigo" class="block text-sm font-medium text-gray-700 mb-2">Buscar por Código:</label>
                     <div class="flex">
                         <input type="text" id="busquedaCodigo"
-                            class="flex-1 registro-input rounded-l-md rounded-r-none"
+                            class="flex-1 border p-2 rounded-l-md focus:ring-green-500 focus:border-green-500"
                             placeholder="Ingrese código del producto">
                         <button id="buscarPorCodigo"
-                            class="registro-button rounded-l-none rounded-r-md">
+                            class="bg-green-500 text-white px-4 py-2 rounded-r-md hover:bg-green-600">
                             <span id="btnCodigoText">Buscar</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="transform-scale-hover">
-                    <label for="busquedaNombre" class="block text-sm font-medium text-gray-700 mb-2">Buscar por
-                        Nombre:</label>
+                <div>
+                    <label for="busquedaNombre" class="block text-sm font-medium text-gray-700 mb-2">Buscar por Nombre:</label>
                     <div class="flex">
                         <input type="text" id="busquedaNombre"
-                            class="flex-1 registro-input rounded-l-md rounded-r-none"
+                            class="flex-1 border p-2 rounded-l-md focus:ring-green-500 focus:border-green-500"
                             placeholder="Ingrese nombre del producto">
                         <button id="buscarPorNombre"
-                            class="registro-button rounded-l-none rounded-r-md">
+                            class="bg-green-500 text-white px-4 py-2 rounded-r-md hover:bg-green-600">
                             <span id="btnNombreText">Buscar</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="transform-scale-hover">
-                    <label for="busquedaMarca" class="block text-sm font-medium text-gray-700 mb-2">Buscar por
-                        Marca:</label>
+                <div>
+                    <label for="busquedaMarca" class="block text-sm font-medium text-gray-700 mb-2">Buscar por Marca:</label>
                     <div class="flex">
                         <input type="text" id="busquedaMarca"
-                            class="flex-1 registro-input rounded-l-md rounded-r-none"
+                            class="flex-1 border p-2 rounded-l-md focus:ring-green-500 focus:border-green-500"
                             placeholder="Ingrese marca del producto">
                         <button id="buscarPorMarca"
-                            class="registro-button rounded-l-none rounded-r-md">
+                            class="bg-green-500 text-white px-4 py-2 rounded-r-md hover:bg-green-600">
                             <span id="btnMarcaText">Buscar</span>
                         </button>
                     </div>
@@ -131,52 +85,44 @@
 
             <div class="flex justify-center">
                 <button id="escanearBtn"
-                    class="registro-button-secondary pulse-hover">
+                    class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
                     📷 Escanear Código de Barras
                 </button>
             </div>
         </div>        <!-- Formulario de datos del producto y entrada -->
-        <div id="productForm" class="registro-card card-hover fade-in-up"
-            style="display: none;">
+        <div id="productForm" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" style="display: none;">
             <h2 class="text-xl font-bold mb-4 text-green-600 flex items-center">
                 📦 Datos del Producto
                 <div id="productLoadingIndicator" class="ml-3" style="display: none;">
-                    <div class="loading-spinner-enhanced"></div>
-                    Cargando...
+                    <div class="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="ml-2">Cargando...</span>
                 </div>
             </h2>
 
-            <div id="productInfo"
-                class="grid md:grid-cols-2 gap-4 mb-6 p-4 rounded-lg bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-green-500">
-                <div class="transform-scale-hover">
+            <div id="productInfo" class="grid md:grid-cols-2 gap-4 mb-6 p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                <div class="mb-4">
                     <label for="codigoProducto" class="block text-sm font-medium text-gray-700 mb-2">Código:</label>
-                    <input type="text" id="codigoProducto"
-                        class="w-full registro-input bg-gray-100 font-mono" readonly>
+                    <input type="text" id="codigoProducto" class="border p-2 w-full bg-gray-100 font-mono" readonly>
                 </div>
 
-                <div class="transform-scale-hover">
+                <div class="mb-4">
                     <label for="nombreProducto" class="block text-sm font-medium text-gray-700 mb-2">Nombre:</label>
-                    <input type="text" id="nombreProducto"
-                        class="w-full registro-input bg-gray-100 font-semibold" readonly>
+                    <input type="text" id="nombreProducto" class="border p-2 w-full bg-gray-100 font-semibold" readonly>
                 </div>
 
-                <div class="transform-scale-hover">
+                <div class="mb-4">
                     <label for="marcaProducto" class="block text-sm font-medium text-gray-700 mb-2">Marca:</label>
-                    <input type="text" id="marcaProducto"
-                        class="w-full registro-input bg-gray-100" readonly>
+                    <input type="text" id="marcaProducto" class="border p-2 w-full bg-gray-100" readonly>
                 </div>
 
-                <div class="transform-scale-hover">
-                    <label for="categoriaProducto"
-                        class="block text-sm font-medium text-gray-700 mb-2">Categoría:</label>
-                    <input type="text" id="categoriaProducto"
-                        class="w-full registro-input bg-gray-100" readonly>
+                <div class="mb-4">
+                    <label for="categoriaProducto" class="block text-sm font-medium text-gray-700 mb-2">Categoría:</label>
+                    <input type="text" id="categoriaProducto" class="border p-2 w-full bg-gray-100" readonly>
                 </div>
 
-                <div class="transform-scale-hover">
+                <div class="mb-4">
                     <label for="unidadProducto" class="block text-sm font-medium text-gray-700 mb-2">Unidad:</label>
-                    <input type="text" id="unidadProducto"
-                        class="w-full registro-input bg-gray-100" readonly>
+                    <input type="text" id="unidadProducto" class="border p-2 w-full bg-gray-100" readonly>
                 </div>
             </div>
 
@@ -187,133 +133,119 @@
                 </h3>
 
                 <div class="grid md:grid-cols-3 gap-4 mb-6">
-                    <div class="floating-label-registro">
-                        <input type="number" id="cantidadEntrada"
-                            class="w-full"
-                            min="0.01" step="0.01" required placeholder=" ">
-                        <label for="cantidadEntrada">Cantidad Recibida *</label>
+                    <div class="mb-4">
+                        <label for="cantidadEntrada" class="block text-sm font-medium text-gray-700 mb-2">Cantidad Recibida *:</label>
+                        <input type="number" id="cantidadEntrada" class="border p-2 w-full focus:ring-green-500 focus:border-green-500" 
+                               min="0.01" step="0.01" required placeholder="0.00">
                     </div>
 
-                    <div class="floating-label-registro">
-                        <input type="date" id="fechaEntrada"
-                            class="w-full"
-                            required placeholder=" ">
-                        <label for="fechaEntrada">Fecha de Entrada *</label>
+                    <div class="mb-4">
+                        <label for="fechaEntrada" class="block text-sm font-medium text-gray-700 mb-2">Fecha de Entrada *:</label>
+                        <input type="date" id="fechaEntrada" class="border p-2 w-full focus:ring-green-500 focus:border-green-500" required>
                     </div>
 
-                    <div class="md:col-span-1 transform-scale-hover">
-                        <label for="comentariosEntrada"
-                            class="block text-sm font-medium text-gray-700 mb-2">Comentarios:</label>
-                        <textarea id="comentariosEntrada"
-                            class="w-full registro-input"
-                            rows="3" placeholder="Información adicional..."></textarea>
+                    <div class="mb-4">
+                        <label for="comentariosEntrada" class="block text-sm font-medium text-gray-700 mb-2">Comentarios:</label>
+                        <textarea id="comentariosEntrada" class="border p-2 w-full focus:ring-green-500 focus:border-green-500" 
+                                  rows="3" placeholder="Información adicional..."></textarea>
                     </div>
                 </div>
 
                 <div class="flex justify-between">
-                    <button id="limpiarFormulario"
-                        class="registro-button-danger">
+                    <button id="limpiarFormulario" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
                         🗑️ Limpiar
                     </button>
-                    <button id="registrarEntrada"
-                        class="registro-button pulse-hover">
+                    <button id="registrarEntrada" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
                         <span id="btnRegistrarText">✅ Registrar Entrada</span>
                     </button>
                 </div>
             </div>
         </div>        <!-- Filtros y controles -->
-        <div class="registro-card card-hover fade-in-up">
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <h2 class="text-xl font-bold mb-4 text-green-600 flex items-center">
                 🔧 Filtros y Controles
                 <div id="syncStatus" class="ml-3 text-sm"></div>
             </h2>
 
             <div class="grid md:grid-cols-4 gap-4 mb-4">
-                <div class="floating-label-registro">
-                    <input type="text" id="filtroCodigo"
-                        class="w-full"
-                        placeholder=" ">
-                    <label for="filtroCodigo">Filtrar por Código</label>
+                <div class="mb-4">
+                    <label for="filtroCodigo" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Código:</label>
+                    <input type="text" id="filtroCodigo" class="border p-2 w-full focus:ring-green-500 focus:border-green-500" 
+                           placeholder="Código...">
                 </div>
 
-                <div class="floating-label-registro">
-                    <input type="text" id="filtroNombre"
-                        class="w-full"
-                        placeholder=" ">
-                    <label for="filtroNombre">Filtrar por Nombre</label>
+                <div class="mb-4">
+                    <label for="filtroNombre" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Nombre:</label>
+                    <input type="text" id="filtroNombre" class="border p-2 w-full focus:ring-green-500 focus:border-green-500" 
+                           placeholder="Nombre...">
                 </div>
 
-                <div class="floating-label-registro">
-                    <input type="text" id="filtroMarca"
-                        class="w-full"
-                        placeholder=" ">
-                    <label for="filtroMarca">Filtrar por Marca</label>
+                <div class="mb-4">
+                    <label for="filtroMarca" class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Marca:</label>
+                    <input type="text" id="filtroMarca" class="border p-2 w-full focus:ring-green-500 focus:border-green-500" 
+                           placeholder="Marca...">
                 </div>
 
                 <div class="flex items-end space-x-2">
-                    <button id="filtrarEntradas"
-                        class="registro-button-secondary">
+                    <button id="filtrarEntradas" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                         🔍 Filtrar
                     </button>
-                    <button id="limpiarFiltros"
-                        class="registro-button-danger">
+                    <button id="limpiarFiltros" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
                         🗑️ Limpiar
                     </button>
                 </div>
-            </div>            <div class="flex flex-wrap gap-3">
-                <button id="sincronizarEntradas"
-                    class="registro-button-secondary pulse-hover">
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <button id="sincronizarEntradas" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     <span id="btnSincText">🔄 Sincronizar con Servidor</span>
-                </button>                <button id="generarReporte"
-                    class="registro-button-secondary pulse-hover">
+                </button>
+                <button id="generarReporte" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
                     📊 Generar Reporte CSV
                 </button>
-                <button id="autoRefresh"
-                    class="registro-button pulse-hover">
+                <button id="autoRefresh" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
                     ⚡ Auto-actualización: OFF
                 </button>
-            </div></div><!-- Tabla de entradas -->
-        <div class="registro-card card-hover fade-in-up">
-            <div class="header-enhanced p-4 border-b">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-xl font-bold text-white flex items-center">
-                            📋 Historial de Entradas
-                            <div id="tableLoadingIndicator" class="ml-3" style="display: none;">
-                                <div class="loading-spinner-enhanced"></div>
-                            </div>
-                        </h2>
-                        <p id="contadorEntradas" class="text-sm text-green-100">Total: 0 entradas</p>
-                    </div>                    <div class="flex items-center space-x-2">
-                        <button id="refreshTable"
-                            class="registro-button-secondary px-3 py-1 text-sm transform-scale-hover">
-                            🔄
-                        </button>
-                        <button id="exportVisible"
-                            class="registro-button-secondary px-3 py-1 text-sm transform-scale-hover">
-                            📥
-                        </button>
-                    </div>
+            </div>
+        </div>        <!-- Tabla de entradas -->
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-green-600 flex items-center">
+                        📋 Historial de Entradas
+                        <div id="tableLoadingIndicator" class="ml-3" style="display: none;">
+                            <div class="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    </h2>
+                    <p id="contadorEntradas" class="text-sm text-gray-600">Total: 0 entradas</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="refreshTable" class="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">
+                        🔄
+                    </button>
+                    <button id="exportVisible" class="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">
+                        📥
+                    </button>
                 </div>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="registro-table min-w-full divide-y divide-gray-200">
-                    <thead>
+                <table class="min-w-full divide-y divide-gray-200 border">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
                                 Código ↕️</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
                                 Nombre ↕️</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
                                 Marca ↕️</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
                                 Categoría ↕️</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
                                 Unidad ↕️</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
                                 Cantidad ↕️</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors table-header-sortable">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
                                 Fecha ↕️</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Comentarios</th>
@@ -327,20 +259,19 @@
                 </table>
             </div>
         </div>        <!-- Scanner container -->
-        <div id="scanner-container" class="scan-overlay-enhanced fixed inset-0 flex items-center justify-center z-50"
-            style="display: none;">
-            <div class="scan-modal-enhanced p-6 max-w-md w-full mx-4">
+        <div id="scanner-container" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-bold text-gray-800">Escáner de Código de Barras</h3>
                     <button id="cerrarEscaner" class="text-red-500 hover:text-red-700 text-xl font-bold">✕</button>
                 </div>
                 <div id="reader" class="w-full mb-4 rounded-lg overflow-hidden"></div>
-                <button id="detenerEscaner" class="registro-button-danger w-full">
+                <button id="detenerEscaner" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full">
                     🛑 Detener Escáner
                 </button>
             </div>
         </div>
-    </div>    <script src="../librerías/html5-qrcode.min.js"></script>
+    </div><script src="../librerías/html5-qrcode.min.js"></script>
     <script src="../js/extension-conflict-detector.js"></script>
     <script type="module" src="../js/main.js"></script>
     <script type="module" src="../js/registro-entradas-operations.js"></script>
@@ -449,9 +380,7 @@
             const autoRefreshBtn = document.getElementById('autoRefresh');
             if (autoRefreshBtn) {
                 autoRefreshBtn.addEventListener('click', () => {
-                    autoRefreshEnabled = !autoRefreshEnabled;
-
-                    if (autoRefreshEnabled) {
+                    autoRefreshEnabled = !autoRefreshEnabled;                    if (autoRefreshEnabled) {
                         autoRefreshBtn.textContent = '⚡ Auto-actualización: ON';
                         autoRefreshBtn.classList.remove('bg-indigo-500', 'hover:bg-indigo-600');
                         autoRefreshBtn.classList.add('bg-green-500', 'hover:bg-green-600');
@@ -462,9 +391,7 @@
                     } else {
                         autoRefreshBtn.textContent = '⚡ Auto-actualización: OFF';
                         autoRefreshBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-                        autoRefreshBtn.classList.add('bg-indigo-500', 'hover:bg-indigo-600');
-
-                        if (autoRefreshInterval) {
+                        autoRefreshBtn.classList.add('bg-indigo-500', 'hover:bg-indigo-600');                        if (autoRefreshInterval) {
                             clearInterval(autoRefreshInterval);
                         }
                     }

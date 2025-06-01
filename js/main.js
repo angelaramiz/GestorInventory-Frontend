@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', actualizarIndicadorConexion);
 let ws;
 
 function conectarWebSocket() {
-    ws = new WebSocket('wss://gestorinventory-backend-production.up.railway.app');
+    ws = new WebSocket('wss://gestorinventory-backend.fly.dev');
 
     ws.onopen = () => {
         console.log('Conexión WebSocket establecida');

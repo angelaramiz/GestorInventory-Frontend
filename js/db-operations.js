@@ -644,7 +644,7 @@ export async function sincronizarProductosDesdeBackend() {
             console.warn("No hay usuario o categoría disponible para sincronizar");
             return;
         }
-        const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/sincronizar', {
+        const response = await fetch('https://gestorinventory-backend.fly.dev/productos/sincronizar', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -726,7 +726,7 @@ export async function subirProductosAlBackend() {
         }
 
         // Enviar productos al backend
-        const response = await fetch("https://gestorinventory-backend-production.up.railway.app/productos/actualizar-usuario-productos", {
+        const response = await fetch("https://gestorinventory-backend.fly.dev/productos/actualizar-usuario-productos", {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",

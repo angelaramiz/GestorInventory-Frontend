@@ -15,7 +15,7 @@ async function inicializeSupabase() {
     if (!supabase) { // ✅ Evita crear más de una instancia
         try {
             // Intentar obtener la configuración del servidor
-            const response = await fetch('https://gestorinventory-backend-production.up.railway.app/api/supabase-config', {
+            const response = await fetch('https://gestorinventory-backend.fly.dev/api/supabase-config', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
                 // Reducir el tiempo de espera para una respuesta más rápida si hay problemas
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/registro', {
+            const response = await fetch('https://gestorinventory-backend.fly.dev/productos/registro', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nombre, email, password })
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function iniciarSesion(email, password) {
     try {
-        const response = await fetch('https://gestorinventory-backend-production.up.railway.app/productos/login', {
+        const response = await fetch('https://gestorinventory-backend.fly.dev/productos/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),

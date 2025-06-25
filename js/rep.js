@@ -518,10 +518,13 @@ function categorizarProductosPorCaducidad(productos) {
         
         if (fechaCaducidad < fechaActual) {
             categorias.vencidos.push(producto);
-        } else if (fechaCaducidad <= unaSemanaDesdeHoy) {
-            categorias.proximosSemana.push(producto);
         } else if (fechaCaducidad <= finDelMesActual) {
-            categorias.mismoMes.push(producto);
+            // Primero verificar si vence en el mismo mes
+            if (fechaCaducidad <= unaSemanaDesdeHoy) {
+                categorias.proximosSemana.push(producto);
+            } else {
+                categorias.mismoMes.push(producto);
+            }
         } else if (fechaCaducidad <= finDelSiguienteMes) {
             categorias.siguienteMes.push(producto);
         } else {

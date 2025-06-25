@@ -208,12 +208,12 @@ function mostrarOpcionesReporte() {
         html: `
             <div class="text-left">
                 <div class="mb-3">
-                    <label class="block mb-1">Ordenar por:</label>
-                    <select id="ordenReporte" class="w-full border rounded p-2">
-                        <option value="caducidad">Fecha de caducidad (primero las más próximas)</option>
-                        <option value="alfabetico">Orden alfabético por nombre</option>
-                        ${!todasSeleccionadas && areasSeleccionadas.length > 1 ? '<option value="area">Por área</option>' : ''}
-                    </select>
+                    <p class="text-sm text-gray-600 mb-2">
+                        📋 <strong>El reporte se organizará automáticamente por:</strong><br>
+                        • Áreas en orden alfabético<br>
+                        • Productos ordenados por fecha de caducidad (más próximas primero)<br>
+                        • Agrupados por estado de caducidad con colores distintivos
+                    </p>
                 </div>
                 <div class="mb-3">
                     <label class="block mb-1">Incluir en el reporte:</label>
@@ -237,7 +237,6 @@ function mostrarOpcionesReporte() {
         cancelButtonText: 'Cancelar',
         preConfirm: () => {
             return {
-                orden: document.getElementById('ordenReporte').value,
                 incluirCaducidad: document.getElementById('incluirCaducidad').checked,
                 incluirComentarios: document.getElementById('incluirComentarios').checked,
                 incluirCodigo: document.getElementById('incluirCodigo').checked,
@@ -404,8 +403,9 @@ async function generarReportePDF(opciones) {
             productos = fusionarProductosPorCodigo(productos);
         }
 
-        ordenarProductos(productos, opciones.orden);
-
+        // Agrupar productos por área y ordenar por fecha de caducidad
+        const productosPorArea = agruparProductosPorArea(productos);
+        
         if (opciones.incluirCodigo) {
             await generarCodigosDeBarras(productos);
         }
@@ -420,84 +420,40 @@ async function generarReportePDF(opciones) {
         const cardHeight = 45;
 
         let y = margin; // Posición Y actual en la página
-        let x = margin; // Posición X actual, se recalculará por columna
 
-        // Si se ordena por área, agrupar productos por área
-        if (opciones.orden === 'area') {
-            const productosPorArea = {};
-            productos.forEach(producto => {
-                if (!productosPorArea[producto.area_id]) {
-                    productosPorArea[producto.area_id] = [];
-                }
-                productosPorArea[producto.area_id].push(producto);
-            });
-
-            let primeraArea = true;
-            for (const areaId in productosPorArea) {
-                const area = todasLasAreas.find(a => a.id === areaId);
-                const areaNombre = area ? area.nombre : 'Área desconocida';
-
-                if (!primeraArea) {
-                    doc.addPage();
-                    y = margin; // Reiniciar Y para la nueva página
-                }
-                primeraArea = false;
-
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text(`Área: ${areaNombre}`, margin, y);
-                y += 10; // Espacio después del título del área
-
-                let currentX = margin; // X para la primera columna del área
-                let columnInArea = 0;
-
-                for (let i = 0; i < productosPorArea[areaId].length; i++) {
-                    const producto = productosPorArea[areaId][i];
-
-                    // Calcular X para la columna actual
-                    currentX = margin + columnInArea * (cardWidth + margin / 2);
-
-                    // Verificar si necesitamos una nueva página ANTES de agregar el producto
-                    if (y + cardHeight > pageHeight - margin) {
-                        doc.addPage();
-                        y = margin; // Reiniciar Y para la nueva página
-                        columnInArea = 0;
-                        currentX = margin + columnInArea * (cardWidth + margin / 2);
-                    }
-
-                    y = agregarProductoAlPDF(doc, producto, currentX, y, margin, cardWidth, cardHeight, pageHeight, opciones);
-
-                    columnInArea++;
-                    if (columnInArea === 2) { // Si se completó la segunda columna
-                        columnInArea = 0; // Reiniciar para la siguiente fila
-                        y = y + cardHeight + 5; // Mover y para la siguiente fila
-                    }
-                }
+        // Procesar cada área ordenada alfabéticamente
+        const areasOrdenadas = Object.keys(productosPorArea).sort((a, b) => {
+            const areaA = todasLasAreas.find(area => area.id === a)?.nombre || '';
+            const areaB = todasLasAreas.find(area => area.id === b)?.nombre || '';
+            return areaA.localeCompare(areaB);
+        });
+        
+        for (let areaIndex = 0; areaIndex < areasOrdenadas.length; areaIndex++) {
+            const areaId = areasOrdenadas[areaIndex];
+            const area = todasLasAreas.find(a => a.id === areaId);
+            const areaNombre = area ? area.nombre : 'Área desconocida';
+            
+            if (areaIndex > 0) {
+                doc.addPage();
+                y = margin;
             }
-        } else {
-            // Procesamiento normal (sin agrupar por área)
-            let currentColumn = 0;
-            for (let i = 0; i < productos.length; i++) {
-                const producto = productos[i];
-
-                // Calcular X para la columna actual
-                x = margin + currentColumn * (cardWidth + margin / 2);
-
-                // Verificar si necesitamos una nueva página ANTES de agregar el producto
-                if (y + cardHeight > pageHeight - margin) {
-                    doc.addPage();
-                    y = margin; // Reiniciar Y para la nueva página
-                    currentColumn = 0; // Reiniciar a la primera columna
-                    x = margin + currentColumn * (cardWidth + margin / 2);
-                }
-
-                y = agregarProductoAlPDF(doc, producto, x, y, margin, cardWidth, cardHeight, pageHeight, opciones);
-
-                currentColumn++;
-                if (currentColumn === 2) { // Si se completó la segunda columna
-                    currentColumn = 0; // Reiniciar para la siguiente fila
-                    y = y + cardHeight + 5; // Mover y para la siguiente fila
-                }
+            
+            // Título del área
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Productos de inventario de área: "${areaNombre}"`, margin, y);
+            y += 15;
+            
+            // Categorizar productos por estado de caducidad
+            const categorias = categorizarProductosPorCaducidad(productosPorArea[areaId]);
+            
+            // Procesar cada categoría
+            const ordenCategorias = ['vencidos', 'proximosSemana', 'mismoMes', 'siguienteMes', 'otros'];
+            
+            for (const categoria of ordenCategorias) {
+                if (categorias[categoria].length === 0) continue;
+                
+                y = procesarCategoriaEnPDF(doc, categorias[categoria], categoria, y, margin, cardWidth, cardHeight, pageHeight, opciones);
             }
         }
 
@@ -512,28 +468,208 @@ async function generarReportePDF(opciones) {
     }
 }
 
-// Función auxiliar para agregar un producto al PDF
-function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWidth, cardHeight, pageHeight, opciones) {
-    doc.setDrawColor(200, 200, 200);
+// Agrupar productos por área
+function agruparProductosPorArea(productos) {
+    const productosPorArea = {};
+    productos.forEach(producto => {
+        if (!productosPorArea[producto.area_id]) {
+            productosPorArea[producto.area_id] = [];
+        }
+        productosPorArea[producto.area_id].push(producto);
+    });
+    
+    // Ordenar productos dentro de cada área por fecha de caducidad (más cercanas primero)
+    Object.keys(productosPorArea).forEach(areaId => {
+        productosPorArea[areaId].sort((a, b) => {
+            if (!a.caducidad) return 1;
+            if (!b.caducidad) return -1;
+            return new Date(a.caducidad) - new Date(b.caducidad);
+        });
+    });
+    
+    return productosPorArea;
+}
+
+// Categorizar productos por estado de caducidad
+function categorizarProductosPorCaducidad(productos) {
+    const ahora = new Date();
+    const fechaActual = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+    const unaSemanaDesdeHoy = new Date(fechaActual);
+    unaSemanaDesdeHoy.setDate(fechaActual.getDate() + 7);
+    
+    const finDelMesActual = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
+    const finDelSiguienteMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 2, 0);
+    
+    const categorias = {
+        vencidos: [],
+        proximosSemana: [],
+        mismoMes: [],
+        siguienteMes: [],
+        otros: []
+    };
+    
+    productos.forEach(producto => {
+        if (!producto.caducidad) {
+            categorias.otros.push(producto);
+            return;
+        }
+        
+        const fechaCaducidad = new Date(producto.caducidad);
+        
+        if (fechaCaducidad < fechaActual) {
+            categorias.vencidos.push(producto);
+        } else if (fechaCaducidad <= unaSemanaDesdeHoy) {
+            categorias.proximosSemana.push(producto);
+        } else if (fechaCaducidad <= finDelMesActual) {
+            categorias.mismoMes.push(producto);
+        } else if (fechaCaducidad <= finDelSiguienteMes) {
+            categorias.siguienteMes.push(producto);
+        } else {
+            categorias.otros.push(producto);
+        }
+    });
+    
+    return categorias;
+}
+
+// Procesar una categoría de productos en el PDF
+function procesarCategoriaEnPDF(doc, productos, categoria, yInicial, margin, cardWidth, cardHeight, pageHeight, opciones) {
+    let y = yInicial;
+    
+    if (productos.length === 0) return y;
+    
+    // Verificar si hay espacio para el encabezado de la categoría
+    if (y + 20 > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+    }
+    
+    // Configurar estilo del encabezado según la categoría
+    const configCategoria = obtenerConfiguracionCategoria(categoria);
+    
+    // Dibujar rectángulo de encabezado
+    doc.setFillColor(configCategoria.fondo.r, configCategoria.fondo.g, configCategoria.fondo.b);
+    doc.setDrawColor(configCategoria.borde.r, configCategoria.borde.g, configCategoria.borde.b);
+    doc.setLineWidth(1);
+    doc.rect(margin, y, 190, 12, 'FD'); // F = fill, D = draw border
+    
+    // Título de la categoría
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(configCategoria.texto.r, configCategoria.texto.g, configCategoria.texto.b);
+    doc.text(configCategoria.titulo, margin + 2, y + 8);
+    
+    // Resetear color de texto a negro para los productos
+    doc.setTextColor(0, 0, 0);
+    
+    y += 15;
+    
+    // Agregar productos de la categoría
+    let currentColumn = 0;
+    for (let i = 0; i < productos.length; i++) {
+        const producto = productos[i];
+        
+        // Calcular X para la columna actual
+        const x = margin + currentColumn * (cardWidth + margin / 2);
+        
+        // Verificar si necesitamos una nueva página
+        if (y + cardHeight > pageHeight - margin) {
+            doc.addPage();
+            y = margin;
+            currentColumn = 0;
+        }
+        
+        // Agregar producto con estilo específico de la categoría
+        agregarProductoConEstiloCategoria(doc, producto, x, y, cardWidth, cardHeight, opciones, configCategoria);
+        
+        currentColumn++;
+        if (currentColumn === 2) {
+            currentColumn = 0;
+            y += cardHeight + 5;
+        }
+    }
+    
+    // Si terminamos en la primera columna, avanzar Y para la siguiente sección
+    if (currentColumn === 1) {
+        y += cardHeight + 5;
+    }
+    
+    return y + 10; // Espacio extra entre categorías
+}
+
+// Obtener configuración de estilo para cada categoría
+function obtenerConfiguracionCategoria(categoria) {
+    const configuraciones = {
+        vencidos: {
+            titulo: '🚨 PRODUCTOS VENCIDOS',
+            fondo: { r: 220, g: 53, b: 69 },     // Rojo oscuro
+            borde: { r: 139, g: 0, b: 0 },       // Rojo muy oscuro
+            texto: { r: 255, g: 255, b: 255 },   // Blanco
+            bordeTarjeta: { r: 220, g: 53, b: 69 }
+        },
+        proximosSemana: {
+            titulo: '⚠️ VENCEN EN MENOS DE UNA SEMANA',
+            fondo: { r: 255, g: 193, b: 7 },     // Amarillo
+            borde: { r: 212, g: 146, b: 0 },     // Amarillo oscuro
+            texto: { r: 0, g: 0, b: 0 },         // Negro
+            bordeTarjeta: { r: 255, g: 193, b: 7 }
+        },
+        mismoMes: {
+            titulo: '📅 VENCEN ESTE MES',
+            fondo: { r: 255, g: 152, b: 0 },     // Naranja
+            borde: { r: 198, g: 117, b: 0 },     // Naranja oscuro
+            texto: { r: 0, g: 0, b: 0 },         // Negro
+            bordeTarjeta: { r: 255, g: 152, b: 0 }
+        },
+        siguienteMes: {
+            titulo: '📋 VENCEN EL PRÓXIMO MES',
+            fondo: { r: 32, g: 201, b: 151 },    // Verde azulado
+            borde: { r: 22, g: 141, b: 106 },    // Verde azulado oscuro
+            texto: { r: 255, g: 255, b: 255 },   // Blanco
+            bordeTarjeta: { r: 32, g: 201, b: 151 }
+        },
+        otros: {
+            titulo: '📦 OTROS PRODUCTOS',
+            fondo: { r: 108, g: 117, b: 125 },   // Gris
+            borde: { r: 73, g: 80, b: 87 },      // Gris oscuro
+            texto: { r: 255, g: 255, b: 255 },   // Blanco
+            bordeTarjeta: { r: 108, g: 117, b: 125 }
+        }
+    };
+    
+    return configuraciones[categoria] || configuraciones.otros;
+}
+
+// Agregar producto con estilo específico de categoría
+function agregarProductoConEstiloCategoria(doc, producto, xCurrent, yCurrent, cardWidth, cardHeight, opciones, configCategoria) {
+    // Dibujar borde de la tarjeta con color de la categoría
+    doc.setDrawColor(configCategoria.bordeTarjeta.r, configCategoria.bordeTarjeta.g, configCategoria.bordeTarjeta.b);
+    doc.setLineWidth(0.8);
     doc.rect(xCurrent, yCurrent, cardWidth, cardHeight);
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0); // Negro para el texto del producto
+    
     const nombreProducto = producto.nombre || 'Sin nombre';
     const fechaCaducidad = producto.caducidad
         ? new Date(producto.caducidad).toLocaleDateString('es-ES')
         : 'Sin caducidad';
 
-    // Primero, mostrar solo el nombre del producto
+    // Mostrar el nombre del producto
     const anchoDiponibleTitulo = opciones.incluirCodigo ? cardWidth - 40 : cardWidth - 6;
     const nombreLines = doc.splitTextToSize(nombreProducto, anchoDiponibleTitulo);
     doc.text(nombreLines, xCurrent + 3, yCurrent + 6);
     let textY = yCurrent + 6 + (nombreLines.length * 4);
 
-    // Luego, si es necesario, mostrar la fecha de caducidad en una línea separada
+    // Mostrar fecha de caducidad con color según la categoría
     if (opciones.incluirCaducidad) {
         doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(configCategoria.bordeTarjeta.r, configCategoria.bordeTarjeta.g, configCategoria.bordeTarjeta.b);
         doc.text(`Cad: ${fechaCaducidad}`, xCurrent + 3, textY);
+        doc.setTextColor(0, 0, 0); // Volver a negro
+        doc.setFont('helvetica', 'normal');
         textY += 4;
     }
 
@@ -551,13 +687,19 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
         }
     }
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-
     const cantidadTexto = `Cant: ${producto.cantidad || '0'} ${producto.unidad || 'uds.'}`;
     if (textY + 4 <= yCurrent + cardHeight - 3) {
         doc.text(cantidadTexto, xCurrent + 3, textY);
         textY += 4;
+    }
+
+    // Agregar marca del producto
+    if (producto.marca) {
+        const marcaTexto = `Marca: ${producto.marca}`;
+        if (textY + 4 <= yCurrent + cardHeight - 3) {
+            doc.text(marcaTexto, xCurrent + 3, textY);
+            textY += 4;
+        }
     }
 
     if (opciones.incluirArea) {
@@ -575,9 +717,7 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
         doc.setFontSize(7);
         const lineHeightComentarios = 2.8;
 
-        // Verificar si el producto tiene lotes fusionados
         if (producto.lotesFusionados && producto.lotesFusionados.length > 1) {
-            // Crear detalle de lotes
             let lotesTexto = ['Lotes:'];
 
             producto.lotesFusionados.forEach(lote => {
@@ -601,9 +741,8 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
 
             const commentLines = doc.splitTextToSize(lotesTexto.join('\n'), cardWidth - 6);
 
-            // Asegurar que los lotes se muestren después del código de barras y no se solapen
             if (opciones.incluirCodigo && producto.codigo) {
-                textY = Math.max(textY, yCurrent + 22); // 5 (posición Y del código) + 15 (altura del código) + 2 (espacio adicional)
+                textY = Math.max(textY, yCurrent + 22);
             }
 
             const espacioVerticalParaComentarios = yCurrent + cardHeight - textY - 3;
@@ -612,14 +751,11 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
             if (maxCommentLines > 0) {
                 doc.text(commentLines.slice(0, maxCommentLines), xCurrent + 3, textY);
             }
-        }
-        // Si no hay múltiples lotes o comentariosFusionados, mostrar solo los comentarios si los hay
-        else if (producto.comentarios && producto.comentarios !== 'N/A') {
+        } else if (producto.comentarios && producto.comentarios !== 'N/A') {
             const commentLines = doc.splitTextToSize(producto.comentarios, cardWidth - 6);
 
-            // Asegurar que los comentarios se muestren después del código de barras y no se solapen
             if (opciones.incluirCodigo && producto.codigo) {
-                textY = Math.max(textY, yCurrent + 22); // 5 (posición Y del código) + 15 (altura del código) + 2 (espacio adicional)
+                textY = Math.max(textY, yCurrent + 22);
             }
 
             const espacioVerticalParaComentarios = yCurrent + cardHeight - textY - 3;
@@ -631,37 +767,6 @@ function agregarProductoAlPDF(doc, producto, xCurrent, yCurrent, margin, cardWid
         }
 
         doc.setFontSize(originalFontSize);
-    }
-
-    // Si estamos en la primera columna, devolver la misma Y
-    // Si estamos en la segunda columna, avanzar Y para la siguiente fila
-    return yCurrent;
-}
-
-// Ordenar productos según el criterio seleccionado
-function ordenarProductos(productos, criterio) {
-    switch (criterio) {
-        case 'caducidad':
-            productos.sort((a, b) => {
-                if (!a.caducidad) return 1;
-                if (!b.caducidad) return -1;
-                return new Date(a.caducidad) - new Date(b.caducidad);
-            });
-            break;
-        case 'alfabetico':
-            productos.sort((a, b) => {
-                const nombreA = (a.nombre || '').toLowerCase();
-                const nombreB = (b.nombre || '').toLowerCase();
-                return nombreA.localeCompare(nombreB);
-            });
-            break;
-        case 'area':
-            productos.sort((a, b) => {
-                const areaA = todasLasAreas.find(area => area.id === a.area_id)?.nombre || '';
-                const areaB = todasLasAreas.find(area => area.id === b.area_id)?.nombre || '';
-                return areaA.localeCompare(areaB);
-            });
-            break;
     }
 }
 
@@ -677,19 +782,22 @@ async function generarCodigosDeBarras(productos) {
     for (const producto of productos) {
         if (!producto.codigo) continue;
 
-        const canvas = document.createElement('canvas'); let formato = 'CODE128'; // Formato por defecto - Definido fuera del try para evitar errores de referencia
+        const canvas = document.createElement('canvas');
+        let formato = 'CODE128'; // Formato por defecto
+        
         try {
+            // Determinar formato basado en la longitud del código
             if (/^\d{13}$/.test(producto.codigo)) formato = 'EAN13';
             else if (/^\d{12}$/.test(producto.codigo)) formato = 'UPC';
 
             JsBarcode(canvas, producto.codigo, {
                 format: formato,
                 width: 1.5,
-                height: 60, // Aumentado de 50 a 60
+                height: 60,
                 displayValue: true,
                 fontSize: 12,
                 textMargin: 2.5,
-                margin: 2      // Reducido de 5 a 2
+                margin: 2
             });
             producto.barcodeCanvas = canvas;
         } catch (error) {
@@ -699,11 +807,11 @@ async function generarCodigosDeBarras(productos) {
                     JsBarcode(canvas, producto.codigo, {
                         format: 'CODE128',
                         width: 1.5,
-                        height: 60, // Aumentado de 50 a 60
+                        height: 60,
                         displayValue: true,
                         fontSize: 12,
                         textMargin: 2.5,
-                        margin: 2 // Reducido de 5 a 2
+                        margin: 2
                     });
                     producto.barcodeCanvas = canvas;
                     console.log(`Código de barras para ${producto.codigo} generado con CODE128 como fallback.`);

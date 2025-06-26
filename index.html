@@ -6,7 +6,7 @@
     <title>Iniciar Sesión - Sistema de Gestión de Productos</title>
     <link rel="stylesheet" href="./librerías/tailwind.min.css">
     <script src="./librerías/sweetalert2@11.js"></script>
-    <link rel="manifest" href="/GestorInventory-Frontend/manifest.json">
+    <link rel="manifest" href="./manifest.json">
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto mt-8 p-4">
@@ -49,14 +49,32 @@
 
     <script type="module" src="./js/auth.js"></script>
     <script>
+        // Registrar Service Worker de manera más robusta
         if ('serviceWorker' in navigator) {
-            // Detectar si estamos en localhost o en GitHub Pages
-            const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-            const swPath = isLocalhost ? '/service-worker.js' : '/GestorInventory-Frontend/service-worker.js';
+            window.addEventListener('load', async () => {
+                try {
+                    // Detectar si estamos en localhost o en GitHub Pages
+                    const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                    const swPath = isLocalhost ? './service-worker.js' : '/GestorInventory-Frontend/service-worker.js';
 
-            navigator.serviceWorker.register(swPath)
-                .then(() => console.log('Service Worker registrado en:', swPath))
-                .catch(err => console.error('Error registrando Service Worker:', err));
+                    const registration = await navigator.serviceWorker.register(swPath, {
+                        scope: isLocalhost ? './' : '/GestorInventory-Frontend/'
+                    });
+
+                    console.log('✅ Service Worker registrado exitosamente');
+                    console.log('📂 Scope:', registration.scope);
+
+                    // Manejar actualizaciones del service worker
+                    registration.addEventListener('updatefound', () => {
+                        console.log('🔄 Nueva versión del Service Worker disponible');
+                    });
+
+                } catch (error) {
+                    console.error('❌ Error registrando Service Worker:', error);
+                }
+            });
+        } else {
+            console.warn('⚠️ Service Workers no son compatibles con este navegador');
         }
     </script>
 </body>

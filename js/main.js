@@ -21,7 +21,8 @@ function inicializarMenu() {
         { name: 'Registro de Entradas', path: './registro-entradas.html', id: 'registro-entradas' },
         { name: 'Reporte para Inventario', path: './report.html', id: 'reporte' },
         { name: 'Agregar Productos', path: './agregar.html', id: 'agregar' },
-        { name: 'Administración de Archivos', path: './archivos.html', id: 'archivos' }
+        { name: 'Administración de Archivos', path: './archivos.html', id: 'archivos' },
+        { name: 'Configuraciones', path: './configuraciones.html', id: 'configuraciones' }
     ];
 
     // Obtener el rol del usuario

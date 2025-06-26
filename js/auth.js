@@ -3,6 +3,7 @@ import { mostrarAlertaBurbuja } from './logs.js'; // Importar la nueva función
 import { resetearBaseDeDatos, db } from './db-operations.js';
 
 let supabase = null;
+let supabaseInitializing = false; // Flag para evitar inicializaciones múltiples
 
 // Configuración de respaldo para cuando no se pueda conectar al servidor
 const SUPABASE_CONFIG_BACKUP = {
@@ -12,36 +13,80 @@ const SUPABASE_CONFIG_BACKUP = {
 
 // Función para inicializar Supabase
 async function inicializeSupabase() {
-    if (!supabase) { // ✅ Evita crear más de una instancia
-        try {
-            // Intentar obtener la configuración del servidor
-            const response = await fetch('https://gestorinventory-backend.fly.dev/api/supabase-config', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-                // Reducir el tiempo de espera para una respuesta más rápida si hay problemas
-                signal: AbortSignal.timeout(5000) // 5 segundos de timeout
-            });
-            
-            if (!response.ok) throw new Error('No se pudo obtener la configuración de Supabase');
-            
-            const config = await response.json();
-            supabase = createClient(config.supabaseUrl, config.supabaseKey);
-            console.log('Supabase inicializado correctamente con configuración del servidor');
-        } catch (error) {
-            console.error('Error al obtener configuración del servidor:', error);
-            mostrarAlertaBurbuja('Usando configuración local de respaldo para Supabase', 'warning');
-            
-            // Usar configuración de respaldo
-            try {
-                supabase = createClient(SUPABASE_CONFIG_BACKUP.supabaseUrl, SUPABASE_CONFIG_BACKUP.supabaseKey);
-                console.log('Supabase inicializado con configuración de respaldo');
-            } catch (backupError) {
-                console.error('Error al inicializar Supabase con configuración de respaldo:', backupError);
-                mostrarAlertaBurbuja('Error crítico al inicializar Supabase', 'error');
-                throw new Error('No se pudo inicializar Supabase');
-            }
-        }
+    // Si ya está inicializado o en proceso de inicialización, devolver la instancia existente
+    if (supabase) {
+        return supabase;
     }
+    
+    if (supabaseInitializing) {
+        // Esperar a que termine la inicialización en curso
+        while (supabaseInitializing && !supabase) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return supabase;
+    }
+    
+    supabaseInitializing = true;
+    
+    try {
+        // Intentar obtener la configuración del servidor
+        const response = await fetch('https://gestorinventory-backend.fly.dev/api/supabase-config', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            // Reducir el tiempo de espera para una respuesta más rápida si hay problemas
+            signal: AbortSignal.timeout(5000) // 5 segundos de timeout
+        });
+        
+        if (!response.ok) throw new Error('No se pudo obtener la configuración de Supabase');
+        
+        const config = await response.json();
+        
+        // Evitar múltiples instancias usando la misma key de almacenamiento
+        supabase = createClient(config.supabaseUrl, config.supabaseKey, {
+            auth: {
+                storageKey: 'gestor-inventory-auth-session',
+                autoRefreshToken: true,
+                persistSession: true,
+                detectSessionInUrl: false,
+                flowType: 'pkce'
+            },
+            global: {
+                headers: {
+                    'X-Client-Info': 'gestor-inventory@1.0.0'
+                }
+            }
+        });
+        console.log('✅ Supabase inicializado correctamente con configuración del servidor');
+    } catch (error) {
+        console.error('❌ Error al obtener configuración del servidor:', error);
+        mostrarAlertaBurbuja('Usando configuración local de respaldo para Supabase', 'warning');
+        
+        // Usar configuración de respaldo
+        try {
+            supabase = createClient(SUPABASE_CONFIG_BACKUP.supabaseUrl, SUPABASE_CONFIG_BACKUP.supabaseKey, {
+                auth: {
+                    storageKey: 'gestor-inventory-auth-session',
+                    autoRefreshToken: true,
+                    persistSession: true,
+                    detectSessionInUrl: false,
+                    flowType: 'pkce'
+                },
+                global: {
+                    headers: {
+                        'X-Client-Info': 'gestor-inventory-backup@1.0.0'
+                    }
+                }
+            });
+            console.log('✅ Supabase inicializado con configuración de respaldo');
+        } catch (backupError) {
+            console.error('❌ Error al inicializar Supabase con configuración de respaldo:', backupError);
+            mostrarAlertaBurbuja('Error crítico al inicializar Supabase', 'error');
+            throw new Error('No se pudo inicializar Supabase');
+        }
+    } finally {
+        supabaseInitializing = false;
+    }
+    
     return supabase;
 }
 
@@ -201,13 +246,19 @@ export function isTokenExpired(token) {
 
 // Función para mostrar mensaje cuando el token está expirado (sin modal de login)
 export function mostrarDialogoSesionExpirada() {
-    // Mostrar solo una notificación sin forzar inicio de sesión
+    // Mostrar notificación con opción de ir al login
     Swal.fire({
         title: 'Sesión expirada',
-        text: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente cuando lo necesites.',
+        text: 'Tu sesión ha expirado. ¿Quieres ir a la página de inicio de sesión?',
         icon: 'warning',
-        confirmButtonText: 'Entendido',
+        showCancelButton: true,
+        confirmButtonText: 'Ir al Login',
+        cancelButtonText: 'Seguir sin sesión',
         allowOutsideClick: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = getLoginRedirectPath();
+        }
     });
     
     // Limpiar el token expirado
@@ -226,7 +277,10 @@ export function verificarTokenAutomaticamente() {
         currentPath.endsWith('index.html') || 
         currentPath === '/' || 
         currentPath.endsWith('/') || 
-        currentPath.endsWith('register.html');
+        currentPath.endsWith('register.html') ||
+        currentPath.endsWith('confirm-email.html') ||
+        currentPath.endsWith('request-password-reset.html') ||
+        currentPath.endsWith('reset-password.html');
     
     // Si estamos en la página de login o registro, no verificamos token
     if (isLoginPage) {
@@ -239,14 +293,10 @@ export function verificarTokenAutomaticamente() {
     if (!token) {
         // Si no hay token y no estamos en la página de login
         console.log("No hay token de autenticación. Redirigiendo al login...");
+        debugRutas(); // Debug info
         mostrarAlertaBurbuja('Sesión no iniciada. Por favor, inicia sesión.', 'warning');
         setTimeout(() => {
-            // Detectar si estamos en localhost o en producción
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            window.location.href = './index.html';
-            } else {
-            window.location.href = '/GestorInventory-Frontend/index.html';
-            }
+            window.location.href = getLoginRedirectPath();
         }, 1500);
         return false;
     }
@@ -257,6 +307,35 @@ export function verificarTokenAutomaticamente() {
     }
     
     return true;
+}
+
+// Función auxiliar para obtener la ruta correcta al index.html
+function getLoginRedirectPath() {
+    const currentPath = window.location.pathname;
+    const hostname = window.location.hostname;
+    
+    // En desarrollo (localhost)
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        // Si estamos en una subcarpeta (como plantillas), ir hacia atrás
+        if (currentPath.includes('/plantillas/')) {
+            return '../index.html';
+        }
+        // Si estamos en la raíz o en otra ubicación
+        return './index.html';
+    }
+    
+    // En producción
+    return '/GestorInventory-Frontend/index.html';
+}
+
+// Función de debug para verificar rutas
+function debugRutas() {
+    console.log('=== DEBUG DE RUTAS ===');
+    console.log('window.location.pathname:', window.location.pathname);
+    console.log('window.location.hostname:', window.location.hostname);
+    console.log('window.location.href:', window.location.href);
+    console.log('Ruta de redirección calculada:', getLoginRedirectPath());
+    console.log('==================');
 }
 
 // Configurar interceptor para verificar el token antes de cada petición a Supabase
@@ -306,3 +385,44 @@ export function getToken() {
         return null;
     }
 }
+
+// Función para configurar rutas dinámicamente según el entorno
+function configurarRutasManifest() {
+    // Ejecutar inmediatamente o esperar a que el DOM esté listo
+    const configureManifest = () => {
+        const manifestLink = document.querySelector('link[rel="manifest"]');
+        if (manifestLink) {
+            const hostname = window.location.hostname;
+            const currentPath = window.location.pathname;
+            
+            // En desarrollo (localhost)
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                // Si estamos en una subcarpeta, ajustar la ruta
+                if (currentPath.includes('/plantillas/')) {
+                    manifestLink.href = '../manifest.json';
+                } else {
+                    manifestLink.href = './manifest.json';
+                }
+            } else {
+                // En producción
+                manifestLink.href = '/GestorInventory-Frontend/manifest.json';
+            }
+            
+            console.log('Manifest configurado para:', manifestLink.href);
+        } else {
+            console.warn('No se encontró el elemento link[rel="manifest"]');
+        }
+    };
+
+    // Si el DOM ya está listo, ejecutar inmediatamente
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', configureManifest);
+    } else {
+        configureManifest();
+    }
+}
+
+// Ejecutar inmediatamente al cargar el script
+configurarRutasManifest();
+
+// ...existing code...

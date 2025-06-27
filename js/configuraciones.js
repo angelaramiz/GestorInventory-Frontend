@@ -454,7 +454,7 @@ class ConfiguracionesManager {
     togglePasswordVisibility(inputId) {
         const input = document.getElementById(inputId);
         const button = document.getElementById(inputId === 'googleDriveApiKey' ? 'toggleDriveKey' : 'toggleSheetsKey');
-        
+
         if (input && button) {
             if (input.type === 'password') {
                 input.type = 'text';
@@ -498,11 +498,11 @@ class ConfiguracionesManager {
 
             // En una implementación real, aquí harías peticiones a las APIs de Google
             let resultados = [];
-            
+
             if (driveApiKey) {
                 resultados.push('✅ Google Drive API: Conexión exitosa');
             }
-            
+
             if (sheetsApiKey) {
                 resultados.push('✅ Google Sheets API: Conexión exitosa');
             }
@@ -532,7 +532,7 @@ class ConfiguracionesManager {
             console.error('Error al probar conexión:', error);
             this.config.google.connectionStatus = 'error';
             this.guardarConfiguracion();
-            
+
             mostrarAlertaBurbuja(`Error en la conexión: ${error.message}`, 'error');
         } finally {
             btn.textContent = textoOriginal;
@@ -603,10 +603,10 @@ class ConfiguracionesManager {
     // Aplicar tema
     aplicarTema(tema) {
         const body = document.body;
-        
+
         // Remover clases de tema existentes
         body.classList.remove('theme-light', 'theme-dark', 'theme-auto');
-        
+
         switch (tema) {
             case 'dark':
                 body.classList.add('theme-dark');
@@ -625,7 +625,7 @@ class ConfiguracionesManager {
     cambiarIdioma(nuevoIdioma) {
         this.config.language = nuevoIdioma;
         this.guardarConfiguracion();
-        
+
         // Mostrar mensaje sobre recarga
         Swal.fire({
             title: 'Idioma actualizado',
@@ -645,7 +645,7 @@ class ConfiguracionesManager {
     configurarSincronizacionAutomatica(habilitada) {
         this.config.autoSync = habilitada;
         this.guardarConfiguracion();
-        
+
         if (habilitada) {
             this.iniciarSincronizacionAutomatica();
             mostrarAlertaBurbuja('Sincronización automática habilitada', 'success');
@@ -660,7 +660,7 @@ class ConfiguracionesManager {
         if (nuevoIntervalo >= 1 && nuevoIntervalo <= 60) {
             this.config.syncInterval = nuevoIntervalo;
             this.guardarConfiguracion();
-            
+
             // Reiniciar sincronización si está habilitada
             if (this.config.autoSync) {
                 this.iniciarSincronizacionAutomatica();
@@ -671,7 +671,7 @@ class ConfiguracionesManager {
     // Iniciar sincronización automática
     iniciarSincronizacionAutomatica() {
         this.detenerSincronizacionAutomatica(); // Limpiar cualquier intervalo existente
-        
+
         if (this.config.autoSync) {
             this.syncInterval = setInterval(() => {
                 this.sincronizarDatos();
@@ -790,9 +790,9 @@ class ConfiguracionesManager {
 
             const dataStr = JSON.stringify(configToExport, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-            
+
             const exportFileName = `gestor-inventario-config-${new Date().toISOString().split('T')[0]}.json`;
-            
+
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileName);
@@ -822,7 +822,7 @@ class ConfiguracionesManager {
         reader.onload = (e) => {
             try {
                 const importedConfig = JSON.parse(e.target.result);
-                
+
                 // Validar estructura básica
                 if (!importedConfig || typeof importedConfig !== 'object') {
                     throw new Error('Estructura de configuración inválida');
@@ -851,7 +851,7 @@ class ConfiguracionesManager {
                         // Combinar configuración importada con la actual, manteniendo estructura
                         this.config = { ...DEFAULT_CONFIG, ...importedConfig };
                         delete this.config.metadata; // Remover metadata de importación
-                        
+
                         this.guardarConfiguracion();
                         this.cargarConfiguracionesEnInterfaz();
                         mostrarAlertaBurbuja('Configuración importada correctamente', 'success');
@@ -863,7 +863,7 @@ class ConfiguracionesManager {
                 mostrarAlertaBurbuja('Error: El archivo no es una configuración válida', 'error');
             }
         };
-        
+
         reader.readAsText(file);
         event.target.value = ''; // Limpiar input
     }
@@ -891,10 +891,10 @@ class ConfiguracionesManager {
         };
 
         updateStatus();
-        
+
         // Actualizar cada 10 segundos
         setInterval(updateStatus, 10000);
-        
+
         // Escuchar eventos de conexión
         window.addEventListener('online', updateStatus);
         window.addEventListener('offline', updateStatus);
@@ -912,7 +912,7 @@ class ConfiguracionesManager {
         } else {
             lastSyncElement.textContent = 'Nunca';
         }
-        
+
         // Guardar timestamp actual
         localStorage.setItem('gestorInventory_lastSync', new Date().toISOString());
     }
@@ -930,7 +930,7 @@ class ConfiguracionesManager {
         if (this.config.notifications.browser) {
             this.configurarNotificacionesBrowser(true);
         }
-        
+
         // Iniciar verificación de stock bajo si está habilitado
         if (this.config.notifications.lowStock) {
             this.iniciarVerificacionStockBajo();

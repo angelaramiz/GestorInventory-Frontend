@@ -11,23 +11,23 @@ class ExtensionConflictDetector {
 
     init() {
         if (this.initialized) return;
-        
+
         console.log('🔍 Iniciando detector de conflictos de extensiones...');
-        
+
         // Detectar modificaciones DOM
         this.observeDOM();
-        
+
         // Detectar errores de selectores
         this.detectSelectorErrors();
-        
+
         // Detectar elementos ocultos inesperadamente
         this.detectHiddenElements();
-        
+
         // Verificar disponibilidad de APIs
         this.checkAPIs();
-        
+
         this.initialized = true;
-        
+
         // Reportar después de 3 segundos
         setTimeout(() => this.generateReport(), 3000);
     }
@@ -50,7 +50,7 @@ class ExtensionConflictDetector {
                                 timestamp: Date.now()
                             });
                         }
-                        
+
                         // Detectar elementos con estilos forzados
                         if (node.style && (
                             node.style.display === 'none !important' ||
@@ -81,7 +81,7 @@ class ExtensionConflictDetector {
         const originalError = console.error;
         console.error = (...args) => {
             const message = args.join(' ');
-            if (message.includes('Failed to parse selector') || 
+            if (message.includes('Failed to parse selector') ||
                 message.includes(':has-text') ||
                 message.includes('invalid pseudo-class')) {
                 this.conflicts.push({
@@ -109,7 +109,7 @@ class ExtensionConflictDetector {
                 const elements = document.querySelectorAll(selector);
                 elements.forEach(element => {
                     const computed = window.getComputedStyle(element);
-                    if (computed.display === 'none' && 
+                    if (computed.display === 'none' &&
                         !element.hasAttribute('data-hidden-intentionally')) {
                         this.conflicts.push({
                             type: 'unexpected_hidden',
@@ -145,20 +145,20 @@ class ExtensionConflictDetector {
         }
 
         console.group('⚠️ Reporte de Conflictos de Extensiones');
-        
+
         this.conflicts.forEach((conflict, index) => {
             console.log(`${index + 1}. ${conflict.type.toUpperCase()}:`);
             console.log('   Detalles:', conflict);
-            
-            if (conflict.type === 'selector_error' && 
+
+            if (conflict.type === 'selector_error' &&
                 conflict.message.includes(':has-text')) {
                 console.log('   💡 Solución: Este error proviene de uBlock Origin o similar.');
                 console.log('   💡 No afecta tu aplicación. Puedes ignorarlo o deshabilitar la extensión.');
             }
         });
-        
+
         console.groupEnd();
-        
+
         // Agregar clase al body para activar indicadores visuales
         if (this.conflicts.some(c => c.type === 'selector_error')) {
             document.body.classList.add('has-extension-errors');
@@ -176,19 +176,19 @@ class ExtensionConflictDetector {
 
     getRecommendations() {
         const recommendations = [];
-        
+
         if (this.conflicts.some(c => c.message && c.message.includes(':has-text'))) {
             recommendations.push('Considera deshabilitar uBlock Origin en localhost para desarrollo');
         }
-        
+
         if (this.conflicts.some(c => c.type === 'forced_style')) {
             recommendations.push('Algunos elementos están siendo ocultados por extensiones');
         }
-        
+
         if (this.conflicts.some(c => c.type === 'missing_api')) {
             recommendations.push('Algunas APIs del navegador pueden estar bloqueadas');
         }
-        
+
         return recommendations;
     }
 }
@@ -198,7 +198,7 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         const detector = new ExtensionConflictDetector();
         detector.init();
-        
+
         // Hacer disponible globalmente para debugging
         window.extensionDetector = detector;
     });

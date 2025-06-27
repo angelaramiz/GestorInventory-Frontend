@@ -405,7 +405,7 @@ async function generarReportePDF(opciones) {
 
         // Agrupar productos por área y ordenar por fecha de caducidad
         const productosPorArea = agruparProductosPorArea(productos);
-        
+
         if (opciones.incluirCodigo) {
             await generarCodigosDeBarras(productos);
         }
@@ -427,32 +427,32 @@ async function generarReportePDF(opciones) {
             const areaB = todasLasAreas.find(area => area.id === b)?.nombre || '';
             return areaA.localeCompare(areaB);
         });
-        
+
         for (let areaIndex = 0; areaIndex < areasOrdenadas.length; areaIndex++) {
             const areaId = areasOrdenadas[areaIndex];
             const area = todasLasAreas.find(a => a.id === areaId);
             const areaNombre = area ? area.nombre : 'Área desconocida';
-            
+
             if (areaIndex > 0) {
                 doc.addPage();
                 y = margin;
             }
-            
+
             // Título del área
             doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
             doc.text(`Productos de inventario de área: "${areaNombre}"`, margin, y);
             y += 15;
-            
+
             // Categorizar productos por estado de caducidad
             const categorias = categorizarProductosPorCaducidad(productosPorArea[areaId]);
-            
+
             // Procesar cada categoría
             const ordenCategorias = ['vencidos', 'proximosSemana', 'mismoMes', 'siguienteMes', 'otros'];
-            
+
             for (const categoria of ordenCategorias) {
                 if (categorias[categoria].length === 0) continue;
-                
+
                 y = procesarCategoriaEnPDF(doc, categorias[categoria], categoria, y, margin, cardWidth, cardHeight, pageHeight, opciones);
             }
         }
@@ -477,7 +477,7 @@ function agruparProductosPorArea(productos) {
         }
         productosPorArea[producto.area_id].push(producto);
     });
-    
+
     // Ordenar productos dentro de cada área por fecha de caducidad (más cercanas primero)
     Object.keys(productosPorArea).forEach(areaId => {
         productosPorArea[areaId].sort((a, b) => {
@@ -486,7 +486,7 @@ function agruparProductosPorArea(productos) {
             return new Date(a.caducidad) - new Date(b.caducidad);
         });
     });
-    
+
     return productosPorArea;
 }
 
@@ -496,10 +496,10 @@ function categorizarProductosPorCaducidad(productos) {
     const fechaActual = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
     const unaSemanaDesdeHoy = new Date(fechaActual);
     unaSemanaDesdeHoy.setDate(fechaActual.getDate() + 7);
-    
+
     const finDelMesActual = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
     const finDelSiguienteMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 2, 0);
-    
+
     const categorias = {
         vencidos: [],
         proximosSemana: [],
@@ -507,15 +507,15 @@ function categorizarProductosPorCaducidad(productos) {
         siguienteMes: [],
         otros: []
     };
-    
+
     productos.forEach(producto => {
         if (!producto.caducidad) {
             categorias.otros.push(producto);
             return;
         }
-        
+
         const fechaCaducidad = new Date(producto.caducidad);
-        
+
         if (fechaCaducidad < fechaActual) {
             categorias.vencidos.push(producto);
         } else if (fechaCaducidad <= finDelMesActual) {
@@ -531,72 +531,72 @@ function categorizarProductosPorCaducidad(productos) {
             categorias.otros.push(producto);
         }
     });
-    
+
     return categorias;
 }
 
 // Procesar una categoría de productos en el PDF
 function procesarCategoriaEnPDF(doc, productos, categoria, yInicial, margin, cardWidth, cardHeight, pageHeight, opciones) {
     let y = yInicial;
-    
+
     if (productos.length === 0) return y;
-    
+
     // Verificar si hay espacio para el encabezado de la categoría
     if (y + 20 > pageHeight - margin) {
         doc.addPage();
         y = margin;
     }
-    
+
     // Configurar estilo del encabezado según la categoría
     const configCategoria = obtenerConfiguracionCategoria(categoria);
-    
+
     // Dibujar rectángulo de encabezado
     doc.setFillColor(configCategoria.fondo.r, configCategoria.fondo.g, configCategoria.fondo.b);
     doc.setDrawColor(configCategoria.borde.r, configCategoria.borde.g, configCategoria.borde.b);
     doc.setLineWidth(1);
     doc.rect(margin, y, 190, 12, 'FD'); // F = fill, D = draw border
-    
+
     // Título de la categoría
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(configCategoria.texto.r, configCategoria.texto.g, configCategoria.texto.b);
     doc.text(configCategoria.titulo, margin + 2, y + 8);
-    
+
     // Resetear color de texto a negro para los productos
     doc.setTextColor(0, 0, 0);
-    
+
     y += 15;
-    
+
     // Agregar productos de la categoría
     let currentColumn = 0;
     for (let i = 0; i < productos.length; i++) {
         const producto = productos[i];
-        
+
         // Calcular X para la columna actual
         const x = margin + currentColumn * (cardWidth + margin / 2);
-        
+
         // Verificar si necesitamos una nueva página
         if (y + cardHeight > pageHeight - margin) {
             doc.addPage();
             y = margin;
             currentColumn = 0;
         }
-        
+
         // Agregar producto con estilo específico de la categoría
         agregarProductoConEstiloCategoria(doc, producto, x, y, cardWidth, cardHeight, opciones, configCategoria);
-        
+
         currentColumn++;
         if (currentColumn === 2) {
             currentColumn = 0;
             y += cardHeight + 5;
         }
     }
-    
+
     // Si terminamos en la primera columna, avanzar Y para la siguiente sección
     if (currentColumn === 1) {
         y += cardHeight + 5;
     }
-    
+
     return y + 10; // Espacio extra entre categorías
 }
 
@@ -639,7 +639,7 @@ function obtenerConfiguracionCategoria(categoria) {
             bordeTarjeta: { r: 108, g: 117, b: 125 }
         }
     };
-    
+
     return configuraciones[categoria] || configuraciones.otros;
 }
 
@@ -653,7 +653,7 @@ function agregarProductoConEstiloCategoria(doc, producto, xCurrent, yCurrent, ca
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(0, 0, 0); // Negro para el texto del producto
-    
+
     const nombreProducto = producto.nombre || 'Sin nombre';
     const fechaCaducidad = producto.caducidad
         ? new Date(producto.caducidad).toLocaleDateString('es-ES')
@@ -787,7 +787,7 @@ async function generarCodigosDeBarras(productos) {
 
         const canvas = document.createElement('canvas');
         let formato = 'CODE128'; // Formato por defecto
-        
+
         try {
             // Determinar formato basado en la longitud del código
             if (/^\d{13}$/.test(producto.codigo)) formato = 'EAN13';

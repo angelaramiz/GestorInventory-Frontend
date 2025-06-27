@@ -37,12 +37,12 @@ export function mostrarResultados(resultados) {
                     <p><strong>Categoría:</strong> ${producto.categoria}</p>
                     <p><strong>Marca:</strong> ${producto.marca}</p>
                 `;
-                
+
                 // Agregar evento de clic para mostrar detalles completos con código de barras
                 productoDiv.addEventListener('click', () => {
                     mostrarDetallesProductoConBarcode(producto);
                 });
-                
+
                 resultadoDiv.appendChild(productoDiv);
             } else {
                 mostrarMensaje("Error al buscar en la base de datos", "error");
@@ -82,12 +82,12 @@ export function mostrarResultadosInventario(resultados) {
     resultados.forEach(producto => {
         const productoDiv = document.createElement("div");
         productoDiv.classList.add(
-            "bg-white", 
-            "rounded-lg", 
-            "shadow-md", 
-            "p-6", 
-            "mb-4", 
-            "border", 
+            "bg-white",
+            "rounded-lg",
+            "shadow-md",
+            "p-6",
+            "mb-4",
+            "border",
             "border-gray-200",
             "cursor-pointer",
             "hover:bg-gray-100",
@@ -109,13 +109,13 @@ export function mostrarResultadosInventario(resultados) {
     // Agregar botón para buscar un producto diferente
     const btnNuevaBusqueda = document.createElement("button");
     btnNuevaBusqueda.classList.add(
-        "mt-4", 
-        "py-2", 
-        "px-4", 
-        "bg-gray-300", 
-        "text-gray-800", 
-        "rounded", 
-        "hover:bg-gray-400", 
+        "mt-4",
+        "py-2",
+        "px-4",
+        "bg-gray-300",
+        "text-gray-800",
+        "rounded",
+        "hover:bg-gray-400",
         "transition-colors"
     );
     btnNuevaBusqueda.textContent = "Nueva búsqueda";
@@ -193,7 +193,7 @@ export function buscarPorCodigoParcial(textoBusqueda, tipo, callback) {
 
         // Verificar si la búsqueda es numérica (código) o de texto (nombre, etc.)
         const esNumerico = !isNaN(textoBusqueda) && textoBusqueda.trim() !== '';
-        
+
         if (esNumerico) {
             // Búsqueda por código
             resultados = productos.filter(producto => {
@@ -204,8 +204,8 @@ export function buscarPorCodigoParcial(textoBusqueda, tipo, callback) {
             // Búsqueda por nombre, categoría o marca
             resultados = productos.filter(producto => {
                 return (producto.nombre && producto.nombre.toLowerCase().includes(textoBusqueda.toLowerCase())) ||
-                       (producto.categoria && producto.categoria.toLowerCase().includes(textoBusqueda.toLowerCase())) ||
-                       (producto.marca && producto.marca.toLowerCase().includes(textoBusqueda.toLowerCase()));
+                    (producto.categoria && producto.categoria.toLowerCase().includes(textoBusqueda.toLowerCase())) ||
+                    (producto.marca && producto.marca.toLowerCase().includes(textoBusqueda.toLowerCase()));
             });
         }
 
@@ -439,7 +439,7 @@ export function buscarProductoParaEditar() {
                 (categoria && producto.categoria.toLowerCase().includes(categoria.toLowerCase())) ||
                 (marca && producto.marca.toLowerCase().includes(marca.toLowerCase()))
             );
-            
+
             if (resultados.length > 0) {
                 mostrarResultadosEdicion(resultados);
             } else {
@@ -527,7 +527,7 @@ export async function guardarCambios() {
 // Funciones para eliminar producto
 export async function eliminarProducto() {
     const codigo = document.getElementById("codigoEditado").value;
-    
+
     // Confirmar con el usuario antes de eliminar
     const confirmacion = await Swal.fire({
         title: '¿Estás seguro?',
@@ -539,17 +539,17 @@ export async function eliminarProducto() {
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
     });
-    
+
     if (!confirmacion.isConfirmed) {
         return; // Si el usuario cancela, detener la operación
     }
-    
+
     try {
         // Eliminar de IndexedDB
         const transaction = db.transaction(["productos"], "readwrite");
         const objectStore = transaction.objectStore("productos");
         const request = objectStore.delete(codigo);
-        
+
         request.onsuccess = async () => {
             // Si hay conexión, eliminar también de Supabase
             if (navigator.onLine) {
@@ -557,7 +557,7 @@ export async function eliminarProducto() {
                     .from('productos')
                     .delete()
                     .eq('codigo', codigo);
-                
+
                 if (error) {
                     console.error("Error al eliminar producto de Supabase:", error);
                     mostrarMensaje("Producto eliminado localmente pero hubo un error al sincronizar con Supabase", "warning");
@@ -568,11 +568,11 @@ export async function eliminarProducto() {
                 mostrarMensaje("Producto eliminado localmente. Se sincronizará cuando haya conexión.", "info");
                 // Aquí podrías agregar la eliminación a una cola de sincronización
             }
-            
+
             document.getElementById("formularioEdicion").style.display = "none";
             cargarDatosEnTabla();
         };
-        
+
         request.onerror = () => {
             mostrarMensaje("Error al eliminar el producto de la base de datos local", "error");
         };
@@ -650,25 +650,25 @@ export async function guardarInventario() {
     // Obtener el área_id (llave foránea) desde localStorage o consultarlo si no existe
     let area_id = localStorage.getItem('area_id');
     const ubicacionNombre = localStorage.getItem('ubicacion_almacen');
-    
+
     if (!area_id) {
         if (!ubicacionNombre) {
             // Si no hay ubicación seleccionada, mostrar mensaje y solicitar selección
             mostrarMensaje("No hay ubicación seleccionada", "error");
-            
+
             // Solicitar al usuario que seleccione una ubicación
             const ubicacion = await seleccionarUbicacionAlmacen();
             if (!ubicacion) {
                 mostrarMensaje("No se seleccionó ninguna ubicación", "error");
                 return;
             }
-            
+
             // Intentar obtener el area_id nuevamente después de la selección
             area_id = localStorage.getItem('area_id');
             if (!area_id) {
                 // Si aún no hay area_id, generar un ID temporal basado en el nombre
                 mostrarMensaje("No se pudo obtener el ID del área, usando ID temporal", "warning");
-                
+
                 // Usar un formato UUID para asegurar que sea único
                 area_id = `temp-${ubicacionNombre.replace(/\s+/g, '-')}-${Date.now()}`;
                 localStorage.setItem('area_id', area_id); // Guardar temporalmente
@@ -681,7 +681,7 @@ export async function guardarInventario() {
                     .select('id')
                     .ilike('nombre', `%${ubicacionNombre}%`)
                     .single();
-                    
+
                 if (error || !data) {
                     // Si hay error pero tenemos el nombre, generar un ID temporal
                     console.error("Error al obtener el ID del área:", error);
@@ -801,11 +801,11 @@ export async function guardarInventario() {
             const { error } = await supabase
                 .from('inventario')
                 .insert(inventarioDataRemoto);
-                
+
             if (error) {
                 console.error("Error al sincronizar con Supabase:", error);
                 // Usar versión sin areaName para la cola de sincronización
-                agregarAColaSincronizacion(inventarioDataRemoto); 
+                agregarAColaSincronizacion(inventarioDataRemoto);
                 mostrarMensaje("Error al sincronizar. Se reintentará automáticamente.", "warning");
             } else {
                 mostrarMensaje("Producto guardado y sincronizado exitosamente", "success");
@@ -865,7 +865,7 @@ export async function modificarInventario() {
         mostrarMensaje(`No se encontró el registro de inventario con ID ${idInventario} para modificar.`, "error");
         return;
     }
-    
+
     const area_id_actual = registroInventarioActual.area_id;
     const areaName_actual = registroInventarioActual.areaName || localStorage.getItem('ubicacion_almacen') || 'Desconocida';
 
@@ -914,7 +914,7 @@ export async function modificarInventario() {
                 const datosParaIndexedDBError = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
                 delete datosParaIndexedDBError.usuario_id;
                 await actualizarEnIndexedDB(datosParaIndexedDBError);
-                agregarAColaSincronizacion({type: 'update', payload: datosParaActualizarRemoto});
+                agregarAColaSincronizacion({ type: 'update', payload: datosParaActualizarRemoto });
                 mostrarMensaje("Error al sincronizar. Modificación guardada localmente.", "warning");
             } else if (data) {
                 const datosDesdeSupabase = data;
@@ -943,14 +943,14 @@ export async function modificarInventario() {
                 const datosParaIndexedDBWarn = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
                 delete datosParaIndexedDBWarn.usuario_id;
                 await actualizarEnIndexedDB(datosParaIndexedDBWarn);
-                agregarAColaSincronizacion({type: 'update', payload: datosParaActualizarRemoto});
+                agregarAColaSincronizacion({ type: 'update', payload: datosParaActualizarRemoto });
                 mostrarMensaje("Modificación guardada localmente. Problema con respuesta del servidor.", "warning");
             }
         } else { // Offline
             const datosParaIndexedDBOffline = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
             delete datosParaIndexedDBOffline.usuario_id;
             await actualizarEnIndexedDB(datosParaIndexedDBOffline);
-            agregarAColaSincronizacion({type: 'update', payload: datosParaActualizarRemoto});
+            agregarAColaSincronizacion({ type: 'update', payload: datosParaActualizarRemoto });
             mostrarMensaje("Modificado localmente (offline). Se sincronizará al reconectar.", "info");
         }
     } catch (error) {
@@ -959,7 +959,7 @@ export async function modificarInventario() {
             const datosParaIndexedDBFallback = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
             delete datosParaIndexedDBFallback.usuario_id;
             await actualizarEnIndexedDB(datosParaIndexedDBFallback);
-            agregarAColaSincronizacion({type: 'update', payload: datosParaActualizarRemoto});
+            agregarAColaSincronizacion({ type: 'update', payload: datosParaActualizarRemoto });
             mostrarMensaje("Error crítico. Modificación guardada localmente.", "error");
         } catch (dbError) {
             console.error("Error al guardar en IndexedDB durante el fallback:", dbError);
@@ -999,7 +999,7 @@ export async function buscarProductoInventario() {
             mostrarMensaje("Ingresa al menos un criterio de búsqueda", "error");
             return;
         }
-        
+
         // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
         if (codigo && codigo.length === 4) { // Código PLU
             buscarPorCodigoParcial(codigo, "Inventario", async (resultados) => {
@@ -1166,7 +1166,7 @@ function buscarEnProductos(codigo, nombre, marca) {
         request.onsuccess = event => {
             const productos = event.target.result;
             let resultados = [];
-            
+
             if (codigo) {
                 // Si hay un código específico, filtrar exactamente por ese código
                 resultados = productos.filter(producto => producto.codigo === codigo);
@@ -1177,7 +1177,7 @@ function buscarEnProductos(codigo, nombre, marca) {
                     (marca && producto.marca && producto.marca.toLowerCase().includes(marca.toLowerCase()))
                 );
             }
-            
+
             resolve(resultados);
         };
 
@@ -1195,7 +1195,7 @@ function buscarEnInventario(codigo, nombre, marca) {
         request.onsuccess = event => {
             const inventario = event.target.result;
             let resultados = [];
-            
+
             if (codigo) {
                 // Si hay un código específico, filtrar exactamente por ese código
                 resultados = inventario.filter(item => item.codigo === codigo);
@@ -1206,7 +1206,7 @@ function buscarEnInventario(codigo, nombre, marca) {
                     (marca && item.marca && item.marca.toLowerCase().includes(marca.toLowerCase()))
                 );
             }
-            
+
             resolve(resultados);
         };
 
@@ -1397,18 +1397,18 @@ export async function seleccionarUbicacionAlmacen() {
     try {
         const { obtenerAreasPorCategoria, guardarAreaIdPersistente } = await import('./db-operations.js');
         const areas = await obtenerAreasPorCategoria();
-        
+
         if (!areas || areas.length === 0) {
             mostrarMensaje("No hay áreas disponibles para tu categoría", "error");
             return null;
         }
-        
+
         // Crear opciones para el select basadas en las áreas disponibles
         const opciones = {};
         areas.forEach(area => {
             opciones[area.id] = area.nombre; // Usar ID como clave y nombre como valor para mostrar
         });
-        
+
         const { value: areaId } = await Swal.fire({
             title: 'Seleccione la ubicación de almacén',
             input: 'select',
@@ -1416,28 +1416,28 @@ export async function seleccionarUbicacionAlmacen() {
             inputPlaceholder: 'Seleccione una opción',
             showCancelButton: true
         });
-        
+
         if (areaId) {
             // Encontrar el área seleccionada para obtener todos sus datos
             const areaSeleccionada = areas.find(area => area.id === areaId);
-            
+
             if (!areaSeleccionada) {
                 console.error("No se encontró el área con ID:", areaId);
                 return null;
             }
-            
+
             // Usar la nueva función para guardar el area_id de manera persistente
             guardarAreaIdPersistente(areaId, areaSeleccionada.nombre);
-            
+
             console.log(`Seleccionada área: ${areaSeleccionada.nombre} (ID: ${areaId})`);
-            
+
             // Devolver un objeto con el ID y el nombre del área
             return {
                 id: areaId,
                 nombre: areaSeleccionada.nombre
             };
         }
-        
+
         return null;
     } catch (error) {
         console.error("Error al seleccionar ubicación:", error);
@@ -1456,18 +1456,18 @@ export async function verificarYSeleccionarUbicacion() {
         try {
             const { obtenerAreasPorCategoria } = await import('./db-operations.js');
             const areas = await obtenerAreasPorCategoria();
-            
+
             if (!areas || areas.length === 0) {
                 mostrarMensaje("No hay áreas disponibles para tu categoría", "error");
                 return;
             }
-            
+
             // Crear opciones para el select basadas en las áreas disponibles
             const opciones = {};
             areas.forEach(area => {
                 opciones[area.id] = area.nombre; // Usar ID como clave y nombre como valor
             });
-            
+
             const { value: areaId } = await Swal.fire({
                 title: 'Selecciona una ubicación',
                 input: 'select',
@@ -1482,19 +1482,19 @@ export async function verificarYSeleccionarUbicacion() {
             if (areaId) {
                 // Encontrar el área seleccionada para obtener el nombre
                 const areaSeleccionada = areas.find(area => area.id === areaId);
-                
+
                 if (!areaSeleccionada) {
                     console.error("No se encontró el área con ID:", areaId);
                     return;
                 }
-                
+
                 // Usar la nueva función para guardar el area_id de manera persistente
                 guardarAreaIdPersistente(areaId, areaSeleccionada.nombre);
-                
+
                 sessionStorage.setItem("ubicacion_seleccionada", "true");
-                
+
                 console.log(`Ubicación inicial seleccionada: ${areaSeleccionada.nombre} (ID: ${areaId})`);
-                
+
                 // Actualizar la interfaz
                 mostrarUbicacionActual();
             }
@@ -1613,21 +1613,21 @@ export function mostrarDetallesProductoConBarcode(producto) {
     if (typeof window.JsBarcode === 'undefined') {
         console.error('JsBarcode no está disponible');
         mostrarMensaje("Error: No se pudo cargar la librería de códigos de barras", "error");
-        
+
         // Cargar la librería dinámicamente si no está disponible
         const script = document.createElement('script');
         script.src = '../librerías/JsBarcode.all.min.js';
-        script.onload = function() {
+        script.onload = function () {
             // Una vez cargada, volver a intentar mostrar el código de barras
             mostrarDetallesProductoConBarcodeImpl(producto);
         };
-        script.onerror = function() {
+        script.onerror = function () {
             mostrarMensaje("Error: No se pudo cargar la librería de códigos de barras", "error");
         };
         document.head.appendChild(script);
         return;
     }
-    
+
     // Si JsBarcode está disponible, proceder normalmente
     mostrarDetallesProductoConBarcodeImpl(producto);
 }
@@ -1637,28 +1637,28 @@ function mostrarDetallesProductoConBarcodeImpl(producto) {
     // Crear un contenedor modal para mostrar los detalles
     const modal = document.createElement("div");
     modal.classList.add(
-        "fixed", "inset-0", "z-50", "flex", "items-center", "justify-center", 
+        "fixed", "inset-0", "z-50", "flex", "items-center", "justify-center",
         "bg-gray-900", "bg-opacity-75", "overflow-auto", "p-4"
     );
-    
+
     // Crear contenido del modal
     const contenido = document.createElement("div");
     contenido.classList.add(
         "bg-white", "rounded-lg", "shadow-xl", "p-6", "max-w-lg", "w-full",
         "mx-auto", "max-h-screen", "overflow-y-auto"
     );
-    
+
     // Agregar botón de cerrar
     const btnCerrar = document.createElement("button");
     btnCerrar.innerHTML = "×";
     btnCerrar.classList.add(
-        "absolute", "top-2", "right-4", "text-3xl", "font-bold", 
+        "absolute", "top-2", "right-4", "text-3xl", "font-bold",
         "text-gray-600", "hover:text-gray-800"
     );
     btnCerrar.onclick = () => {
         document.body.removeChild(modal);
     };
-    
+
     // Crear contenido HTML para los detalles del producto
     contenido.innerHTML = `
         <h2 class="text-2xl font-bold mb-4 text-center">${producto.nombre}</h2>
@@ -1680,26 +1680,26 @@ function mostrarDetallesProductoConBarcodeImpl(producto) {
             </button>
         </div>
     `;
-    
+
     // Agregar el contenido y el botón de cerrar al modal
     modal.appendChild(contenido);
     contenido.appendChild(btnCerrar);
-    
+
     // Agregar el modal al cuerpo del documento
     document.body.appendChild(modal);
-    
+
     // Añadir evento para cerrar el modal cuando se hace clic fuera del contenido
     modal.addEventListener('click', (event) => {
         if (event.target === modal) {
             document.body.removeChild(modal);
         }
     });
-    
+
     // Evitar que los clics dentro del contenido cierren el modal
     contenido.addEventListener('click', (event) => {
         event.stopPropagation();
     });
-    
+
     // Esperar a que el modal se renderice en el DOM
     setTimeout(() => {
         // Generar el código de barras usando JsBarcode
@@ -1714,15 +1714,15 @@ function mostrarDetallesProductoConBarcodeImpl(producto) {
             });
         } catch (error) {
             console.error("Error al generar el código de barras:", error);
-            document.querySelector("#barcode").innerHTML = 
+            document.querySelector("#barcode").innerHTML =
                 `<p class="text-red-500">Error al generar el código de barras: ${error.message}</p>`;
         }
-        
+
         // Configurar el botón de imprimir
         document.getElementById("btn-imprimir").addEventListener("click", () => {
             imprimirDetallesProducto(producto);
         });
-        
+
         // Configurar el botón de descargar PDF
         document.getElementById("btn-descargar").addEventListener("click", () => {
             descargarPDFProducto(producto);
@@ -1733,9 +1733,9 @@ function mostrarDetallesProductoConBarcodeImpl(producto) {
 // Determina el formato adecuado del código de barras basado en su longitud
 function determinarFormatoBarcode(codigo) {
     if (!codigo) return "CODE128"; // Formato por defecto
-    
+
     const codigoStr = String(codigo);
-    
+
     if (codigoStr.length === 13) {
         return "EAN13";
     } else if (codigoStr.length === 8) {
@@ -1829,10 +1829,10 @@ function imprimirDetallesProducto(producto) {
         </html>
     `);
     ventanaImpresion.document.close();
-    
+
     // Esperar a que se cargue la página y ejecutar la impresión automáticamente
-    ventanaImpresion.onload = function() {
-        setTimeout(function() {
+    ventanaImpresion.onload = function () {
+        setTimeout(function () {
             ventanaImpresion.print();
             // ventanaImpresion.close();
         }, 500);
@@ -1847,59 +1847,59 @@ function descargarPDFProducto(producto) {
         mostrarMensaje("Error: No se pudo cargar la librería PDF", "error");
         return;
     }
-    
+
     try {
         // Crear un nuevo documento PDF
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
+
         // Título
         doc.setFontSize(20);
         doc.text('Detalles del Producto', 105, 20, { align: 'center' });
-        
+
         // Nombre del producto
         doc.setFontSize(16);
         doc.text(producto.nombre, 105, 30, { align: 'center' });
-        
+
         // Convertir SVG a imagen para el código de barras
         const svgElement = document.getElementById('barcode');
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        
+
         // Obtener la imagen a partir del SVG
         const data = new XMLSerializer().serializeToString(svgElement);
         const img = new Image();
-        img.onload = function() {
+        img.onload = function () {
             canvas.width = img.width;
             canvas.height = img.height;
             context.drawImage(img, 0, 0);
-            
+
             // Obtener la imagen como datos URL
             const imgData = canvas.toDataURL('image/png');
-            
+
             // Agregar la imagen al PDF
             doc.addImage(imgData, 'PNG', 50, 40, 110, 50);
-            
+
             // Detalles del producto
             doc.setFontSize(12);
             doc.text(`Código: ${producto.codigo}`, 20, 110);
             doc.text(`Categoría: ${producto.categoria}`, 20, 120);
             doc.text(`Marca: ${producto.marca}`, 20, 130);
             doc.text(`Unidad: ${producto.unidad || "No especificada"}`, 20, 140);
-            
+
             // Agregar fecha actual
             const fecha = new Date().toLocaleDateString();
             doc.setFontSize(10);
             doc.text(`Documento generado: ${fecha}`, 20, 160);
-            
+
             // Guardar PDF
             doc.save(`producto-${producto.codigo}.pdf`);
-            
+
             mostrarMensaje("PDF descargado correctamente", "success");
         };
-        
+
         img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data)));
-        
+
     } catch (error) {
         console.error("Error al generar el PDF:", error);
         mostrarMensaje("Error al generar el PDF", "error");

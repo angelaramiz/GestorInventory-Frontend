@@ -15,10 +15,10 @@ export async function buscarProductoParaEntrada(termino, tipoBusqueda = 'codigo'
 
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
-        
+
         return new Promise((resolve, reject) => {
             let request;
-            
+
             switch (tipoBusqueda) {
                 case 'codigo':
                     const index = objectStore.index("codigo");
@@ -36,30 +36,30 @@ export async function buscarProductoParaEntrada(termino, tipoBusqueda = 'codigo'
                     reject(new Error("Tipo de búsqueda no válido"));
                     return;
             }
-            
-            request.onsuccess = function(event) {
+
+            request.onsuccess = function (event) {
                 let resultado = event.target.result;
-                
+
                 if (tipoBusqueda === 'nombre' || tipoBusqueda === 'marca') {
                     // Filtrar resultados para búsquedas por nombre o marca
                     resultado = resultado.filter(producto => {
                         const campo = tipoBusqueda === 'nombre' ? producto.nombre : producto.marca;
                         return campo && campo.toLowerCase().includes(termino.toLowerCase());
                     });
-                    
+
                     // Devolver el primer resultado encontrado o null
                     resultado = resultado.length > 0 ? resultado[0] : null;
                 }
-                
+
                 resolve(resultado);
             };
-            
-            request.onerror = function(event) {
+
+            request.onerror = function (event) {
                 console.error(`Error al buscar producto por ${tipoBusqueda}:`, event.target.error);
                 reject(event.target.error);
             };
         });
-        
+
     } catch (error) {
         console.error("Error en buscarProductoParaEntrada:", error);
         throw error;
@@ -75,7 +75,7 @@ export function mostrarDatosProductoEntrada(producto) {
     }
 
     productoSeleccionadoEntrada = producto;
-    
+
     // Llenar los campos del formulario
     const campos = [
         { id: 'codigoProducto', valor: producto.codigo || '' },
@@ -84,14 +84,14 @@ export function mostrarDatosProductoEntrada(producto) {
         { id: 'categoriaProducto', valor: producto.categoria || '' },
         { id: 'unidadProducto', valor: producto.unidad || '' }
     ];
-    
+
     campos.forEach(campo => {
         const elemento = document.getElementById(campo.id);
         if (elemento) {
             elemento.value = campo.valor;
         }
     });
-    
+
     // Limpiar campos de entrada específicos
     const camposEntrada = ['cantidadEntrada', 'fechaEntrada', 'comentariosEntrada'];
     camposEntrada.forEach(campoId => {
@@ -100,39 +100,39 @@ export function mostrarDatosProductoEntrada(producto) {
             elemento.value = '';
         }
     });
-    
+
     // Establecer fecha actual por defecto
     const fechaEntrada = document.getElementById('fechaEntrada');
     if (fechaEntrada) {
         fechaEntrada.value = new Date().toISOString().split('T')[0];
     }
-    
+
     // Enfocar en el campo de cantidad
     const cantidadInput = document.getElementById('cantidadEntrada');
     if (cantidadInput) {
         cantidadInput.focus();
     }
-    
+
     mostrarAlertaBurbuja(`Producto encontrado: ${producto.nombre}`, "success");
 }
 
 // Función para limpiar el formulario de entrada
 export function limpiarFormularioEntrada() {
     productoSeleccionadoEntrada = null;
-    
+
     const campos = [
-        'codigoProducto', 'nombreProducto', 'marcaProducto', 
-        'categoriaProducto', 'unidadProducto', 'cantidadEntrada', 
+        'codigoProducto', 'nombreProducto', 'marcaProducto',
+        'categoriaProducto', 'unidadProducto', 'cantidadEntrada',
         'fechaEntrada', 'comentariosEntrada'
     ];
-    
+
     campos.forEach(campoId => {
         const elemento = document.getElementById(campoId);
         if (elemento) {
             elemento.value = '';
         }
     });
-    
+
     // Establecer fecha actual por defecto
     const fechaEntrada = document.getElementById('fechaEntrada');
     if (fechaEntrada) {
@@ -147,23 +147,23 @@ export async function registrarEntrada() {
             mostrarAlertaBurbuja("Primero debe buscar y seleccionar un producto", "warning");
             return false;
         }
-        
+
         // Obtener datos del formulario
         const cantidad = document.getElementById('cantidadEntrada')?.value?.trim();
         const fechaEntrada = document.getElementById('fechaEntrada')?.value;
         const comentarios = document.getElementById('comentariosEntrada')?.value?.trim() || '';
-        
+
         // Validaciones
         if (!cantidad || isNaN(cantidad) || parseFloat(cantidad) <= 0) {
             mostrarAlertaBurbuja("Ingrese una cantidad válida", "error");
             return false;
         }
-        
+
         if (!fechaEntrada) {
             mostrarAlertaBurbuja("Seleccione una fecha de entrada", "error");
             return false;
         }
-        
+
         // Preparar datos de la entrada
         const entradaData = {
             codigo: productoSeleccionadoEntrada.codigo,
@@ -176,20 +176,20 @@ export async function registrarEntrada() {
             comentarios: comentarios,
             producto_id: productoSeleccionadoEntrada.id || null
         };
-        
+
         // Registrar la entrada
         const entradaRegistrada = await agregarRegistroEntrada(entradaData);
-        
+
         if (entradaRegistrada) {
             mostrarAlertaBurbuja("Entrada registrada correctamente", "success");
             limpiarFormularioEntrada();
-            
+
             // Recargar tabla de entradas si existe
             await actualizarTablaEntradas();
-            
+
             return true;
         }
-        
+
     } catch (error) {
         console.error("Error al registrar entrada:", error);
         mostrarAlertaBurbuja("Error al registrar la entrada", "error");
@@ -202,14 +202,14 @@ export async function actualizarTablaEntradas(filtros = {}) {
     try {
         const entradas = await cargarEntradasEnTabla(filtros);
         const tbody = document.getElementById('tablaEntradasBody');
-        
+
         if (!tbody) {
             console.warn("No se encontró el elemento tablaEntradasBody");
             return;
         }
-        
+
         tbody.innerHTML = '';
-        
+
         if (entradas.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -220,11 +220,11 @@ export async function actualizarTablaEntradas(filtros = {}) {
             `;
             return;
         }
-        
+
         entradas.forEach((entrada, index) => {
             const fila = document.createElement('tr');
             fila.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
-            
+
             fila.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     ${entrada.codigo || 'N/A'}
@@ -257,16 +257,16 @@ export async function actualizarTablaEntradas(filtros = {}) {
                     </button>
                 </td>
             `;
-            
+
             tbody.appendChild(fila);
         });
-        
+
         // Actualizar contador de entradas
         const contadorElement = document.getElementById('contadorEntradas');
         if (contadorElement) {
             contadorElement.textContent = `Total: ${entradas.length} entradas`;
         }
-        
+
     } catch (error) {
         console.error("Error al actualizar tabla de entradas:", error);
         mostrarAlertaBurbuja("Error al cargar entradas", "error");
@@ -274,11 +274,11 @@ export async function actualizarTablaEntradas(filtros = {}) {
 }
 
 // Función para eliminar una entrada (disponible globalmente)
-window.eliminarEntrada = async function(entradaId) {
+window.eliminarEntrada = async function (entradaId) {
     if (!confirm('¿Está seguro de que desea eliminar esta entrada?')) {
         return;
     }
-    
+
     try {
         await eliminarRegistroEntrada(entradaId);
         mostrarAlertaBurbuja("Entrada eliminada correctamente", "success");
@@ -296,7 +296,7 @@ export async function filtrarEntradas() {
         nombre: document.getElementById('filtroNombre')?.value?.trim() || '',
         marca: document.getElementById('filtroMarca')?.value?.trim() || ''
     };
-    
+
     await actualizarTablaEntradas(filtros);
 }
 
@@ -309,7 +309,7 @@ export function limpiarFiltros() {
             elemento.value = '';
         }
     });
-    
+
     actualizarTablaEntradas();
 }
 
@@ -333,7 +333,7 @@ export async function generarReporte() {
             nombre: document.getElementById('filtroNombre')?.value?.trim() || '',
             marca: document.getElementById('filtroMarca')?.value?.trim() || ''
         };
-        
+
         await generarReporteEntradas(filtros);
     } catch (error) {
         console.error("Error al generar reporte:", error);
@@ -346,15 +346,15 @@ export async function inicializarRegistroEntradas() {
     try {
         // Inicializar base de datos de entradas
         await inicializarDBEntradas();
-        
+
         // Cargar entradas en la tabla
         await actualizarTablaEntradas();
-        
+
         // Configurar event listeners
         configurarEventListeners();
-        
+
         console.log("Página de registro de entradas inicializada correctamente");
-        
+
     } catch (error) {
         console.error("Error al inicializar registro de entradas:", error);
         mostrarAlertaBurbuja("Error al inicializar la página", "error");
@@ -367,55 +367,55 @@ function configurarEventListeners() {
     const btnBuscarCodigo = document.getElementById('buscarPorCodigo');
     const btnBuscarNombre = document.getElementById('buscarPorNombre');
     const btnBuscarMarca = document.getElementById('buscarPorMarca');
-    
+
     if (btnBuscarCodigo) {
         btnBuscarCodigo.addEventListener('click', () => buscarProducto('codigo'));
     }
-    
+
     if (btnBuscarNombre) {
         btnBuscarNombre.addEventListener('click', () => buscarProducto('nombre'));
     }
-    
+
     if (btnBuscarMarca) {
         btnBuscarMarca.addEventListener('click', () => buscarProducto('marca'));
     }
-    
+
     // Botón registrar entrada
     const btnRegistrarEntrada = document.getElementById('registrarEntrada');
     if (btnRegistrarEntrada) {
         btnRegistrarEntrada.addEventListener('click', registrarEntrada);
     }
-    
+
     // Botón limpiar formulario
     const btnLimpiarFormulario = document.getElementById('limpiarFormulario');
     if (btnLimpiarFormulario) {
         btnLimpiarFormulario.addEventListener('click', limpiarFormularioEntrada);
     }
-    
+
     // Botones de filtros
     const btnFiltrar = document.getElementById('filtrarEntradas');
     const btnLimpiarFiltros = document.getElementById('limpiarFiltros');
-    
+
     if (btnFiltrar) {
         btnFiltrar.addEventListener('click', filtrarEntradas);
     }
-    
+
     if (btnLimpiarFiltros) {
         btnLimpiarFiltros.addEventListener('click', limpiarFiltros);
     }
-    
+
     // Botones de sincronización y reporte
     const btnSincronizar = document.getElementById('sincronizarEntradas');
     const btnGenerarReporte = document.getElementById('generarReporte');
-    
+
     if (btnSincronizar) {
         btnSincronizar.addEventListener('click', sincronizarEntradas);
     }
-    
+
     if (btnGenerarReporte) {
         btnGenerarReporte.addEventListener('click', generarReporte);
     }
-    
+
     // Enter en campos de búsqueda
     const camposBusqueda = ['busquedaCodigo', 'busquedaNombre', 'busquedaMarca'];
     camposBusqueda.forEach((campoId, index) => {
@@ -429,7 +429,7 @@ function configurarEventListeners() {
             });
         }
     });
-    
+
     // Enter en campo de cantidad
     const cantidadEntrada = document.getElementById('cantidadEntrada');
     if (cantidadEntrada) {
@@ -448,13 +448,13 @@ async function buscarProducto(tipo) {
         nombre: document.getElementById('busquedaNombre')?.value?.trim(),
         marca: document.getElementById('busquedaMarca')?.value?.trim()
     };
-    
+
     const termino = terminos[tipo];
     if (!termino) {
         mostrarAlertaBurbuja(`Ingrese un ${tipo} para buscar`, "warning");
         return;
     }
-    
+
     try {
         const producto = await buscarProductoParaEntrada(termino, tipo);
         mostrarDatosProductoEntrada(producto);

@@ -27,15 +27,15 @@ function inicializarMenu() {
 
     // Obtener el rol del usuario
     const rol = localStorage.getItem('rol');
-      // Filtrar las rutas según el rol
+    // Filtrar las rutas según el rol
     const rutasRestringidas = {
         Operador: ['editar', 'reporte', 'agregar', 'archivos'], // IDs restringidos para operadores
         Administrador: [], // No hay restricciones para administradores
         Supervisor: ['reporte', 'archivos', 'editar'], // IDs restringidos para supervisores
     };
-    
+
     const rutasBloqueadas = rutasRestringidas[rol] || [];
-    
+
     // Generar las rutas dinámicamente, excluyendo las restringidas
     if (menuRoutes) {
         menuRoutes.innerHTML = ''; // Clear existing menu items first
@@ -75,7 +75,7 @@ async function cambiarUbicacion() {
         const nuevaUbicacion = resultado.nombre;
         const nuevaAreaId = resultado.id;
         console.log(`Cambiando a ubicación: ${nuevaUbicacion} (ID: ${nuevaAreaId})`);
-        
+
         // Usar la nueva función de persistencia para guardar el ID del área
         const guardadoExitoso = guardarAreaIdPersistente(nuevaAreaId, nuevaUbicacion);
         if (!guardadoExitoso) {
@@ -83,20 +83,20 @@ async function cambiarUbicacion() {
             mostrarAlertaBurbuja("Error al cambiar de ubicación", "error");
             return;
         }
-        
+
         // Iniciar inventario con la nueva ubicación
         iniciarInventario(nuevaUbicacion);
         sessionStorage.setItem("ubicacion_seleccionada", "true");
-        
+
         // Actualizar la interfaz
         await mostrarUbicacionActual();
-        
+
         // Verificar que el area_id aún exista antes de sincronizar
         const areaIdActual = obtenerAreaId();
         if (areaIdActual !== nuevaAreaId) {
             console.error(`Error de consistencia: area_id actual (${areaIdActual}) no coincide con el esperado (${nuevaAreaId})`);
         }
-        
+
         // Sincronizar pasando explícitamente el ID del área seleccionada
         await sincronizarInventarioDesdeSupabase(nuevaUbicacion, nuevaAreaId);
     }
@@ -105,13 +105,13 @@ async function cambiarUbicacion() {
 // Función para verificar la autenticación del usuario
 async function verificarAutenticacion() {
     const token = localStorage.getItem('supabase.auth.token');
-    
+
     // Si no hay token o está expirado, mostrar el diálogo de inicio de sesión
     if (!token || isTokenExpired(token)) {
         // Esta función ya redirige al usuario si cancela
         return await mostrarDialogoSesionExpirada();
     }
-    
+
     return true;
 }
 
@@ -121,7 +121,7 @@ function iniciarVerificacionToken() {
     if (verificarTokenAutomaticamente()) {
         console.log("Token válido al iniciar la aplicación");
     }
-    
+
     // Configurar verificación periódica cada 5 minutos
     tokenCheckInterval = setInterval(() => {
         if (!verificarTokenAutomaticamente()) {
@@ -130,7 +130,7 @@ function iniciarVerificacionToken() {
             // La función verificarTokenAutomaticamente ya muestra el diálogo si es necesario
         }
     }, 5 * 60 * 1000); // Verificar cada 5 minutos
-    
+
     // También monitorear eventos de actividad del usuario para verificar el token
     document.addEventListener('click', () => {
         // Solo verificar si han pasado al menos 1 minuto desde la última verificación
@@ -146,7 +146,7 @@ function ocultarRutasPorRol(rol) {
     const rutasRestringidas = {
         Operador: ['editar', 'reporte', 'agregar', 'archivos'], // IDs de los divs restringidos para operadores
         Administrador: [], // No hay restricciones para administradores
-        Supervisor: [ 'reporte', 'archivos', 'editar'], // IDs de los divs restringidos para supervisores
+        Supervisor: ['reporte', 'archivos', 'editar'], // IDs de los divs restringidos para supervisores
     };
 
     const rutasBloqueadas = rutasRestringidas[rol] || [];
@@ -171,10 +171,10 @@ async function init() {
     try {
         // Configurar el interceptor para las peticiones a Supabase
         await configurarInterceptorSupabase();
-        
+
         // Iniciar verificación periódica del token
         iniciarVerificacionToken();
-          await inicializarDB();
+        await inicializarDB();
         await inicializarDBInventario();
         await inicializarDBEntradas();
 
@@ -183,48 +183,48 @@ async function init() {
 
         // Ocultar rutas según el rol
         ocultarRutasPorRol(rol);
-        
+
         // Inicializar el menú lateral
         inicializarMenu();
 
         // Inicializar suscripciones en tiempo real para ambas páginas
         const esPaginaInventario = window.location.pathname.includes('inventario.html');
-        
-        if (esPaginaInventario ) {
+
+        if (esPaginaInventario) {
             // Obtener áreas por categoría al inicializar solo en la página de inventario
             const { obtenerAreasPorCategoria } = await import('./db-operations.js');
             await obtenerAreasPorCategoria();
 
             await inicializarSuscripciones();
         }
-        
+
         // Funcionalidad específica para main.html
         // Funcionalidad específica para inventario.html
         if (esPaginaInventario) {
             await verificarYSeleccionarUbicacion();
             mostrarUbicacionActual();
             await sincronizarInventarioDesdeSupabase(); // Sincronizar solo en inventario.html
-            
+
             // Agregar event listener para cambiar ubicación
             const cambiarUbicacionBtn = document.getElementById('cambiarUbicacion');
             if (cambiarUbicacionBtn) {
-            cambiarUbicacionBtn.addEventListener('click', cambiarUbicacion);
+                cambiarUbicacionBtn.addEventListener('click', cambiarUbicacion);
             }
-            
+
             cargarDatosInventarioEnTablaPlantilla();
-            
+
             // Agregar listeners para sincronización manual
             document.getElementById('sync-inventario-down-btn')?.addEventListener('click', sincronizarInventarioDesdeSupabase);
             document.getElementById('sincronizarManual')?.addEventListener('click', async () => {
-            mostrarSpinner();
-            try {
-                await procesarColaSincronizacion();
-                mostrarAlertaBurbuja('Sincronización manual completada', 'success');
-            } catch (error) {
-                mostrarAlertaBurbuja('Error al sincronizar', 'error');
-            } finally {
-                ocultarSpinner();
-            }
+                mostrarSpinner();
+                try {
+                    await procesarColaSincronizacion();
+                    mostrarAlertaBurbuja('Sincronización manual completada', 'success');
+                } catch (error) {
+                    mostrarAlertaBurbuja('Error al sincronizar', 'error');
+                } finally {
+                    ocultarSpinner();
+                }
             });
         }
 

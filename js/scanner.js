@@ -1,7 +1,7 @@
 // Importaciones
-import { buscarProducto, buscarProductoParaEditar, buscarProductoInventario,buscarPorCodigoParcial } from './product-operations.js';
+import { buscarProducto, buscarProductoParaEditar, buscarProductoInventario, buscarPorCodigoParcial } from './product-operations.js';
 import { mostrarModalEscaneo, cerrarModalEscaneo, mostrarMensaje } from './logs.js';
-import {sanitizarEntrada} from './sanitizacion.js';
+import { sanitizarEntrada } from './sanitizacion.js';
 
 // Variables globales
 let scanner = null;
@@ -167,7 +167,8 @@ export function iniciarEscaneoConModal(inputId) {
         scanner = new Html5Qrcode("reader");
         scanner.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 250 },aspectRatio: 1.0 // Mantener relación 1:1 
+            {
+                fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 // Mantener relación 1:1 
             },
             (decodedText, decodedResult) => {
                 manejarCodigoEscaneado(decodedText, decodedResult);
@@ -184,7 +185,7 @@ export function iniciarEscaneoConModal(inputId) {
                 } else if (inputId === "codigo") {
                     buscarProductoInventario();
                 }
-                
+
             },
             (error) => console.log("Error de escaneo:", error)
         ).catch((err) => {
@@ -202,7 +203,7 @@ export function manejarCodigoEscaneado(codigo, formato) {
 
     if (formato.result.format.formatName.toLowerCase() === "code_128") {
         // Eliminar ceros iniciales
-        console.log('codigo:',codigoSanitizado, formato.result.format.formatName.toLowerCase());
+        console.log('codigo:', codigoSanitizado, formato.result.format.formatName.toLowerCase());
         codigo = codigoSanitizado.replace(/^0+/, '');
 
         // Expresión regular para capturar los 4 dígitos después del primer "2"
@@ -217,8 +218,8 @@ export function manejarCodigoEscaneado(codigo, formato) {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
     } else {
-        mostrarMensaje("Formato de código no compatible.", "warning"); 
-    }   
+        mostrarMensaje("Formato de código no compatible.", "warning");
+    }
     return
 }
 

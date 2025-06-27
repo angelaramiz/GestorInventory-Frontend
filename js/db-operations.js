@@ -20,18 +20,18 @@ export function agregarAColaSincronizacion(data) {
         mostrarAlertaBurbuja("Error: No se pudo determinar el área para sincronizar", "error");
         return;
     }
-    
+
     // Crear un objeto limpio para Supabase sin el campo areaName
     const dataSupabase = { ...data };
-    
+
     // Si existe areaName, eliminarla porque Supabase no tiene esa columna
     if (dataSupabase.areaName) {
         delete dataSupabase.areaName;
     }
-    
+
     // Asegurarse que tenga area_id
     dataSupabase.area_id = dataSupabase.area_id || areaId;
-    
+
     syncQueue.push(dataSupabase);
     localStorage.setItem('syncQueue', JSON.stringify(syncQueue));
     if (navigator.onLine) procesarColaSincronizacion();
@@ -45,7 +45,7 @@ export async function procesarColaSincronizacion() {
         const item = syncQueue.shift();
         try {
             const supabase = await getSupabase();
-            
+
             // Verificar que el ítem tenga área_id
             if (!item.area_id) {
                 const areaId = localStorage.getItem('area_id');
@@ -57,20 +57,20 @@ export async function procesarColaSincronizacion() {
                 }
                 item.area_id = areaId;
             }
-            
+
             // Crear un objeto limpio para enviar a Supabase (sin el campo areaName)
             const datosParaSupabase = { ...item };
-            
+
             // Eliminar el campo areaName si existe
             if (datosParaSupabase.areaName) {
                 delete datosParaSupabase.areaName;
             }
-            
+
             // Asegurarse de incluir la información del usuario
             const { data, error } = await supabase
                 .from('inventario')
-                .upsert({ 
-                    ...datosParaSupabase, 
+                .upsert({
+                    ...datosParaSupabase,
                     usuario_id: localStorage.getItem('usuario_id')
                 })
                 .select();
@@ -83,24 +83,24 @@ export async function procesarColaSincronizacion() {
             // Actualizar IndexedDB con el ID permanente de Supabase y la información completa
             const transaction = dbInventario.transaction(["inventario"], "readwrite");
             const objectStore = transaction.objectStore("inventario");
-            
+
             // Eliminar el registro temporal
             await new Promise((resolve, reject) => {
                 const request = objectStore.delete(item.id);
                 request.onsuccess = resolve;
                 request.onerror = () => reject(request.error);
             });
-            
+
             // Agregar el registro actualizado con ID permanente y todos los datos
             // Incluir areaName solo para la base de datos local
-            const itemActualizado = { 
-                ...item, 
-                id: data[0].id, 
+            const itemActualizado = {
+                ...item,
+                id: data[0].id,
                 is_temp_id: false,
                 area_id: data[0].area_id || item.area_id,
                 areaName: localStorage.getItem('ubicacion_almacen') // Mantener este campo solo localmente
             };
-            
+
             await new Promise((resolve, reject) => {
                 const request = objectStore.add(itemActualizado);
                 request.onsuccess = resolve;
@@ -118,7 +118,7 @@ export async function procesarColaSincronizacion() {
             break;
         }
     }
-    
+
     if (syncQueue.length === 0) {
         mostrarAlertaBurbuja("Sincronización completada", "success");
     }
@@ -646,7 +646,7 @@ export async function sincronizarProductosDesdeBackend() {
         }
         const response = await fetch('https://gestorinventory-backend.fly.dev/productos/sincronizar', {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 "Authorization": `Bearer ${localStorage.getItem('supabase.auth.token')}`
             },
@@ -674,7 +674,7 @@ export async function sincronizarProductosDesdeBackend() {
         }));
 
         mostrarAlertaBurbuja("Sincronización exitosa", "success");
-        
+
     } catch (error) {
         console.error("Error de sincronización:", error);
         mostrarAlertaBurbuja(`Falló: ${error.message}`, "error");
@@ -682,7 +682,7 @@ export async function sincronizarProductosDesdeBackend() {
 }
 
 // Call the function after initializing the database if on archivos.html
-if (window.location.pathname.includes('main.html') ) {
+if (window.location.pathname.includes('main.html')) {
     inicializarDB().then(() => {
         sincronizarProductosDesdeBackend();
     });
@@ -728,7 +728,7 @@ export async function subirProductosAlBackend() {
         // Enviar productos al backend
         const response = await fetch("https://gestorinventory-backend.fly.dev/productos/actualizar-usuario-productos", {
             method: "POST",
-            headers: { 
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             },
@@ -785,13 +785,13 @@ export function cargarDatosInventarioEnTablaPlantilla() {
     request.onsuccess = function (event) {
         // Guardar los datos completos
         inventarioCompleto = event.target.result;
-        
+
         // Aplicar ordenamiento
         ordenarDatosInventario();
-        
+
         // Mostrar la página actual
         mostrarPaginaInventario();
-        
+
         // Crear controles de paginación si no existen
         crearControlesPaginacionInventario();
     };
@@ -808,10 +808,10 @@ export function cargarDatosInventarioEnTablaPlantilla() {
 // Función para ordenar los datos de inventario según la columna seleccionada
 function ordenarDatosInventario() {
     const { columna, ascendente } = ordenColumnaInventario;
-    
+
     inventarioCompleto.sort((a, b) => {
         let valorA, valorB;
-        
+
         // Determinar valores a comparar según el tipo de columna
         switch (columna) {
             case 'cantidad':
@@ -826,7 +826,7 @@ function ordenarDatosInventario() {
                 valorA = a[columna] ? a[columna].toString().toLowerCase() : '';
                 valorB = b[columna] ? b[columna].toString().toLowerCase() : '';
         }
-        
+
         // Ordenar ascendente o descendente
         if (ascendente) {
             if (valorA < valorB) return -1;
@@ -844,18 +844,18 @@ function ordenarDatosInventario() {
 function mostrarPaginaInventario() {
     const tbody = document.getElementById("estructuraPlantillaBody");
     if (!tbody) return;
-    
+
     tbody.innerHTML = ""; // Limpiar tabla
-    
+
     // Calcular índices para la paginación
     const inicio = (paginaActualInventario - 1) * itemsPorPaginaInventario;
     const fin = Math.min(inicio + itemsPorPaginaInventario, inventarioCompleto.length);
-    
+
     // Mostrar solo los elementos de la página actual
     for (let i = inicio; i < fin; i++) {
         const item = inventarioCompleto[i];
         const row = tbody.insertRow();
-        
+
         // Añadir los datos a las celdas
         row.insertCell().textContent = item.codigo;
         row.insertCell().textContent = item.nombre;
@@ -867,7 +867,7 @@ function mostrarPaginaInventario() {
         row.insertCell().textContent = item.comentarios;
         row.insertCell().textContent = item.areaName;
     }
-    
+
     // Actualizar información de la paginación
     actualizarInfoPaginacionInventario();
 }
@@ -879,53 +879,53 @@ function crearControlesPaginacionInventario() {
     if (!paginacion) {
         // Obtener el contenedor de la tabla
         const tablaContainer = document.getElementById('estructura-plantilla').parentElement;
-        
+
         // Crear el contenedor de la paginación
         paginacion = document.createElement('div');
         paginacion.id = 'paginacionInventario';
         paginacion.className = 'flex justify-between items-center mt-4 px-4 py-2 bg-white rounded shadow';
-        
+
         // Crear el contenedor de información
         const infoPaginacion = document.createElement('div');
         infoPaginacion.id = 'infoPaginacionInventario';
         infoPaginacion.className = 'text-sm text-gray-600';
-        
+
         // Crear controles de navegación
         const controles = document.createElement('div');
         controles.className = 'flex space-x-2';
-        
+
         // Botón anterior
         const btnAnterior = document.createElement('button');
         btnAnterior.textContent = 'Anterior';
         btnAnterior.className = 'bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600';
         btnAnterior.onclick = () => cambiarPaginaInventario(paginaActualInventario - 1);
-        
+
         // Botón siguiente
         const btnSiguiente = document.createElement('button');
         btnSiguiente.textContent = 'Siguiente';
         btnSiguiente.className = 'bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600';
         btnSiguiente.onclick = () => cambiarPaginaInventario(paginaActualInventario + 1);
-        
+
         // Añadir elementos al DOM
         controles.appendChild(btnAnterior);
         controles.appendChild(btnSiguiente);
         paginacion.appendChild(infoPaginacion);
         paginacion.appendChild(controles);
-        
+
         // Añadir después de la tabla
         tablaContainer.after(paginacion);
-        
+
         // Añadir funcionalidad de ordenamiento a los encabezados de columna
         agregarOrdenamientoAColumnas();
     }
-    
+
     actualizarInfoPaginacionInventario();
 }
 
 // Función para cambiar la página actual del inventario
 function cambiarPaginaInventario(nuevaPagina) {
     const totalPaginas = Math.ceil(inventarioCompleto.length / itemsPorPaginaInventario);
-    
+
     if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
         paginaActualInventario = nuevaPagina;
         mostrarPaginaInventario();
@@ -936,20 +936,20 @@ function cambiarPaginaInventario(nuevaPagina) {
 function actualizarInfoPaginacionInventario() {
     const infoPaginacion = document.getElementById('infoPaginacionInventario');
     if (!infoPaginacion) return;
-    
+
     const totalPaginas = Math.ceil(inventarioCompleto.length / itemsPorPaginaInventario);
     const inicio = (paginaActualInventario - 1) * itemsPorPaginaInventario + 1;
     const fin = Math.min(inicio + itemsPorPaginaInventario - 1, inventarioCompleto.length);
-    
+
     infoPaginacion.textContent = `Mostrando ${inicio}-${fin} de ${inventarioCompleto.length} productos (Página ${paginaActualInventario} de ${totalPaginas})`;
-    
+
     // Habilitar/deshabilitar botones según sea necesario
     const btnAnterior = infoPaginacion.nextElementSibling.firstChild;
     const btnSiguiente = infoPaginacion.nextElementSibling.lastChild;
-    
+
     btnAnterior.disabled = paginaActualInventario <= 1;
     btnSiguiente.disabled = paginaActualInventario >= totalPaginas;
-    
+
     btnAnterior.classList.toggle('opacity-50', paginaActualInventario <= 1);
     btnSiguiente.classList.toggle('opacity-50', paginaActualInventario >= totalPaginas);
 }
@@ -958,24 +958,24 @@ function actualizarInfoPaginacionInventario() {
 function agregarOrdenamientoAColumnas() {
     const headerRow = document.querySelector('#estructura-plantilla thead tr');
     if (!headerRow) return;
-    
+
     const headers = headerRow.querySelectorAll('th');
     const columnas = ['codigo', 'nombre', 'categoria', 'marca', 'unidad', 'cantidad', 'caducidad', 'comentarios', 'areaName'];
-    
+
     headers.forEach((header, index) => {
         if (index < columnas.length) {
             const nombreColumna = columnas[index];
-            
+
             // Hacer clic en el encabezado para ordenar
             header.style.cursor = 'pointer';
             header.classList.add('select-none');
-            
+
             // Añadir icono de ordenamiento
             const iconSpan = document.createElement('span');
             iconSpan.className = 'ml-1 text-xs';
             iconSpan.innerHTML = '⇵';
             header.appendChild(iconSpan);
-            
+
             header.addEventListener('click', () => {
                 // Si ya estamos ordenando por esta columna, cambiar dirección
                 if (ordenColumnaInventario.columna === nombreColumna) {
@@ -985,7 +985,7 @@ function agregarOrdenamientoAColumnas() {
                     ordenColumnaInventario.columna = nombreColumna;
                     ordenColumnaInventario.ascendente = true;
                 }
-                
+
                 // Actualizar iconos en todos los encabezados
                 headers.forEach((h, i) => {
                     const icon = h.querySelector('span');
@@ -995,7 +995,7 @@ function agregarOrdenamientoAColumnas() {
                         icon.innerHTML = '⇵';
                     }
                 });
-                
+
                 // Reordenar y mostrar
                 ordenarDatosInventario();
                 mostrarPaginaInventario();
@@ -1043,13 +1043,13 @@ export async function cargarDatosEnTabla() {
 
         // Guardar todos los productos en variable global para paginación y ordenamiento
         productosCompletos = productos;
-        
+
         // Aplicar ordenamiento inicial
         ordenarDatosProductos();
-        
+
         // Mostrar la primera página
         mostrarPaginaProductos();
-        
+
         // Crear controles de paginación
         crearControlesPaginacionProductos();
 
@@ -1057,7 +1057,7 @@ export async function cargarDatosEnTabla() {
     } catch (error) {
         console.error("Error al cargar datos desde Supabase:", error);
         mostrarMensaje("Error al cargar datos desde Supabase", "error");
-        
+
         // Fallback to IndexedDB if Supabase fails
         if (db) {
             const transaction = db.transaction(["productos"], "readonly");
@@ -1067,16 +1067,16 @@ export async function cargarDatosEnTabla() {
             request.onsuccess = function (event) {
                 // Guardar productos en variable global para paginación
                 productosCompletos = event.target.result;
-                
+
                 // Aplicar ordenamiento inicial
                 ordenarDatosProductos();
-                
+
                 // Mostrar primera página
                 mostrarPaginaProductos();
-                
+
                 // Crear controles de paginación
                 crearControlesPaginacionProductos();
-                
+
                 mostrarAlertaBurbuja("Productos cargados desde IndexedDB (modo fallback)", "warning");
             };
         }
@@ -1086,11 +1086,11 @@ export async function cargarDatosEnTabla() {
 // Función para ordenar los datos de productos según la columna seleccionada
 function ordenarDatosProductos() {
     const { columna, ascendente } = ordenColumnaProductos;
-    
+
     productosCompletos.sort((a, b) => {
         let valorA = a[columna] ? a[columna].toString().toLowerCase() : '';
         let valorB = b[columna] ? b[columna].toString().toLowerCase() : '';
-        
+
         // Ordenar ascendente o descendente
         if (ascendente) {
             if (valorA < valorB) return -1;
@@ -1108,18 +1108,18 @@ function ordenarDatosProductos() {
 function mostrarPaginaProductos() {
     const tbody = document.getElementById("databaseBody");
     if (!tbody) return;
-    
+
     tbody.innerHTML = ""; // Limpiar tabla
-    
+
     // Calcular índices para la paginación
     const inicio = (paginaActualProductos - 1) * itemsPorPaginaProductos;
     const fin = Math.min(inicio + itemsPorPaginaProductos, productosCompletos.length);
-    
+
     // Mostrar solo los elementos de la página actual
     for (let i = inicio; i < fin; i++) {
         const producto = productosCompletos[i];
         const row = tbody.insertRow();
-        
+
         // Añadir los datos a las celdas
         row.insertCell().textContent = producto.codigo;
         row.insertCell().textContent = producto.nombre;
@@ -1127,7 +1127,7 @@ function mostrarPaginaProductos() {
         row.insertCell().textContent = producto.marca;
         row.insertCell().textContent = producto.unidad;
     }
-    
+
     // Actualizar información de la paginación
     actualizarInfoPaginacionProductos();
 }
@@ -1139,53 +1139,53 @@ function crearControlesPaginacionProductos() {
     if (!paginacion) {
         // Obtener el contenedor de la tabla
         const tablaContainer = document.querySelector('#databaseBody').closest('table').parentElement;
-        
+
         // Crear el contenedor de la paginación
         paginacion = document.createElement('div');
         paginacion.id = 'paginacionProductos';
         paginacion.className = 'flex justify-between items-center mt-4 px-4 py-2 bg-white rounded shadow';
-        
+
         // Crear el contenedor de información
         const infoPaginacion = document.createElement('div');
         infoPaginacion.id = 'infoPaginacionProductos';
         infoPaginacion.className = 'text-sm text-gray-600';
-        
+
         // Crear controles de navegación
         const controles = document.createElement('div');
         controles.className = 'flex space-x-2';
-        
+
         // Botón anterior
         const btnAnterior = document.createElement('button');
         btnAnterior.textContent = 'Anterior';
         btnAnterior.className = 'bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600';
         btnAnterior.onclick = () => cambiarPaginaProductos(paginaActualProductos - 1);
-        
+
         // Botón siguiente
         const btnSiguiente = document.createElement('button');
         btnSiguiente.textContent = 'Siguiente';
         btnSiguiente.className = 'bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600';
         btnSiguiente.onclick = () => cambiarPaginaProductos(paginaActualProductos + 1);
-        
+
         // Añadir elementos al DOM
         controles.appendChild(btnAnterior);
         controles.appendChild(btnSiguiente);
         paginacion.appendChild(infoPaginacion);
         paginacion.appendChild(controles);
-        
+
         // Añadir después de la tabla
         tablaContainer.after(paginacion);
-        
+
         // Añadir funcionalidad de ordenamiento a los encabezados de columna
         agregarOrdenamientoAColumnasProductos();
     }
-    
+
     actualizarInfoPaginacionProductos();
 }
 
 // Función para cambiar la página actual de productos
 function cambiarPaginaProductos(nuevaPagina) {
     const totalPaginas = Math.ceil(productosCompletos.length / itemsPorPaginaProductos);
-    
+
     if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
         paginaActualProductos = nuevaPagina;
         mostrarPaginaProductos();
@@ -1196,20 +1196,20 @@ function cambiarPaginaProductos(nuevaPagina) {
 function actualizarInfoPaginacionProductos() {
     const infoPaginacion = document.getElementById('infoPaginacionProductos');
     if (!infoPaginacion) return;
-    
+
     const totalPaginas = Math.ceil(productosCompletos.length / itemsPorPaginaProductos);
     const inicio = (paginaActualProductos - 1) * itemsPorPaginaProductos + 1;
     const fin = Math.min(inicio + itemsPorPaginaProductos - 1, productosCompletos.length);
-    
+
     infoPaginacion.textContent = `Mostrando ${inicio}-${fin} de ${productosCompletos.length} productos (Página ${paginaActualProductos} de ${totalPaginas})`;
-    
+
     // Habilitar/deshabilitar botones según sea necesario
     const btnAnterior = infoPaginacion.nextElementSibling.firstChild;
     const btnSiguiente = infoPaginacion.nextElementSibling.lastChild;
-    
+
     btnAnterior.disabled = paginaActualProductos <= 1;
     btnSiguiente.disabled = paginaActualProductos >= totalPaginas;
-    
+
     btnAnterior.classList.toggle('opacity-50', paginaActualProductos <= 1);
     btnSiguiente.classList.toggle('opacity-50', paginaActualProductos >= totalPaginas);
 }
@@ -1218,27 +1218,27 @@ function actualizarInfoPaginacionProductos() {
 function agregarOrdenamientoAColumnasProductos() {
     const tabla = document.querySelector('#databaseBody').closest('table');
     if (!tabla) return;
-    
+
     const headerRow = tabla.querySelector('thead tr');
     if (!headerRow) return;
-    
+
     const headers = headerRow.querySelectorAll('th');
     const columnas = ['codigo', 'nombre', 'categoria', 'marca', 'unidad'];
-    
+
     headers.forEach((header, index) => {
         if (index < columnas.length) {
             const nombreColumna = columnas[index];
-            
+
             // Hacer clic en el encabezado para ordenar
             header.style.cursor = 'pointer';
             header.classList.add('select-none');
-            
+
             // Añadir icono de ordenamiento
             const iconSpan = document.createElement('span');
             iconSpan.className = 'ml-1 text-xs';
             iconSpan.innerHTML = '⇵';
             header.appendChild(iconSpan);
-            
+
             header.addEventListener('click', () => {
                 // Si ya estamos ordenando por esta columna, cambiar dirección
                 if (ordenColumnaProductos.columna === nombreColumna) {
@@ -1248,7 +1248,7 @@ function agregarOrdenamientoAColumnasProductos() {
                     ordenColumnaProductos.columna = nombreColumna;
                     ordenColumnaProductos.ascendente = true;
                 }
-                
+
                 // Actualizar iconos en todos los encabezados
                 headers.forEach((h, i) => {
                     const icon = h.querySelector('span');
@@ -1258,7 +1258,7 @@ function agregarOrdenamientoAColumnasProductos() {
                         icon.innerHTML = '⇵';
                     }
                 });
-                
+
                 // Reordenar y mostrar
                 ordenarDatosProductos();
                 mostrarPaginaProductos();
@@ -1271,29 +1271,29 @@ function agregarOrdenamientoAColumnasProductos() {
 export function generarPlantillaInventario() {
     // Crear encabezados para la plantilla de inventario
     const headers = "Código,Nombre,Categoría,Marca,Lote,Unidad,Cantidad,Fecha de Caducidad,Comentarios\n";
-    
+
     // Crear filas de ejemplo (opcional)
     let filaEjemplo = "123456,Producto de ejemplo,Categoría,Marca,1,Pz,10,2025-12-31,Comentarios de ejemplo\n";
-    
+
     // Combinar encabezados y ejemplo
     const csv = "\uFEFFCódigo,Nombre,Categoría,Marca,Lote,Unidad,Cantidad,Fecha de Caducidad,Comentarios\n" + filaEjemplo;
-    
+
     // Crear el blob y descargar
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
-    
+
     if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         const fecha = new Date().toLocaleDateString('es-PE', { year: 'numeric', month: '2-digit', day: '2-digit' }).replaceAll('/', '-');
         const nombreArchivo = `plantilla_inventario_${fecha}.csv`;
-        
+
         link.setAttribute("href", url);
         link.setAttribute("download", nombreArchivo);
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         // Mostrar mensaje de éxito
         mostrarMensaje("Plantilla de inventario generada correctamente", "success");
     } else {
@@ -1305,40 +1305,40 @@ export function generarPlantillaInventario() {
 export async function obtenerUbicacionEnUso() {
     // Primero intentar obtener la ubicación desde localStorage
     const ubicacionAlmacen = localStorage.getItem('ubicacion_almacen');
-    
+
     if (ubicacionAlmacen) {
         return ubicacionAlmacen;
     }
-    
+
     // Si no hay ubicación en localStorage, intentar obtenerla de Supabase
     try {
         const areaId = localStorage.getItem('area_id');
         if (!areaId) {
             return null; // No se ha seleccionado un área
         }
-        
+
         const supabase = await getSupabase();
         if (!supabase) {
             throw new Error("No se pudo obtener la instancia de Supabase");
         }
-        
+
         // Buscar el área por ID
         const { data, error } = await supabase
             .from('areas')
             .select('nombre')
             .eq('id', areaId)
             .single();
-            
+
         if (error) {
             throw error;
         }
-        
+
         if (data) {
             // Guardar en localStorage para futuras consultas
             localStorage.setItem('ubicacion_almacen', data.nombre);
             return data.nombre;
         }
-        
+
         return null;
     } catch (error) {
         console.error("Error al obtener ubicación:", error);
@@ -1351,54 +1351,54 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
     try {
         mostrarAlertaBurbuja("Sincronizando inventario...", "info");
         console.log("Iniciando sincronización de inventario desde Supabase");
-        
+
         // Obtener instancia de Supabase
         const supabase = await getSupabase();
         if (!supabase) {
             throw new Error("No se pudo obtener la instancia de Supabase");
         }
-        
+
         // Obtener el ID del área actual (usar el forzado si existe, de lo contrario usar el de localStorage)
         const areaId = forzarAreaId || localStorage.getItem('area_id');
         if (!areaId) {
-            console.error("Error al obtener area_id:", { 
-                forzarAreaId, 
+            console.error("Error al obtener area_id:", {
+                forzarAreaId,
                 localStorage_area_id: localStorage.getItem('area_id'),
                 ubicacionNombre
             });
             throw new Error("No hay área seleccionada para sincronizar");
         }
-        
+
         // Guardar nombre de ubicación si se proporciona
         if (ubicacionNombre) {
             localStorage.setItem('ubicacion_almacen', ubicacionNombre);
             console.log(`Cambio de ubicación a: ${ubicacionNombre} (ID: ${areaId})`);
-            
+
             // Si forzamos un area_id, asegurarse de que también se guarde en localStorage
             if (forzarAreaId) {
                 localStorage.setItem('area_id', forzarAreaId);
                 console.log(`Guardado forzado de area_id en localStorage: ${forzarAreaId}`);
             }
         }
-        
+
         // IMPORTANTE: Consultar SOLO los productos que pertenecen a esta área específica
         console.log(`Consultando inventario específico del área ID: ${areaId}`);
         const { data: inventario, error } = await supabase
             .from('inventario')
             .select('*')
             .eq('area_id', areaId);
-            
+
         if (error) {
             console.error("Error en la consulta a Supabase:", error);
             throw error;
         }
-        
+
         console.log(`Encontrados ${inventario ? inventario.length : 0} elementos en Supabase para área ID ${areaId}`);
-        
+
         // Actualizar la base de datos local (primero borrar todo)
         const transaction = dbInventario.transaction(["inventario"], "readwrite");
         const objectStore = transaction.objectStore("inventario");
-        
+
         // Primero limpiar TODA la base de datos local
         await new Promise((resolve, reject) => {
             const clearRequest = objectStore.clear();
@@ -1411,25 +1411,25 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
                 reject(e.target.error);
             };
         });
-        
+
         // Si no hay elementos para mostrar, actualizar la tabla y terminar
         if (!inventario || inventario.length === 0) {
             mostrarAlertaBurbuja("No hay productos en esta ubicación", "info");
-            
+
             // Actualizar la visualización con la tabla vacía
             if (window.location.pathname.includes('inventario.html')) {
                 cargarDatosInventarioEnTablaPlantilla();
             }
             return 0;
         }
-        
+
         // Añadir los productos del inventario con el nombre del área
         const nombreArea = localStorage.getItem('ubicacion_almacen') || ubicacionNombre || "Área desconocida";
         console.log(`Agregando ${inventario.length} elementos a la base de datos local con ubicación: ${nombreArea}`);
-        
+
         let contadorExito = 0;
         let errores = [];
-        
+
         // Agregar cada ítem a IndexedDB con manejo de errores mejorado
         // IMPORTANTE: Solo agregamos los que coinciden con el área seleccionada
         for (const item of inventario) {
@@ -1437,11 +1437,11 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
             if (item.area_id && item.area_id.toString() === areaId.toString()) {
                 try {
                     // Añadir el nombre del área a cada ítem (solo localmente)
-                    const itemConArea = { 
-                        ...item, 
-                        areaName: nombreArea 
+                    const itemConArea = {
+                        ...item,
+                        areaName: nombreArea
                     };
-                    
+
                     await new Promise((resolve, reject) => {
                         const request = objectStore.add(itemConArea);
                         request.onsuccess = () => {
@@ -1463,20 +1463,20 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
                 console.warn(`Producto con ID ${item.id} ignorado: no pertenece al área ${areaId}`);
             }
         }
-        
+
         console.log(`Sincronización completada - Agregados ${contadorExito} de ${inventario.length} elementos. Errores: ${errores.length}`);
-        
+
         // Actualizar la visualización si estamos en la página de inventario
         if (window.location.pathname.includes('inventario.html')) {
             cargarDatosInventarioEnTablaPlantilla();
         }
-        
+
         if (errores.length > 0) {
             mostrarAlertaBurbuja(`Sincronización parcial: ${contadorExito} de ${inventario.length} elementos`, "warning");
         } else {
             mostrarAlertaBurbuja(`Inventario sincronizado: ${contadorExito} elementos`, "success");
         }
-        
+
         return contadorExito;
     } catch (error) {
         console.error("Error al sincronizar inventario:", error);
@@ -1499,16 +1499,16 @@ export async function obtenerAreasPorCategoria() {
             mostrarAlertaBurbuja("Usando datos de áreas almacenados localmente", "info");
             return JSON.parse(areasGuardadas);
         }
-        
+
         // Si no hay áreas guardadas, intentar obtenerlas de Supabase
         console.log("Intentando obtener áreas desde Supabase...");
-        
+
         // Obtener instancia de Supabase
         const supabase = await getSupabase();
         if (!supabase) {
             throw new Error("No se pudo obtener la instancia de Supabase");
         }
-        
+
         // Obtener categoría del usuario
         const categoriaId = localStorage.getItem('categoria_id');
         if (!categoriaId) {
@@ -1516,23 +1516,23 @@ export async function obtenerAreasPorCategoria() {
             // Usar datos de respaldo locales si no hay categoría
             return AREAS_RESPALDO;
         }
-        
+
         // Consultar áreas filtradas por categoría
         const { data: areas, error } = await supabase
             .from('areas')
             .select('*')
             .eq('categoria_id', categoriaId);
-            
+
         if (error) {
             throw error;
         }
-        
+
         if (!areas || areas.length === 0) {
             mostrarAlertaBurbuja("No hay áreas disponibles para esta categoría", "info");
             // Usar datos de respaldo si no se encontraron áreas
             return AREAS_RESPALDO;
         }
-        
+
         // Almacenar las áreas en localStorage para uso futuro
         localStorage.setItem('areas_disponibles', JSON.stringify(areas));
         console.log("Áreas cargadas correctamente desde Supabase:", areas.length);
@@ -1580,29 +1580,29 @@ export function guardarAreaIdPersistente(areaId, nombreArea) {
         console.error("Error: Intentando guardar un area_id vacío o nulo");
         return false;
     }
-    
+
     try {
         console.log(`Guardando area_id: ${areaId} (${nombreArea || 'sin nombre'}) de manera persistente`);
-        
+
         // Guardar en localStorage
         localStorage.setItem('area_id', areaId);
-        
+
         // Guardar también en sessionStorage como respaldo
         sessionStorage.setItem('area_id', areaId);
-        
+
         // Si hay un nombre de área, también guardarlo
         if (nombreArea) {
             localStorage.setItem('ubicacion_almacen', nombreArea);
             sessionStorage.setItem('ubicacion_almacen', nombreArea);
         }
-        
+
         // Verificar que se guardó correctamente
         const verificacion = localStorage.getItem('area_id');
         if (verificacion !== areaId) {
             console.error(`Error de verificación: area_id guardado (${verificacion}) no coincide con el proporcionado (${areaId})`);
             return false;
         }
-        
+
         console.log("area_id guardado correctamente en localStorage y sessionStorage");
         return true;
     } catch (error) {
@@ -1615,11 +1615,11 @@ export function guardarAreaIdPersistente(areaId, nombreArea) {
 export function obtenerAreaId() {
     // Intentar obtener del localStorage primero
     let areaId = localStorage.getItem('area_id');
-    
+
     // Si no está en localStorage, intentar recuperarlo de sessionStorage
     if (!areaId) {
         areaId = sessionStorage.getItem('area_id');
-        
+
         // Si se encontró en sessionStorage pero no en localStorage, restaurarlo en localStorage
         if (areaId) {
             console.log(`Restaurando area_id (${areaId}) desde sessionStorage a localStorage`);
@@ -1628,7 +1628,7 @@ export function obtenerAreaId() {
             console.warn("No se encontró area_id en localStorage ni sessionStorage");
         }
     }
-    
+
     return areaId;
 }
 
@@ -1641,24 +1641,24 @@ export function inicializarDBEntradas() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open("RegistroEntradasDB", 1);
 
-        request.onerror = function(event) {
+        request.onerror = function (event) {
             console.error("Error al abrir la base de datos de entradas:", event.target.error);
             reject(event.target.error);
         };
 
-        request.onsuccess = function(event) {
+        request.onsuccess = function (event) {
             dbEntradas = event.target.result;
             console.log("Base de datos de entradas inicializada correctamente");
             resolve(dbEntradas);
         };
 
-        request.onupgradeneeded = function(event) {
+        request.onupgradeneeded = function (event) {
             const db = event.target.result;
 
             // Crear object store para registro_entradas si no existe
             if (!db.objectStoreNames.contains("registro_entradas")) {
                 const objectStore = db.createObjectStore("registro_entradas", { keyPath: "id", autoIncrement: true });
-                
+
                 // Crear índices para búsquedas eficientes
                 objectStore.createIndex("codigo", "codigo", { unique: false });
                 objectStore.createIndex("nombre", "nombre", { unique: false });
@@ -1666,7 +1666,7 @@ export function inicializarDBEntradas() {
                 objectStore.createIndex("categoria", "categoria", { unique: false });
                 objectStore.createIndex("fecha_entrada", "fecha_entrada", { unique: false });
                 objectStore.createIndex("area_id", "area_id", { unique: false });
-                
+
                 console.log("Object store 'registro_entradas' creado con índices");
             }
         };
@@ -1694,28 +1694,28 @@ export async function agregarRegistroEntrada(entradaData) {
         // Guardar en IndexedDB
         const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
         const objectStore = transaction.objectStore("registro_entradas");
-        
+
         const request = objectStore.add(entrada);
-        
+
         return new Promise((resolve, reject) => {
-            request.onsuccess = function(event) {
+            request.onsuccess = function (event) {
                 const entradaId = event.target.result;
                 entrada.id = entradaId;
-                
+
                 console.log("Entrada registrada en IndexedDB:", entrada);
-                
+
                 // Agregar a la cola de sincronización
                 agregarAColaSincronizacionEntradas(entrada);
-                
+
                 resolve(entrada);
             };
-            
-            request.onerror = function(event) {
+
+            request.onerror = function (event) {
                 console.error("Error al agregar entrada:", event.target.error);
                 reject(event.target.error);
             };
         });
-        
+
     } catch (error) {
         console.error("Error en agregarRegistroEntrada:", error);
         throw error;
@@ -1737,47 +1737,47 @@ export async function cargarEntradasEnTabla(filtros = {}) {
 
         const transaction = dbEntradas.transaction(["registro_entradas"], "readonly");
         const objectStore = transaction.objectStore("registro_entradas");
-        
+
         return new Promise((resolve, reject) => {
             const request = objectStore.getAll();
-            
-            request.onsuccess = function(event) {
+
+            request.onsuccess = function (event) {
                 let entradas = event.target.result;
-                
+
                 // Filtrar por área
                 entradas = entradas.filter(entrada => entrada.area_id === areaId);
-                
+
                 // Aplicar filtros adicionales si existen
                 if (filtros.codigo) {
-                    entradas = entradas.filter(entrada => 
+                    entradas = entradas.filter(entrada =>
                         entrada.codigo && entrada.codigo.toLowerCase().includes(filtros.codigo.toLowerCase())
                     );
                 }
-                
+
                 if (filtros.nombre) {
-                    entradas = entradas.filter(entrada => 
+                    entradas = entradas.filter(entrada =>
                         entrada.nombre && entrada.nombre.toLowerCase().includes(filtros.nombre.toLowerCase())
                     );
                 }
-                
+
                 if (filtros.marca) {
-                    entradas = entradas.filter(entrada => 
+                    entradas = entradas.filter(entrada =>
                         entrada.marca && entrada.marca.toLowerCase().includes(filtros.marca.toLowerCase())
                     );
                 }
-                
+
                 // Ordenar por fecha de entrada (más recientes primero)
                 entradas.sort((a, b) => new Date(b.fecha_entrada) - new Date(a.fecha_entrada));
-                
+
                 resolve(entradas);
             };
-            
-            request.onerror = function(event) {
+
+            request.onerror = function (event) {
                 console.error("Error al cargar entradas:", event.target.error);
                 reject(event.target.error);
             };
         });
-        
+
     } catch (error) {
         console.error("Error en cargarEntradasEnTabla:", error);
         throw error;
@@ -1794,13 +1794,13 @@ export function agregarAColaSincronizacionEntradas(data) {
         mostrarAlertaBurbuja("Error: No se pudo determinar el área para sincronizar", "error");
         return;
     }
-    
+
     const dataSupabase = { ...data };
     dataSupabase.area_id = dataSupabase.area_id || areaId;
-    
+
     syncQueueEntradas.push(dataSupabase);
     localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
-    
+
     if (navigator.onLine) procesarColaSincronizacionEntradas();
 }
 
@@ -1812,7 +1812,7 @@ export async function procesarColaSincronizacionEntradas() {
         const item = syncQueueEntradas.shift();
         try {
             const supabase = await getSupabase();
-            
+
             if (!item.area_id) {
                 const areaId = obtenerAreaId();
                 if (!areaId) {
@@ -1823,14 +1823,14 @@ export async function procesarColaSincronizacionEntradas() {
                 }
                 item.area_id = areaId;
             }
-            
+
             const datosParaSupabase = { ...item };
             delete datosParaSupabase.is_temp_id;
-            
+
             const { data, error } = await supabase
                 .from('registro_entradas')
-                .upsert({ 
-                    ...datosParaSupabase, 
+                .upsert({
+                    ...datosParaSupabase,
                     usuario_id: localStorage.getItem('usuario_id')
                 })
                 .select();
@@ -1843,20 +1843,20 @@ export async function procesarColaSincronizacionEntradas() {
             // Actualizar IndexedDB con el ID permanente
             const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
             const objectStore = transaction.objectStore("registro_entradas");
-            
+
             await new Promise((resolve, reject) => {
                 const request = objectStore.delete(item.id);
                 request.onsuccess = resolve;
                 request.onerror = () => reject(request.error);
             });
-            
-            const itemActualizado = { 
-                ...item, 
-                id: data[0].id, 
+
+            const itemActualizado = {
+                ...item,
+                id: data[0].id,
                 is_temp_id: false,
                 area_id: data[0].area_id || item.area_id
             };
-            
+
             await new Promise((resolve, reject) => {
                 const request = objectStore.add(itemActualizado);
                 request.onsuccess = resolve;
@@ -1864,14 +1864,14 @@ export async function procesarColaSincronizacionEntradas() {
             });
 
             console.log("Entrada sincronizada correctamente:", data[0]);
-            
+
         } catch (error) {
             console.error("Error al procesar cola de sincronización de entradas:", error);
             syncQueueEntradas.unshift(item);
             break;
         }
     }
-    
+
     localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
 }
 
@@ -1907,8 +1907,8 @@ export async function sincronizarEntradasDesdeSupabase() {
         // Limpiar registros existentes del área actual
         const index = objectStore.index("area_id");
         const deleteRequest = index.openCursor(IDBKeyRange.only(areaId));
-        
-        deleteRequest.onsuccess = function(event) {
+
+        deleteRequest.onsuccess = function (event) {
             const cursor = event.target.result;
             if (cursor) {
                 cursor.delete();
@@ -1918,7 +1918,7 @@ export async function sincronizarEntradasDesdeSupabase() {
 
         // Esperar a que termine la limpieza y luego agregar nuevos datos
         await new Promise((resolve) => {
-            deleteRequest.onsuccess = function(event) {
+            deleteRequest.onsuccess = function (event) {
                 const cursor = event.target.result;
                 if (cursor) {
                     cursor.delete();
@@ -1935,7 +1935,7 @@ export async function sincronizarEntradasDesdeSupabase() {
                 ...entrada,
                 is_temp_id: false
             };
-            
+
             await new Promise((resolve, reject) => {
                 const request = objectStore.add(entradaConFlags);
                 request.onsuccess = resolve;
@@ -1945,9 +1945,9 @@ export async function sincronizarEntradasDesdeSupabase() {
 
         console.log(`${entradas.length} entradas sincronizadas desde Supabase`);
         mostrarAlertaBurbuja(`${entradas.length} entradas sincronizadas correctamente`, "success");
-        
+
         return entradas;
-        
+
     } catch (error) {
         console.error("Error al sincronizar entradas desde Supabase:", error);
         mostrarAlertaBurbuja("Error al sincronizar entradas desde el servidor", "error");
@@ -1964,25 +1964,25 @@ export async function eliminarRegistroEntrada(entradaId) {
 
         const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
         const objectStore = transaction.objectStore("registro_entradas");
-        
+
         return new Promise((resolve, reject) => {
             const request = objectStore.delete(entradaId);
-            
-            request.onsuccess = function() {
+
+            request.onsuccess = function () {
                 console.log("Entrada eliminada de IndexedDB:", entradaId);
-                
+
                 // También eliminar de Supabase si no es un ID temporal
                 eliminarEntradaDeSupabase(entradaId);
-                
+
                 resolve();
             };
-            
-            request.onerror = function(event) {
+
+            request.onerror = function (event) {
                 console.error("Error al eliminar entrada:", event.target.error);
                 reject(event.target.error);
             };
         });
-        
+
     } catch (error) {
         console.error("Error en eliminarRegistroEntrada:", error);
         throw error;
@@ -2003,7 +2003,7 @@ async function eliminarEntradaDeSupabase(entradaId) {
         } else {
             console.log("Entrada eliminada de Supabase:", entradaId);
         }
-        
+
     } catch (error) {
         console.error("Error al conectar con Supabase para eliminar entrada:", error);
     }
@@ -2013,7 +2013,7 @@ async function eliminarEntradaDeSupabase(entradaId) {
 export async function generarReporteEntradas(filtros = {}) {
     try {
         const entradas = await cargarEntradasEnTabla(filtros);
-        
+
         const csv = [
             ['Código', 'Nombre', 'Marca', 'Categoría', 'Unidad', 'Cantidad', 'Fecha Entrada', 'Comentarios'].join(','),
             ...entradas.map(entrada => [
@@ -2027,7 +2027,7 @@ export async function generarReporteEntradas(filtros = {}) {
                 entrada.comentarios || ''
             ].map(field => `"${field}"`).join(','))
         ].join('\n');
-        
+
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
@@ -2037,9 +2037,9 @@ export async function generarReporteEntradas(filtros = {}) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         mostrarAlertaBurbuja("Reporte generado correctamente", "success");
-        
+
     } catch (error) {
         console.error("Error al generar reporte de entradas:", error);
         mostrarAlertaBurbuja("Error al generar reporte", "error");

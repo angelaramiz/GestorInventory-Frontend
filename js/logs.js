@@ -66,7 +66,7 @@ const BURBUJA_HEIGHT = 60; // Altura aproximada de cada burbuja en píxeles (aju
 export function mostrarAlertaBurbuja(mensaje, tipo) {
     // Incrementar contador para esta burbuja
     const burbujaIndex = burbujaCount++;
-    
+
     const burbuja = document.createElement('div');
     burbuja.className = `alerta-burbuja ${tipo}`;
     burbuja.textContent = mensaje;
@@ -90,7 +90,7 @@ export function mostrarAlertaBurbuja(mensaje, tipo) {
     setTimeout(() => {
         burbuja.style.opacity = '0';
         burbuja.style.transform = 'translateX(50px)';
-        
+
         // Eliminar la burbuja del DOM después de la animación
         setTimeout(() => {
             burbuja.remove();

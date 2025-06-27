@@ -11,7 +11,8 @@
     <link rel="stylesheet" href="../css/styles.css">
 </head>
 
-<body class="bg-gray-100">    <header class="bg-green-600 text-white p-4 flex justify-between items-center shadow-lg">
+<body class="bg-gray-100">
+    <header class="bg-green-600 text-white p-4 flex justify-between items-center shadow-lg">
         <div class="flex items-center space-x-3">
             <div class="p-2 bg-green-700 rounded-lg">
                 📦
@@ -28,7 +29,9 @@
                 <span id="totalEntradas">0</span> entradas registradas
             </div>
         </div>
-    </header><div id="sideMenu" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform z-50">
+    </header>
+    <div id="sideMenu"
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform z-50">
         <div class="p-4 border-b">
             <h2 class="text-xl font-bold">Menú de Navegación</h2>
             <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
@@ -36,7 +39,8 @@
         <ul id="menuRoutes" class="p-4 space-y-2">
             <!-- Las rutas se generarán dinámicamente -->
         </ul>
-    </div>    <div class="container mx-auto mt-8 p-4">
+    </div>
+    <div class="container mx-auto mt-8 p-4">
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center space-x-4">
                 <h1 class="text-4xl font-bold text-gray-800 flex items-center">
@@ -47,15 +51,17 @@
                 </h1>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="./main.html" class="text-green-600 hover:text-green-800 hover:underline font-medium flex items-center space-x-2 transition-colors">
+                <a href="./main.html"
+                    class="text-green-600 hover:text-green-800 hover:underline font-medium flex items-center space-x-2 transition-colors">
                     <span>←</span>
                     <span>Regresar al Menú Principal</span>
                 </a>
-                <button id="menuToggle" class="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 border-2 border-green-600 font-semibold transition-all hover:shadow-md">
+                <button id="menuToggle"
+                    class="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 border-2 border-green-600 font-semibold transition-all hover:shadow-md">
                     📋 Menú de Navegación
                 </button>
             </div>
-        </div>        <!-- Sección de búsqueda de productos -->
+        </div> <!-- Sección de búsqueda de productos -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover">
             <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
                 🔍 Buscar Producto
@@ -121,17 +127,22 @@
             </div>
 
             <!-- Mensaje de búsqueda reciente -->
-            <div id="busquedaReciente" class="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded" style="display: none;">
+            <div id="busquedaReciente" class="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded"
+                style="display: none;">
                 <p class="text-sm text-blue-700">
                     <strong>Búsqueda reciente:</strong> <span id="textoUltimaBusqueda"></span>
                 </p>
             </div>
-        </div>        <!-- Formulario de datos del producto y entrada -->
-        <div id="productForm" class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover" style="display: none;">
+        </div> <!-- Formulario de datos del producto y entrada -->
+        <div id="productForm"
+            class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover"
+            style="display: none;">
             <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
                 📦 Datos del Producto
                 <div id="productLoadingIndicator" class="ml-3" style="display: none;">
-                    <div class="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div
+                        class="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin">
+                    </div>
                     <span class="ml-2">Cargando información...</span>
                 </div>
                 <div class="ml-auto">
@@ -141,43 +152,56 @@
                 </div>
             </h2>
 
-            <div id="productInfo" class="grid md:grid-cols-2 gap-6 mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-inner">
+            <div id="productInfo"
+                class="grid md:grid-cols-2 gap-6 mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-inner">
                 <div class="space-y-4">
                     <div class="transform transition-all hover:scale-105">
-                        <label for="codigoProducto" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <label for="codigoProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                             🏷️ <span class="ml-2">Código del Producto:</span>
                         </label>
-                        <input type="text" id="codigoProducto" class="border-2 border-gray-200 p-3 w-full bg-white font-mono text-lg rounded-lg shadow-sm" readonly>
+                        <input type="text" id="codigoProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white font-mono text-lg rounded-lg shadow-sm"
+                            readonly>
                     </div>
 
                     <div class="transform transition-all hover:scale-105">
-                        <label for="nombreProducto" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <label for="nombreProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                             📝 <span class="ml-2">Nombre del Producto:</span>
                         </label>
-                        <input type="text" id="nombreProducto" class="border-2 border-gray-200 p-3 w-full bg-white font-semibold text-lg rounded-lg shadow-sm" readonly>
+                        <input type="text" id="nombreProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white font-semibold text-lg rounded-lg shadow-sm"
+                            readonly>
                     </div>
 
                     <div class="transform transition-all hover:scale-105">
-                        <label for="marcaProducto" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <label for="marcaProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                             🏢 <span class="ml-2">Marca:</span>
                         </label>
-                        <input type="text" id="marcaProducto" class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
+                        <input type="text" id="marcaProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
                     </div>
                 </div>
 
                 <div class="space-y-4">
                     <div class="transform transition-all hover:scale-105">
-                        <label for="categoriaProducto" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <label for="categoriaProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                             📂 <span class="ml-2">Categoría:</span>
                         </label>
-                        <input type="text" id="categoriaProducto" class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
+                        <input type="text" id="categoriaProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
                     </div>
 
                     <div class="transform transition-all hover:scale-105">
-                        <label for="unidadProducto" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <label for="unidadProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                             📏 <span class="ml-2">Unidad de Medida:</span>
                         </label>
-                        <input type="text" id="unidadProducto" class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
+                        <input type="text" id="unidadProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
                     </div>
 
                     <!-- Información adicional del stock actual -->
@@ -187,7 +211,8 @@
                         <div class="text-xs text-blue-500">unidades disponibles</div>
                     </div>
                 </div>
-            </div>            <div class="border-t-2 border-gray-200 pt-8">
+            </div>
+            <div class="border-t-2 border-gray-200 pt-8">
                 <h3 class="text-lg font-semibold mb-6 text-green-600 flex items-center">
                     📝 Datos de la Entrada
                     <span class="ml-3 text-sm text-gray-500 bg-yellow-100 px-3 py-1 rounded-full">
@@ -200,13 +225,14 @@
 
                 <div class="grid md:grid-cols-3 gap-6 mb-8">
                     <div class="transform transition-all hover:scale-105">
-                        <label for="cantidadEntrada" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <label for="cantidadEntrada"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                             📊 <span class="ml-2">Cantidad Recibida *:</span>
                         </label>
                         <div class="relative">
-                            <input type="number" id="cantidadEntrada" 
-                                   class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg font-semibold" 
-                                   min="0.01" step="0.01" required placeholder="0.00">
+                            <input type="number" id="cantidadEntrada"
+                                class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg font-semibold"
+                                min="0.01" step="0.01" required placeholder="0.00">
                             <div class="absolute right-3 top-3 text-gray-400">
                                 <span id="unidadMedida">unidades</span>
                             </div>
@@ -215,12 +241,13 @@
                     </div>
 
                     <div class="transform transition-all hover:scale-105">
-                        <label for="fechaEntrada" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <label for="fechaEntrada"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                             📅 <span class="ml-2">Fecha de Entrada *:</span>
                         </label>
-                        <input type="date" id="fechaEntrada" 
-                               class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg" 
-                               required>
+                        <input type="date" id="fechaEntrada"
+                            class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg"
+                            required>
                         <div class="text-xs text-gray-500 mt-1">Fecha en que se recibió el producto</div>
                     </div>
 
@@ -228,40 +255,44 @@
                         <label for="loteEntrada" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                             🏷️ <span class="ml-2">Número de Lote:</span>
                         </label>
-                        <input type="text" id="loteEntrada" 
-                               class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm" 
-                               placeholder="Opcional">
+                        <input type="text" id="loteEntrada"
+                            class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
+                            placeholder="Opcional">
                         <div class="text-xs text-gray-500 mt-1">Número de lote del proveedor</div>
                     </div>
                 </div>
 
                 <div class="mb-6">
-                    <label for="comentariosEntrada" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                    <label for="comentariosEntrada"
+                        class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                         💬 <span class="ml-2">Comentarios y Observaciones:</span>
                     </label>
-                    <textarea id="comentariosEntrada" 
-                              class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm" 
-                              rows="4" 
-                              placeholder="Información adicional: estado del producto, observaciones del proveedor, condiciones especiales..."></textarea>
+                    <textarea id="comentariosEntrada"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
+                        rows="4"
+                        placeholder="Información adicional: estado del producto, observaciones del proveedor, condiciones especiales..."></textarea>
                 </div>
 
                 <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
-                    <button id="limpiarFormulario" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                    <button id="limpiarFormulario"
+                        class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
                         <span>🗑️</span>
                         <span>Limpiar Formulario</span>
                     </button>
-                    <button id="registrarEntrada" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                    <button id="registrarEntrada"
+                        class="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
                         <span id="btnRegistrarText">✅ Registrar Entrada</span>
                     </button>
                 </div>
 
                 <!-- Resumen de la entrada -->
-                <div id="resumenEntrada" class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded" style="display: none;">
+                <div id="resumenEntrada" class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded"
+                    style="display: none;">
                     <h4 class="font-semibold text-blue-700 mb-2">📋 Resumen de la Entrada:</h4>
                     <div id="textoResumen" class="text-sm text-blue-600"></div>
                 </div>
             </div>
-        </div>        <!-- Filtros y controles -->
+        </div> <!-- Filtros y controles -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-blue-500 card-hover">
             <h2 class="text-xl font-bold mb-6 text-blue-600 flex items-center">
                 🔧 Filtros y Controles del Sistema
@@ -278,35 +309,37 @@
                     <label for="filtroCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                         🏷️ <span class="ml-2">Filtrar por Código:</span>
                     </label>
-                    <input type="text" id="filtroCodigo" 
-                           class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm" 
-                           placeholder="Código del producto...">
+                    <input type="text" id="filtroCodigo"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
+                        placeholder="Código del producto...">
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroNombre" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                         📝 <span class="ml-2">Filtrar por Nombre:</span>
                     </label>
-                    <input type="text" id="filtroNombre" 
-                           class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm" 
-                           placeholder="Nombre del producto...">
+                    <input type="text" id="filtroNombre"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
+                        placeholder="Nombre del producto...">
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroMarca" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                         🏢 <span class="ml-2">Filtrar por Marca:</span>
                     </label>
-                    <input type="text" id="filtroMarca" 
-                           class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm" 
-                           placeholder="Marca del producto...">
+                    <input type="text" id="filtroMarca"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
+                        placeholder="Marca del producto...">
                 </div>
 
                 <div class="flex items-end space-x-2">
-                    <button id="filtrarEntradas" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
+                    <button id="filtrarEntradas"
+                        class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
                         <span>🔍</span>
                         <span>Filtrar</span>
                     </button>
-                    <button id="limpiarFiltros" class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-3 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
+                    <button id="limpiarFiltros"
+                        class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-3 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
                         <span>🗑️</span>
                         <span>Limpiar</span>
                     </button>
@@ -319,18 +352,19 @@
                     <label for="fechaDesde" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                         📅 <span class="ml-2">Desde:</span>
                     </label>
-                    <input type="date" id="fechaDesde" 
-                           class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
+                    <input type="date" id="fechaDesde"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
                 </div>
                 <div>
                     <label for="fechaHasta" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                         📅 <span class="ml-2">Hasta:</span>
                     </label>
-                    <input type="date" id="fechaHasta" 
-                           class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
+                    <input type="date" id="fechaHasta"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
                 </div>
                 <div class="flex items-end">
-                    <button id="filtrarPorFecha" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all w-full">
+                    <button id="filtrarPorFecha"
+                        class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all w-full">
                         📊 Filtrar por Fechas
                     </button>
                 </div>
@@ -338,14 +372,17 @@
 
             <div class="flex flex-wrap gap-4 justify-between items-center">
                 <div class="flex flex-wrap gap-3">
-                    <button id="sincronizarEntradas" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                    <button id="sincronizarEntradas"
+                        class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
                         <span id="btnSincText">🔄 Sincronizar con Servidor</span>
                     </button>
-                    <button id="generarReporte" class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                    <button id="generarReporte"
+                        class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
                         <span>📊</span>
                         <span>Generar Reporte CSV</span>
                     </button>
-                    <button id="autoRefresh" class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                    <button id="autoRefresh"
+                        class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
                         <span>⚡</span>
                         <span>Auto-actualización: OFF</span>
                     </button>
@@ -362,14 +399,16 @@
                     </div>
                 </div>
             </div>
-        </div>        <!-- Tabla de entradas -->
+        </div> <!-- Tabla de entradas -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-purple-500 card-hover">
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-purple-600 flex items-center">
                         📋 Historial de Entradas del Sistema
                         <div id="tableLoadingIndicator" class="ml-3" style="display: none;">
-                            <div class="inline-block w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                            <div
+                                class="inline-block w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin">
+                            </div>
                             <span class="ml-2 text-sm">Actualizando datos...</span>
                         </div>
                     </h2>
@@ -383,15 +422,21 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button id="refreshTable" class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-2 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1" title="Actualizar tabla">
+                    <button id="refreshTable"
+                        class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-2 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
+                        title="Actualizar tabla">
                         <span>🔄</span>
                         <span class="hidden md:inline">Actualizar</span>
                     </button>
-                    <button id="exportVisible" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1" title="Exportar datos visibles">
+                    <button id="exportVisible"
+                        class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
+                        title="Exportar datos visibles">
                         <span>📥</span>
                         <span class="hidden md:inline">Exportar</span>
                     </button>
-                    <button id="expandirTabla" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1" title="Expandir/Contraer tabla">
+                    <button id="expandirTabla"
+                        class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
+                        title="Expandir/Contraer tabla">
                         <span>⛶</span>
                         <span class="hidden md:inline">Expandir</span>
                     </button>
@@ -401,10 +446,11 @@
             <!-- Barra de búsqueda rápida -->
             <div class="mb-4 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <input type="text" id="busquedaRapida" 
-                           class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
-                           placeholder="🔍 Búsqueda rápida en la tabla...">
-                    <select id="ordenarPor" class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <input type="text" id="busquedaRapida"
+                        class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        placeholder="🔍 Búsqueda rápida en la tabla...">
+                    <select id="ordenarPor"
+                        class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500">
                         <option value="fecha-desc">Más reciente primero</option>
                         <option value="fecha-asc">Más antiguo primero</option>
                         <option value="cantidad-desc">Mayor cantidad primero</option>
@@ -422,49 +468,57 @@
                 <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
                     <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200" onclick="sortTable('codigo')">
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('codigo')">
                                 <div class="flex items-center space-x-1">
                                     <span>🏷️ Código</span>
                                     <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200" onclick="sortTable('nombre')">
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('nombre')">
                                 <div class="flex items-center space-x-1">
                                     <span>📝 Nombre</span>
                                     <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200" onclick="sortTable('marca')">
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('marca')">
                                 <div class="flex items-center space-x-1">
                                     <span>🏢 Marca</span>
                                     <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200" onclick="sortTable('categoria')">
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('categoria')">
                                 <div class="flex items-center space-x-1">
                                     <span>📂 Categoría</span>
                                     <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200" onclick="sortTable('unidad')">
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('unidad')">
                                 <div class="flex items-center space-x-1">
                                     <span>📏 Unidad</span>
                                     <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200" onclick="sortTable('cantidad')">
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('cantidad')">
                                 <div class="flex items-center space-x-1">
                                     <span>📊 Cantidad</span>
                                     <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200" onclick="sortTable('fecha')">
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('fecha')">
                                 <div class="flex items-center space-x-1">
                                     <span>📅 Fecha</span>
                                     <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                            <th
+                                class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
                                 💬 Comentarios
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -479,7 +533,8 @@
                                 <div class="flex flex-col items-center space-y-3">
                                     <div class="text-4xl">📦</div>
                                     <div class="text-lg font-medium">No hay entradas registradas</div>
-                                    <div class="text-sm">Las entradas aparecerán aquí cuando se registren productos</div>
+                                    <div class="text-sm">Las entradas aparecerán aquí cuando se registren productos
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -503,29 +558,35 @@
                     <!-- Los controles de paginación se generarán dinámicamente -->
                 </div>
             </div>
-        </div>        <!-- Scanner container -->
-        <div id="scanner-container" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm" style="display: none;">
-            <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl border-4 border-green-500 transform transition-all">
+        </div> <!-- Scanner container -->
+        <div id="scanner-container"
+            class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm"
+            style="display: none;">
+            <div
+                class="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl border-4 border-green-500 transform transition-all">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold text-gray-800 flex items-center">
                         📷 <span class="ml-2">Escáner de Código de Barras</span>
                     </h3>
-                    <button id="cerrarEscaner" class="text-red-500 hover:text-red-700 text-2xl font-bold transition-colors transform hover:scale-110">
+                    <button id="cerrarEscaner"
+                        class="text-red-500 hover:text-red-700 text-2xl font-bold transition-colors transform hover:scale-110">
                         ✕
                     </button>
                 </div>
-                
+
                 <div class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
                     <p class="text-sm text-blue-700">
-                        <strong>Instrucciones:</strong> Coloque el código de barras dentro del marco verde. 
+                        <strong>Instrucciones:</strong> Coloque el código de barras dentro del marco verde.
                         El escáner detectará automáticamente el código.
                     </p>
                 </div>
 
-                <div id="reader" class="w-full mb-6 rounded-lg overflow-hidden border-4 border-green-200 shadow-lg"></div>
-                
+                <div id="reader" class="w-full mb-6 rounded-lg overflow-hidden border-4 border-green-200 shadow-lg">
+                </div>
+
                 <div class="flex space-x-3">
-                    <button id="detenerEscaner" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 w-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
+                    <button id="detenerEscaner"
+                        class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 w-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
                         <span>🛑</span>
                         <span>Detener Escáner</span>
                     </button>
@@ -540,7 +601,8 @@
                 </div>
             </div>
         </div>
-    </div><script src="../librerías/html5-qrcode.min.js"></script>
+    </div>
+    <script src="../librerías/html5-qrcode.min.js"></script>
     <script src="../js/extension-conflict-detector.js"></script>
     <script type="module" src="../js/main.js"></script>
     <script type="module" src="../js/registro-entradas-operations.js"></script>
@@ -655,13 +717,13 @@
         function updateConnectionStatus() {
             const statusElement = document.getElementById('conexionStatus');
             const estadoConexion = document.getElementById('estadoConexion');
-            
+
             if (statusElement || estadoConexion) {
                 const isOnline = navigator.onLine;
                 const status = isOnline
                     ? '<span class="status-indicator status-success"></span>Conectado'
                     : '<span class="status-indicator status-error"></span>Sin conexión';
-                
+
                 if (statusElement) statusElement.innerHTML = status;
                 if (estadoConexion) {
                     estadoConexion.textContent = isOnline ? 'Conectado' : 'Sin conexión';
@@ -708,8 +770,8 @@
                     // Actualizar contador de resultados
                     const resultados = document.getElementById('resultadosBusqueda');
                     if (resultados) {
-                        resultados.textContent = searchTerm ? 
-                            `${visibleCount} resultado${visibleCount !== 1 ? 's' : ''} encontrado${visibleCount !== 1 ? 's' : ''}` : 
+                        resultados.textContent = searchTerm ?
+                            `${visibleCount} resultado${visibleCount !== 1 ? 's' : ''} encontrado${visibleCount !== 1 ? 's' : ''}` :
                             '';
                     }
                 });
@@ -732,10 +794,10 @@
 
         function showAutoCompleteHint(element, value) {
             if (value.length < 2) return;
-            
+
             // Simular sugerencias (en producción vendría de la base de datos)
             const hints = ['Producto A', 'Producto B', 'Marca X', 'Marca Y'];
-            const matchingHints = hints.filter(hint => 
+            const matchingHints = hints.filter(hint =>
                 hint.toLowerCase().includes(value.toLowerCase())
             );
 
@@ -791,7 +853,7 @@
                 cantidadInput.addEventListener('input', (e) => {
                     const value = parseFloat(e.target.value);
                     const isValid = value > 0;
-                    
+
                     if (isValid) {
                         e.target.classList.remove('border-red-500');
                         e.target.classList.add('border-green-500');
@@ -833,7 +895,7 @@
             if (codigo && nombre && cantidad && fecha) {
                 const resumen = document.getElementById('resumenEntrada');
                 const textoResumen = document.getElementById('textoResumen');
-                
+
                 if (resumen && textoResumen) {
                     textoResumen.innerHTML = `
                         <strong>${nombre}</strong> (${codigo})<br>
@@ -862,15 +924,14 @@
         function showToast(message, type = 'info') {
             // Implementación simple de toast
             const toast = document.createElement('div');
-            toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-                type === 'success' ? 'bg-green-500' : 
-                type === 'warning' ? 'bg-yellow-500' : 
-                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-            } text-white`;
+            toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500' :
+                    type === 'warning' ? 'bg-yellow-500' :
+                        type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                } text-white`;
             toast.textContent = message;
-            
+
             document.body.appendChild(toast);
-            
+
             setTimeout(() => {
                 toast.remove();
             }, 3000);
@@ -880,7 +941,7 @@
         function sortTable(column) {
             console.log(`Ordenando por: ${column}`);
             // Aquí se implementaría la lógica de ordenamiento
-        }        function setupAutoRefresh() {
+        } function setupAutoRefresh() {
             let autoRefreshEnabled = false;
             let autoRefreshInterval;
 
@@ -933,7 +994,7 @@
                     btn.addEventListener('click', () => {
                         const textId = btnId.replace('buscar', 'btn') + 'Text';
                         showButtonLoading(btn, textId, '🔍 Buscando...');
-                        
+
                         // Simular búsqueda exitosa
                         setTimeout(() => {
                             hideButtonLoading(btn, textId, '🔍 Buscar');
@@ -948,7 +1009,7 @@
             if (registrarBtn) {
                 registrarBtn.addEventListener('click', () => {
                     showButtonLoading(registrarBtn, 'btnRegistrarText', '⏳ Registrando entrada...');
-                    
+
                     setTimeout(() => {
                         hideButtonLoading(registrarBtn, 'btnRegistrarText', '✅ Registrar Entrada');
                         showToast('✅ Entrada registrada exitosamente', 'success');
@@ -962,7 +1023,7 @@
             if (sincBtn) {
                 sincBtn.addEventListener('click', () => {
                     showButtonLoading(sincBtn, 'btnSincText', '🔄 Sincronizando con servidor...');
-                    
+
                     setTimeout(() => {
                         hideButtonLoading(sincBtn, 'btnSincText', '🔄 Sincronizar con Servidor');
                         showToast('✅ Sincronización completada', 'success');
@@ -990,22 +1051,22 @@
         function updateSearchHistory(searchType) {
             const busquedaReciente = document.getElementById('busquedaReciente');
             const textoUltimaBusqueda = document.getElementById('textoUltimaBusqueda');
-            
+
             if (busquedaReciente && textoUltimaBusqueda) {
                 const tipoTexto = {
                     'buscarPorCodigo': 'Búsqueda por código',
-                    'buscarPorNombre': 'Búsqueda por nombre', 
+                    'buscarPorNombre': 'Búsqueda por nombre',
                     'buscarPorMarca': 'Búsqueda por marca'
                 };
-                
+
                 const now = new Date().toLocaleTimeString('es-ES', {
                     hour: '2-digit',
                     minute: '2-digit'
                 });
-                
+
                 textoUltimaBusqueda.textContent = `${tipoTexto[searchType]} a las ${now}`;
                 busquedaReciente.style.display = 'block';
-                
+
                 // Ocultar después de 10 segundos
                 setTimeout(() => {
                     busquedaReciente.style.display = 'none';
@@ -1016,19 +1077,19 @@
         function updateEntryCounter() {
             const contador = document.getElementById('contadorEntradas');
             const totalEntradas = document.getElementById('totalEntradas');
-            
+
             if (contador) {
                 const currentCount = parseInt(contador.textContent.match(/\d+/) || [0])[0];
                 const newCount = currentCount + 1;
                 contador.textContent = `Total: ${newCount} entradas registradas`;
-                
+
                 // Animación del contador
                 contador.classList.add('animate-pulse');
                 setTimeout(() => {
                     contador.classList.remove('animate-pulse');
                 }, 1000);
             }
-            
+
             if (totalEntradas) {
                 const currentCount = parseInt(totalEntradas.textContent || 0);
                 totalEntradas.textContent = currentCount + 1;
@@ -1061,13 +1122,13 @@
             } else {
                 button.textContent = originalText;
             }
-        }        function setupEntranceAnimations() {
+        } function setupEntranceAnimations() {
             // Animar elementos cuando aparecen
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('animate-fade-in-up');
-                        
+
                         // Añadir un pequeño retraso para elementos consecutivos
                         const siblings = Array.from(entry.target.parentElement.children);
                         const index = siblings.indexOf(entry.target);
@@ -1116,7 +1177,7 @@
             modal.style.display = 'flex';
             modal.style.opacity = '0';
             modal.style.transform = 'scale(0.8)';
-            
+
             setTimeout(() => {
                 modal.style.transition = 'all 0.3s ease';
                 modal.style.opacity = '1';
@@ -1128,7 +1189,7 @@
             modal.style.transition = 'all 0.3s ease';
             modal.style.opacity = '0';
             modal.style.transform = 'scale(0.8)';
-            
+
             setTimeout(() => {
                 modal.style.display = 'none';
             }, 300);
@@ -1143,11 +1204,11 @@
                         setTimeout(() => {
                             const productForm = document.getElementById('productForm');
                             const codigoProducto = document.getElementById('codigoProducto');
-                            
+
                             if (productForm && codigoProducto && codigoProducto.value) {
                                 // Mostrar formulario con animación
                                 productForm.style.display = 'block';
-                                productForm.scrollIntoView({ 
+                                productForm.scrollIntoView({
                                     behavior: 'smooth',
                                     block: 'center'
                                 });
@@ -1160,7 +1221,7 @@
                                     productForm.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
                                     productForm.style.opacity = '1';
                                     productForm.style.transform = 'translateY(0)';
-                                    
+
                                     // Destacar el formulario brevemente
                                     productForm.classList.add('ring-4', 'ring-green-300', 'ring-opacity-50');
                                     setTimeout(() => {
@@ -1170,7 +1231,7 @@
 
                                 // Actualizar stock actual (simulado)
                                 updateStockDisplay();
-                                
+
                                 // Focus en el primer campo editable
                                 const cantidadInput = document.getElementById('cantidadEntrada');
                                 if (cantidadInput) {
@@ -1187,7 +1248,7 @@
                 input.addEventListener('focus', (e) => {
                     e.target.style.transform = 'scale(1.02)';
                     e.target.style.transition = 'transform 0.2s ease';
-                    
+
                     // Añadir indicador de foco
                     const label = e.target.previousElementSibling;
                     if (label && label.tagName === 'LABEL') {
@@ -1199,7 +1260,7 @@
 
                 input.addEventListener('blur', (e) => {
                     e.target.style.transform = 'scale(1)';
-                    
+
                     // Restaurar label
                     const label = e.target.previousElementSibling;
                     if (label && label.tagName === 'LABEL') {
@@ -1239,15 +1300,15 @@
                 // Simular datos de stock
                 const stock = Math.floor(Math.random() * 500) + 10;
                 stockActual.textContent = stock;
-                
+
                 // Animación del contador
                 stockActual.style.transform = 'scale(1.2)';
                 stockActual.style.transition = 'transform 0.3s ease';
-                
+
                 setTimeout(() => {
                     stockActual.style.transform = 'scale(1)';
                 }, 300);
-                
+
                 // Color basado en el stock
                 if (stock < 50) {
                     stockActual.className = 'text-2xl font-bold text-red-600';
@@ -1272,7 +1333,7 @@
                                 // Animar nueva fila
                                 node.style.opacity = '0';
                                 node.style.transform = 'translateX(-20px)';
-                                
+
                                 setTimeout(() => {
                                     node.style.transition = 'all 0.5s ease';
                                     node.style.opacity = '1';
@@ -1314,21 +1375,21 @@
                         '🔄 Datos actualizados automáticamente',
                         '📈 Rendimiento óptimo del sistema'
                     ];
-                    
+
                     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
                     showToast(randomMessage, 'success');
                 }
             }, 60000); // Cada minuto
-        }        function refreshTableData() {
+        } function refreshTableData() {
             const indicator = document.getElementById('tableLoadingIndicator');
             if (indicator) {
                 indicator.style.display = 'block';
-                
+
                 // Simular carga de datos
                 setTimeout(() => {
                     indicator.style.display = 'none';
                     updateLastSyncTime();
-                    
+
                     // Actualizar contador si hay datos
                     const tbody = document.getElementById('tablaEntradasBody');
                     if (tbody) {
@@ -1350,7 +1411,7 @@
                 // Eliminar eventos anteriores para evitar duplicados
                 row.removeEventListener('mouseenter', handleRowHover);
                 row.removeEventListener('mouseleave', handleRowLeave);
-                
+
                 // Añadir nuevos eventos
                 row.addEventListener('mouseenter', handleRowHover);
                 row.addEventListener('mouseleave', handleRowLeave);
@@ -1382,13 +1443,13 @@
         function initializeAdditionalFeatures() {
             // Configurar filtros de fecha inteligentes
             setupIntelligentDateFilters();
-            
+
             // Configurar exportación mejorada
             setupEnhancedExport();
-            
+
             // Configurar modo expandido de tabla
             setupTableExpandMode();
-            
+
             // Configurar estadísticas en tiempo real
             setupRealTimeStats();
         }
@@ -1399,7 +1460,7 @@
                 filtrarPorFecha.addEventListener('click', () => {
                     const fechaDesde = document.getElementById('fechaDesde').value;
                     const fechaHasta = document.getElementById('fechaHasta').value;
-                    
+
                     if (fechaDesde && fechaHasta) {
                         const rangoFechas = document.getElementById('rangoFechas');
                         if (rangoFechas) {
@@ -1420,7 +1481,7 @@
             if (exportBtn) {
                 exportBtn.addEventListener('click', () => {
                     showToast('📥 Preparando exportación...', 'info');
-                    
+
                     setTimeout(() => {
                         showToast('✅ Datos exportados exitosamente', 'success');
                     }, 2000);
@@ -1431,11 +1492,11 @@
         function setupTableExpandMode() {
             const expandBtn = document.getElementById('expandirTabla');
             let isExpanded = false;
-            
+
             if (expandBtn) {
                 expandBtn.addEventListener('click', () => {
                     const tableContainer = expandBtn.closest('.bg-white');
-                    
+
                     if (!isExpanded) {
                         tableContainer.classList.add('fixed', 'inset-4', 'z-40', 'overflow-auto');
                         expandBtn.innerHTML = '<span>⛶</span><span class="hidden md:inline">Contraer</span>';
@@ -1456,7 +1517,7 @@
             setInterval(() => {
                 updateSystemStats();
             }, 30000);
-            
+
             // Actualización inicial
             updateSystemStats();
         }
@@ -1581,7 +1642,7 @@
                 }
             </style>
         `;
-        
+
         // Añadir estilos al head
         document.head.insertAdjacentHTML('beforeend', additionalStyles);
 

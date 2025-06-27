@@ -17,7 +17,7 @@ async function inicializeSupabase() {
     if (supabase) {
         return supabase;
     }
-    
+
     if (supabaseInitializing) {
         // Esperar a que termine la inicialización en curso
         while (supabaseInitializing && !supabase) {
@@ -25,9 +25,9 @@ async function inicializeSupabase() {
         }
         return supabase;
     }
-    
+
     supabaseInitializing = true;
-    
+
     try {
         // Intentar obtener la configuración del servidor
         const response = await fetch('https://gestorinventory-backend.fly.dev/api/supabase-config', {
@@ -36,11 +36,11 @@ async function inicializeSupabase() {
             // Reducir el tiempo de espera para una respuesta más rápida si hay problemas
             signal: AbortSignal.timeout(5000) // 5 segundos de timeout
         });
-        
+
         if (!response.ok) throw new Error('No se pudo obtener la configuración de Supabase');
-        
+
         const config = await response.json();
-        
+
         // Evitar múltiples instancias usando la misma key de almacenamiento
         supabase = createClient(config.supabaseUrl, config.supabaseKey, {
             auth: {
@@ -60,7 +60,7 @@ async function inicializeSupabase() {
     } catch (error) {
         console.error('❌ Error al obtener configuración del servidor:', error);
         mostrarAlertaBurbuja('Usando configuración local de respaldo para Supabase', 'warning');
-        
+
         // Usar configuración de respaldo
         try {
             supabase = createClient(SUPABASE_CONFIG_BACKUP.supabaseUrl, SUPABASE_CONFIG_BACKUP.supabaseKey, {
@@ -86,7 +86,7 @@ async function inicializeSupabase() {
     } finally {
         supabaseInitializing = false;
     }
-    
+
     return supabase;
 }
 
@@ -217,26 +217,26 @@ async function iniciarSesion(email, password) {
 
 export function isTokenExpired(token) {
     if (!token) return true;
-    
+
     try {
         // Verificar el formato del token
         if (!token.includes('.')) {
             console.error("Formato de token inválido");
             return true;
         }
-        
+
         const payload = JSON.parse(atob(token.split('.')[1]));
         const expirationTime = payload.exp * 1000; // Convertir a milisegundos
-        
+
         // Si faltan menos de 5 minutos para expirar, también lo consideramos expirado
         const bufferTime = 5 * 60 * 1000; // 5 minutos en milisegundos
         const isExpiring = Date.now() > (expirationTime - bufferTime);
         const isExpired = Date.now() > expirationTime;
-        
+
         if (isExpiring || isExpired) {
             return true;
         }
-        
+
         return false;
     } catch (error) {
         console.error("Error al verificar la expiración del token:", error);
@@ -260,11 +260,11 @@ export function mostrarDialogoSesionExpirada() {
             window.location.href = getLoginRedirectPath();
         }
     });
-    
+
     // Limpiar el token expirado
     localStorage.removeItem('supabase.auth.token');
     localStorage.removeItem('supabase.auth.refresh');
-    
+
     // Para mantener compatibilidad con el código que espera un valor booleano
     return false;
 }
@@ -273,23 +273,23 @@ export function mostrarDialogoSesionExpirada() {
 export function verificarTokenAutomaticamente() {
     // Determinar si estamos en la página de login o registro
     const currentPath = window.location.pathname;
-    const isLoginPage = 
-        currentPath.endsWith('index.html') || 
-        currentPath === '/' || 
-        currentPath.endsWith('/') || 
+    const isLoginPage =
+        currentPath.endsWith('index.html') ||
+        currentPath === '/' ||
+        currentPath.endsWith('/') ||
         currentPath.endsWith('register.html') ||
         currentPath.endsWith('confirm-email.html') ||
         currentPath.endsWith('request-password-reset.html') ||
         currentPath.endsWith('reset-password.html');
-    
+
     // Si estamos en la página de login o registro, no verificamos token
     if (isLoginPage) {
         console.log("En página de login/registro, no se verifica el token");
         return true;
     }
-    
+
     const token = localStorage.getItem('supabase.auth.token');
-    
+
     if (!token) {
         // Si no hay token y no estamos en la página de login
         console.log("No hay token de autenticación. Redirigiendo al login...");
@@ -300,12 +300,12 @@ export function verificarTokenAutomaticamente() {
         }, 1500);
         return false;
     }
-    
+
     if (isTokenExpired(token)) {
         console.log("Token expirado. Mostrando diálogo de inicio de sesión...");
         return mostrarDialogoSesionExpirada();
     }
-    
+
     return true;
 }
 
@@ -313,7 +313,7 @@ export function verificarTokenAutomaticamente() {
 function getLoginRedirectPath() {
     const currentPath = window.location.pathname;
     const hostname = window.location.hostname;
-    
+
     // En desarrollo (localhost)
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
         // Si estamos en una subcarpeta (como plantillas), ir hacia atrás
@@ -323,7 +323,7 @@ function getLoginRedirectPath() {
         // Si estamos en la raíz o en otra ubicación
         return './index.html';
     }
-    
+
     // En producción
     return '/GestorInventory-Frontend/index.html';
 }
@@ -341,16 +341,16 @@ function debugRutas() {
 // Configurar interceptor para verificar el token antes de cada petición a Supabase
 export async function configurarInterceptorSupabase() {
     if (!supabase) await inicializeSupabase();
-    
+
     // Configurar interceptor para las peticiones a Supabase
     const originalFetch = window.fetch;
-    window.fetch = async function(...args) {
+    window.fetch = async function (...args) {
         const [url, options = {}] = args;
-        
+
         // Solo interceptamos las peticiones a Supabase
         if (url.includes('supabase') || (options.headers && options.headers['apikey'])) {
             const token = localStorage.getItem('supabase.auth.token');
-            
+
             // Verificar si el token está expirado
             if (token && isTokenExpired(token)) {
                 console.log("Token expirado detectado antes de una petición a Supabase");
@@ -359,12 +359,12 @@ export async function configurarInterceptorSupabase() {
                     mostrarAlertaBurbuja('Tu sesión ha expirado. Algunas funciones pueden no estar disponibles.', 'warning');
                     window.tokenExpirationNotified = true;
                 }
-                
+
                 // No rechazamos la petición, dejamos que continúe aunque fallará
                 // De esta manera la aplicación sigue funcionando sin interrupciones
             }
         }
-        
+
         // Continuar con la petición original
         return originalFetch.apply(this, args);
     };
@@ -394,7 +394,7 @@ function configurarRutasManifest() {
         if (manifestLink) {
             const hostname = window.location.hostname;
             const currentPath = window.location.pathname;
-            
+
             // En desarrollo (localhost)
             if (hostname === 'localhost' || hostname === '127.0.0.1') {
                 // Si estamos en una subcarpeta, ajustar la ruta
@@ -407,7 +407,7 @@ function configurarRutasManifest() {
                 // En producción
                 manifestLink.href = '/GestorInventory-Frontend/manifest.json';
             }
-            
+
             console.log('Manifest configurado para:', manifestLink.href);
         } else {
             console.warn('No se encontró el elemento link[rel="manifest"]');

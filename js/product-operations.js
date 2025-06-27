@@ -609,17 +609,6 @@ export function limpiarFormularioInventario() {
     }
 }
 
-// funcion para guardar productos en la base de datos para inventariar
-// Mapeo de nombres de ubicaciones a sus IDs
-//remmplazar por consulta dinamica a la base de dts
-const ubicaciones = {
-    'cámara fría': '10000000-0000-0000-0000-000000000001',
-    'congelador interior': '10000000-0000-0000-0000-000000000002',
-    'bunker': '10000000-0000-0000-0000-000000000003',
-    'rishin': '10000000-0000-0000-0000-000000000004',
-    'piso': '10000000-0000-0000-0000-000000000005'
-};
-
 // Función para guardar productos en la base de datos para inventariar
 export async function guardarInventario() {
     const codigo = document.getElementById("codigoProductoInventario")?.value;

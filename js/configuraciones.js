@@ -30,7 +30,106 @@ const DEFAULT_CONFIG = {
 class ConfiguracionesManager {
     constructor() {
         this.config = this.cargarConfiguracion();
+        
+        // Inicializar el gestor de temas usando la instancia global si está disponible
+        this.themeManager = window.themeManager;
+        
+        // Solo continuar si el DOM está listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.inicializarPostDOM();
+            });
+        } else {
+            this.inicializarPostDOM();
+        }
+    }
+    
+    // Inicializar después de que el DOM esté listo
+    inicializarPostDOM() {
+        // Asegurar que el theme manager esté disponible
+        if (!this.themeManager && window.themeManager) {
+            this.themeManager = window.themeManager;
+        }
+        
+        // Si aún no hay theme manager, intentar crear uno
+        if (!this.themeManager && window.ThemeManager) {
+            try {
+                this.themeManager = new window.ThemeManager();
+            } catch (error) {
+                console.warn('No se pudo crear ThemeManager:', error);
+            }
+        }
+        
+        // Sincronizar temas bidireccional si el theme manager está disponible
+        if (this.themeManager) {
+            this.sincronizarTemas();
+        }
+        
         this.inicializar();
+    }
+    
+    // Sincronizar temas entre sistemas
+    sincronizarTemas() {
+        if (!this.themeManager) {
+            console.warn('ThemeManager no disponible para sincronización');
+            return;
+        }
+        
+        // Si hay diferencia entre configuraciones y theme manager, usar el más reciente
+        const configTheme = this.config.theme;
+        const managerTheme = this.themeManager.currentTheme;
+        
+        if (configTheme && configTheme !== managerTheme) {
+            // Verificar cuál fue actualizado más recientemente
+            const configLastUpdate = localStorage.getItem('gestorInventory_configLastUpdate');
+            const themeLastUpdate = localStorage.getItem('gestorInventory_themeLastUpdate');
+            
+            if (!themeLastUpdate || (configLastUpdate && new Date(configLastUpdate) > new Date(themeLastUpdate))) {
+                // Usar el tema de configuraciones
+                this.themeManager.setTheme(configTheme);
+            } else {
+                // Usar el tema del manager
+                this.config.theme = managerTheme;
+                this.guardarConfiguracion();
+            }
+        }
+        
+        // Escuchar cambios del theme manager para actualizar configuraciones
+        window.addEventListener('themeChanged', (e) => {
+            if (this.config.theme !== e.detail.theme) {
+                this.config.theme = e.detail.theme;
+                this.guardarConfiguracion();
+                
+                // Actualizar el select si existe
+                try {
+                    const themeSelect = document.getElementById('themeSelect');
+                    if (themeSelect && themeSelect.value !== e.detail.theme) {
+                        themeSelect.value = e.detail.theme;
+                    }
+                } catch (error) {
+                    console.warn('Error al actualizar select de tema:', error);
+                }
+            }
+        });
+        
+        // También escuchar cambios en localStorage para sincronización entre pestañas
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'gestorInventory_theme' && e.newValue !== this.config.theme) {
+                this.config.theme = e.newValue;
+                if (this.themeManager) {
+                    this.themeManager.setTheme(e.newValue);
+                }
+                
+                try {
+                    const themeSelect = document.getElementById('themeSelect');
+                    if (themeSelect) {
+                        themeSelect.value = e.newValue;
+                    }
+                } catch (error) {
+                    console.warn('Error al actualizar select de tema desde storage:', error);
+                }
+            }
+        });
     }
 
     // Inicializar el gestor
@@ -63,6 +162,13 @@ class ConfiguracionesManager {
         try {
             localStorage.setItem('gestorInventory_config', JSON.stringify(this.config));
             localStorage.setItem('gestorInventory_configLastUpdate', new Date().toISOString());
+            
+            // También actualizar el tema específico para sincronización
+            if (this.config.theme) {
+                localStorage.setItem('gestorInventory_theme', this.config.theme);
+                localStorage.setItem('gestorInventory_themeLastUpdate', new Date().toISOString());
+            }
+            
             mostrarAlertaBurbuja('Configuración guardada correctamente', 'success');
             return true;
         } catch (error) {
@@ -80,7 +186,7 @@ class ConfiguracionesManager {
             const nombre = localStorage.getItem('nombre') || 'Usuario';
             const usuario_id = localStorage.getItem('usuario_id') || 'N/A';
 
-            // Actualizar información en el header
+            // Actualizar información en el header solo si el elemento existe
             const userInfoElement = document.getElementById('userInfo');
             if (userInfoElement) {
                 userInfoElement.textContent = `${nombre} (${rol})`;
@@ -126,7 +232,8 @@ class ConfiguracionesManager {
             const themeSelect = document.getElementById('themeSelect');
             if (themeSelect) {
                 themeSelect.value = this.config.theme;
-                this.aplicarTema(this.config.theme);
+                // Aplicar tema usando el ThemeManager
+                this.themeManager.setTheme(this.config.theme);
             }
 
             // Configuración de Idioma
@@ -596,28 +703,24 @@ class ConfiguracionesManager {
     // Cambiar tema
     cambiarTema(nuevoTema) {
         this.config.theme = nuevoTema;
-        this.aplicarTema(nuevoTema);
+        
+        // Actualizar el ThemeManager global
+        if (window.themeManager) {
+            window.themeManager.setTheme(nuevoTema);
+        } else {
+            this.themeManager.setTheme(nuevoTema);
+        }
+        
         this.guardarConfiguracion();
+        mostrarAlertaBurbuja('Tema actualizado correctamente', 'success');
     }
 
-    // Aplicar tema
+    // Aplicar tema (delegado al ThemeManager)
     aplicarTema(tema) {
-        const body = document.body;
-
-        // Remover clases de tema existentes
-        body.classList.remove('theme-light', 'theme-dark', 'theme-auto');
-
-        switch (tema) {
-            case 'dark':
-                body.classList.add('theme-dark');
-                break;
-            case 'auto':
-                // Detectar preferencia del sistema
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                body.classList.add(prefersDark ? 'theme-dark' : 'theme-light');
-                break;
-            default:
-                body.classList.add('theme-light');
+        if (window.themeManager) {
+            window.themeManager.setTheme(tema);
+        } else {
+            this.themeManager.setTheme(tema);
         }
     }
 

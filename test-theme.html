@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Temas - GestorInventory</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="librerías/tailwind.min.css">
+</head>
+<body>
+    <div class="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+        <header class="bg-blue-600 dark:bg-blue-800 text-white p-4">
+            <h1 class="text-2xl font-bold">Test de Sistema de Temas</h1>
+            <div id="theme-controls" class="mt-4">
+                <label for="themeSelect" class="mr-4">Tema:</label>
+                <select id="themeSelect" class="px-3 py-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded">
+                    <option value="light">Claro</option>
+                    <option value="dark">Oscuro</option>
+                    <option value="auto">Automático</option>
+                </select>
+                
+                <button id="toggleBtn" class="ml-4 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded">
+                    Alternar Tema
+                </button>
+                
+                <button id="debugBtn" class="ml-4 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded">
+                    Debug Sincronización
+                </button>
+                
+                <button id="diagnosticBtn" class="ml-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">
+                    Diagnóstico Completo
+                </button>
+            </div>
+        </header>
+        
+        <main class="p-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                        Estado del Sistema de Temas
+                    </h2>
+                    <div id="theme-status" class="space-y-2">
+                        <p class="text-gray-700 dark:text-gray-300">Cargando información...</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        Pruebas de Funcionalidad
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-blue-50 dark:bg-blue-900 rounded">
+                            <h4 class="font-medium text-blue-900 dark:text-blue-100">Prueba 1</h4>
+                            <p class="text-blue-800 dark:text-blue-200">
+                                Cambia el tema usando el selector arriba. El cambio debe persistir al recargar la página.
+                            </p>
+                        </div>
+                        
+                        <div class="p-4 bg-green-50 dark:bg-green-900 rounded">
+                            <h4 class="font-medium text-green-900 dark:text-green-100">Prueba 2</h4>
+                            <p class="text-green-800 dark:text-green-200">
+                                Abre esta página en múltiples pestañas. Los cambios de tema deben sincronizarse entre todas.
+                            </p>
+                        </div>
+                        
+                        <div class="p-4 bg-purple-50 dark:bg-purple-900 rounded">
+                            <h4 class="font-medium text-purple-900 dark:text-purple-100">Prueba 3</h4>
+                            <p class="text-purple-800 dark:text-purple-200">
+                                Navega a configuraciones.html y cambia el tema allí. Debe reflejarse aquí también.
+                            </p>
+                        </div>
+                        
+                        <div class="p-4 bg-yellow-50 dark:bg-yellow-900 rounded">
+                            <h4 class="font-medium text-yellow-900 dark:text-yellow-100">Prueba 4</h4>
+                            <p class="text-yellow-800 dark:text-yellow-200">
+                                Usa el botón de Debug para verificar que todos los sistemas estén sincronizados.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Scripts necesarios -->
+    <script src="js/error-checker.js"></script>
+    <script src="js/theme-manager.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧪 Página de prueba de temas cargada');
+            
+            // Función para actualizar el estado del tema en la página
+            function updateThemeStatus() {
+                const statusEl = document.getElementById('theme-status');
+                if (!statusEl) return;
+                
+                const themeManager = window.themeManager;
+                if (!themeManager) {
+                    statusEl.innerHTML = '<p class="text-red-500">❌ ThemeManager no disponible</p>';
+                    return;
+                }
+                
+                const status = themeManager.debugThemeSync();
+                const actualTheme = themeManager.getActualTheme();
+                
+                statusEl.innerHTML = `
+                    <div class="space-y-2">
+                        <p><strong>Tema Actual:</strong> <span class="font-mono bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">${actualTheme}</span></p>
+                        <p><strong>Tema ThemeManager:</strong> <span class="font-mono bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">${status.themeManagerTheme}</span></p>
+                        <p><strong>Tema LocalStorage:</strong> <span class="font-mono bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">${status.localStorageTheme}</span></p>
+                        <p><strong>Tema Config:</strong> <span class="font-mono bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">${status.configTheme}</span></p>
+                        <p><strong>Estado DOM:</strong> <span class="font-mono bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">${document.documentElement.getAttribute('data-theme')}</span></p>
+                    </div>
+                `;
+            }
+            
+            // Configurar controles
+            const themeSelect = document.getElementById('themeSelect');
+            const toggleBtn = document.getElementById('toggleBtn');
+            const debugBtn = document.getElementById('debugBtn');
+            const diagnosticBtn = document.getElementById('diagnosticBtn');
+            
+            // Inicializar select con el tema actual
+            if (window.themeManager && themeSelect) {
+                themeSelect.value = window.themeManager.currentTheme;
+                
+                themeSelect.addEventListener('change', function() {
+                    window.themeManager.setTheme(this.value);
+                    updateThemeStatus();
+                });
+            }
+            
+            // Botón de alternar
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    if (window.themeManager) {
+                        window.themeManager.toggleTheme();
+                        if (themeSelect) {
+                            themeSelect.value = window.themeManager.currentTheme;
+                        }
+                        updateThemeStatus();
+                    }
+                });
+            }
+            
+            // Botón de debug
+            if (debugBtn) {
+                debugBtn.addEventListener('click', function() {
+                    if (window.themeManager) {
+                        window.themeManager.debugThemeSync();
+                        updateThemeStatus();
+                    } else {
+                        console.error('❌ ThemeManager no disponible');
+                    }
+                });
+            }
+            
+            // Botón de diagnóstico completo
+            if (diagnosticBtn) {
+                diagnosticBtn.addEventListener('click', function() {
+                    if (window.diagnosticarTemas) {
+                        window.diagnosticarTemas();
+                    } else {
+                        console.error('❌ Función de diagnóstico no disponible');
+                    }
+                });
+            }
+            
+            // Escuchar cambios de tema
+            window.addEventListener('themeChanged', function(e) {
+                console.log('🔄 Tema cambiado a:', e.detail.theme);
+                updateThemeStatus();
+                if (themeSelect) {
+                    themeSelect.value = window.themeManager ? window.themeManager.currentTheme : e.detail.theme;
+                }
+            });
+            
+            // Actualizar estado inicial
+            setTimeout(updateThemeStatus, 100);
+        });
+    </script>
+</body>
+</html>

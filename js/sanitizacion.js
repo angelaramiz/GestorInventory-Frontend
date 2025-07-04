@@ -12,13 +12,28 @@ export function sanitizarEntrada(input) {
 }
 
 /**
+ * Sanitiza entrada de números enteros, eliminando caracteres no numéricos.
+ * @param {string|number} input - Entrada a sanitizar.
+ * @returns {string} - Solo los dígitos numéricos de la entrada.
+ */
+export function sanitizarNumeroEntero(input) {
+    // Convertir a string si es número
+    const inputStr = String(input);
+    
+    // Eliminar todo excepto dígitos (0-9)
+    const soloDigitos = inputStr.replace(/\D/g, '');
+
+    return soloDigitos;
+}
+
+/**
  * Valida que una entrada cumpla con un patrón específico.
  * @param {string} input - Entrada a validar.
  * @param {string} tipo - Tipo de validación ("codigo", "texto", etc.).
  * @returns {boolean} - Verdadero si la entrada es válida.
  */
 export function validarCampo(input, tipo) {
-    const patronCodigo = /^[A-Za-z0-9\-]+$/; // Solo letras, números y guiones
+    const patronCodigo = /^[0-9]+$/; // Solo números
     const patronTexto = /^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s\-\.,'()\/]+$/; // Incluye más caracteres
 
     switch (tipo) {
@@ -37,7 +52,7 @@ export function validarCampo(input, tipo) {
  * @returns {Object|null} - Producto sanitizado o null si hay errores.
  */
 export function sanitizarProducto(producto) {
-    const codigo = sanitizarEntrada(producto.codigo);
+    const codigo = sanitizarNumeroEntero(producto.codigo);
     const nombre = sanitizarEntrada(producto.nombre);
     const categoria = sanitizarEntrada(producto.categoria);
     const marca = sanitizarEntrada(producto.marca);

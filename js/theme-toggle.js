@@ -10,13 +10,13 @@ function initializeThemeToggle() {
 
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeIcon = document.getElementById('themeIcon');
-        
+
         if (!themeToggleBtn || !themeIcon) {
             // Si no hay botón específico, crear el toggle automático
             window.themeManager.createThemeToggle();
             return;
         }
-        
+
         function updateThemeIcon(theme) {
             if (theme === 'dark') {
                 themeIcon.innerHTML = `
@@ -34,16 +34,16 @@ function initializeThemeToggle() {
                 themeToggleBtn.title = "Cambiar a modo oscuro";
             }
         }
-        
+
         // Actualizar icono inicial
         updateThemeIcon(window.themeManager.getActualTheme());
-        
+
         // Manejar clic en el botón
         themeToggleBtn.addEventListener('click', () => {
             const newTheme = window.themeManager.toggleTheme();
             updateThemeIcon(newTheme);
         });
-        
+
         // Escuchar cambios de tema desde otras fuentes (como la página de configuraciones)
         window.addEventListener('themeChanged', (e) => {
             updateThemeIcon(e.detail.theme);

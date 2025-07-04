@@ -179,11 +179,11 @@ export function iniciarEscaneoConModal(inputId) {
                 detenerEscaner();
 
                 if (inputId === "codigoConsulta") {
-                    buscarProducto();
+                    buscarProducto(decodedText,decodedResult);
                 } else if (inputId === "codigoEditar") {
-                    buscarProductoParaEditar();
+                    buscarProductoParaEditar(decodedText,decodedResult);
                 } else if (inputId === "codigo") {
-                    buscarProductoInventario();
+                    buscarProductoInventario(decodedText,decodedResult);
                 }
 
             },
@@ -217,9 +217,7 @@ export function manejarCodigoEscaneado(codigo, formato) {
         } else {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
-    } else {
-        mostrarMensaje("Formato de código no compatible.", "warning");
-    }
+    } 
     return
 }
 

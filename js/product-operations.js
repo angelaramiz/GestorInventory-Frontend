@@ -1,7 +1,7 @@
 import { db, dbInventario, agregarAColaSincronizacion } from './db-operations.js';
 import { mostrarMensaje } from './logs.js';
-import { cargarDatosEnTabla, obtenerUbicacionEnUso, sincronizarInventarioDesdeSupabase, cargarDatosInventarioEnTablaPlantilla, guardarAreaIdPersistente } from './db-operations.js';
-import { sanitizarProducto, sanitizarEntrada } from './sanitizacion.js';
+import { cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, guardarAreaIdPersistente } from './db-operations.js';
+import { sanitizarProducto, sanitizarEntrada, sanitizarNumeroEntero } from './sanitizacion.js';
 import { supabase } from './auth.js';
 import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm'; // Usar UUID para IDs únicos
 import { mostrarUbicacionActual } from './main.js';
@@ -180,9 +180,9 @@ function llenarFormularioEdicion(producto) {
     document.getElementById("unidadEditar").value = producto.unidad || "";
     document.getElementById("formularioEdicion").style.display = "block";
 }
-// 
+
 // Función para buscar por coincidencias parciales en diferentes campos
-export function buscarPorCodigoParcial(textoBusqueda, tipo, callback) {
+export function buscarPorCodigoParcial(codigoCorto, tipo, callback) {
     const transaction = db.transaction(["productos"], "readonly");
     const objectStore = transaction.objectStore("productos");
     const request = objectStore.getAll();
@@ -192,20 +192,13 @@ export function buscarPorCodigoParcial(textoBusqueda, tipo, callback) {
         let resultados = [];
 
         // Verificar si la búsqueda es numérica (código) o de texto (nombre, etc.)
-        const esNumerico = !isNaN(textoBusqueda) && textoBusqueda.trim() !== '';
+        const esNumerico = !isNaN(codigoCorto) && codigoCorto.trim() !== '';
 
         if (esNumerico) {
             // Búsqueda por código
             resultados = productos.filter(producto => {
                 const code = String(producto.codigo); // Asegurarse de que el código sea una cadena de texto
-                return code.includes(textoBusqueda);
-            });
-        } else {
-            // Búsqueda por nombre, categoría o marca
-            resultados = productos.filter(producto => {
-                return (producto.nombre && producto.nombre.toLowerCase().includes(textoBusqueda.toLowerCase())) ||
-                    (producto.categoria && producto.categoria.toLowerCase().includes(textoBusqueda.toLowerCase())) ||
-                    (producto.marca && producto.marca.toLowerCase().includes(textoBusqueda.toLowerCase()));
+                return code.includes(codigoCorto);
             });
         }
 
@@ -214,7 +207,7 @@ export function buscarPorCodigoParcial(textoBusqueda, tipo, callback) {
             mostrarResultados(resultados);
         } else if (tipo === "Inventario") {
             if (resultados.length === 0) {
-                if (esNumerico && textoBusqueda.length === 4) {
+                if (esNumerico && codigoCorto.length === 4) {
                     mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
                     Swal.fire({
                         title: 'Agregar Nuevo Producto',
@@ -320,19 +313,71 @@ export async function agregarProducto(evento) {
     };
 }
 // Funciones para consulta de producto
-export function buscarProducto() {
-    const codigo = document.getElementById("codigoConsulta").value.toString();
+/**
+ * Busca un producto basado en varios criterios incluyendo código de barras, nombre y categoría.
+ * 
+ * @param {string} codigo - El código/código de barras del producto a buscar
+ * @param {string|Object} formato - La información del formato del código de barras. Puede ser una cadena vacía o un objeto con detalles del formato
+ * @param {Object} [formato.formato] - Objeto contenedor del formato
+ * @param {Object} [formato.formato.result] - Objeto contenedor del resultado
+ * @param {Object} [formato.formato.result.format] - Objeto con detalles del formato
+ * @param {string} [formato.formato.result.format.formatName] - El nombre del formato del código de barras (ej: "UPC-A", "EAN-13")
+ * 
+ * @description
+ * Esta función maneja múltiples escenarios de búsqueda:
+ * - Códigos de 4 dígitos: Busca por coincidencias parciales de código
+ * - Formato UPC-A: Extrae 4 dígitos después del primer "2" y busca por código parcial
+ * - Códigos de 13 dígitos o formato EAN-13: Búsqueda directa en base de datos por código sanitizado
+ * - Búsqueda por nombre/categoría: Filtra productos por nombre y/o categoría cuando no se proporciona un código de barras válido
+ * 
+ * La función lee criterios de búsqueda adicionales de elementos del DOM:
+ * - codigoConsulta: Campo de entrada del código del producto
+ * - nombreConsulta: Campo de entrada del nombre del producto
+ * - categoriaConsulta: Campo de entrada de la categoría del producto
+ * 
+ * @returns {void} Esta función no retorna un valor pero muestra resultados a través de funciones de interfaz de usuario
+ * 
+ * @example
+ * // Buscar con un código de 4 dígitos
+ * buscarProducto("1234", "");
+ * 
+ * @example
+ * // Buscar con formato UPC-A
+ * buscarProducto("012345678901", { formato: { result: { format: { formatName: "UPC-A" } } } });
+ */
+export function buscarProducto(codigo, formato) {
+    let codigoB = codigo;
+    let tipoFormato = ''; // Valor por defecto
+
+    // Manejar el caso cuando formato está vacío o es undefined
+    if (!formato || formato === '') {
+        codigoB = document.getElementById("codigoConsulta").value;
+        tipoFormato = 'manual';
+    } else {
+        // Extraer tipo de formato de manera segura
+        try {
+            if (formato && typeof formato === 'object' && formato.formato) {
+                tipoFormato = formato.formato.result?.format?.formatName?.toLowerCase() || 'desconocido';
+            } else {
+                tipoFormato = 'manual';
+            }
+        } catch (error) {
+            console.warn("Error al extraer tipo de formato:", error);
+            tipoFormato = 'desconocido';
+        }
+    }
+
     const nombre = document.getElementById("nombreConsulta").value;
     const categoria = document.getElementById("categoriaConsulta").value;
 
     // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
-    if (codigo.length === 4) {
-        buscarPorCodigoParcial(codigo, "Consulta");
+    if (codigoB.length === 4) {
+        mostrarMensaje(`Código de 4 dígitos manual detectado: ${codigoB}`, "success");
+        buscarPorCodigoParcial(codigoB, "Consulta");
         return;  // Detener la ejecución aquí para evitar la búsqueda normal
-    } else if (codigo.length === 12 || codigo.length >= 14) {
-        const codigoSanitizado = sanitizarEntrada(codigo);
+    } else if (formato === "upc-a") {
+        const codigoSanitizado = sanitizarNumeroEntero(codigoB);
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
-        console.log('codigo:', codigoSanitizado)
         const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
         // Expresión regular para capturar los 4 dígitos después del primer "2"
@@ -341,61 +386,92 @@ export function buscarProducto() {
 
         if (match) {
             const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
-            mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
+            mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "success");
             buscarPorCodigoParcial(codigoParcial, "Consulta");
         } else {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
-    } else {
-        const codigoSanitizado = sanitizarEntrada(codigo);
+    } else if (codigoB && (codigoB.length === 13 || tipoFormato === "ean-13")) {
+        const codigoSanitizado = sanitizarNumeroEntero(codigoB); // Usar sanitizarNumeroEntero en lugar de sanitizarEntrada
+        mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "success");
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
-        const codigoM = codigoSanitizado.replace(/^0+/, '');
-        if (codigoM) {
-            const request = objectStore.get(codigoM);
+
+        if (codigoSanitizado) {
+            const request = objectStore.get(codigoSanitizado);
             request.onsuccess = event => {
                 const result = event.target.result;
-                if (Array.isArray(result)) {
-                    mostrarResultados(result);
-                } else {
+                if (result) {
                     mostrarResultados([result]);
+                } else {
+                    mostrarMensaje("Producto no encontrado", "warning");
                 }
             };
             request.onerror = () => {
                 mostrarMensaje("Error al buscar en la base de datos", "error");
             };
-        } else {
+        }
+        return; // Detener la ejecución para evitar búsqueda por nombre y categoría
+    } else {
+        // Búsqueda por nombre y/o categoría
+        if (nombre || categoria) {
+            const transaction = db.transaction(["productos"], "readonly");
+            const objectStore = transaction.objectStore("productos");
             const request = objectStore.getAll();
+
             request.onsuccess = event => {
                 let resultados = event.target.result.filter(
                     producto =>
-                        (!nombre ||
+                        (!nombre || nombre.trim() === '' ||
                             producto.nombre.toLowerCase().includes(nombre.toLowerCase())) &&
-                        (!categoria ||
+                        (!categoria || categoria.trim() === '' ||
                             producto.categoria.toLowerCase().includes(categoria.toLowerCase()))
                 );
-                mostrarResultados(resultados);
+
+                if (resultados.length > 0) {
+                    mostrarResultados(resultados);
+                } else {
+                    mostrarMensaje("No se encontraron productos con esos criterios", "warning");
+                }
             };
+
             request.onerror = () => {
                 mostrarMensaje("Error al buscar en la base de datos", "error");
             };
+        } else {
+            mostrarMensaje("Ingresa al menos un criterio de búsqueda (código, nombre o categoría)", "warning");
         }
     }
 }
 
-export function buscarProductoParaEditar() {
-    const codigo = document.getElementById("codigoEditar").value;
-    const nombre = document.getElementById("nombreEditar").value;
-    const categoria = document.getElementById("categoriaEditar").value;
-    const marca = document.getElementById("marcaEditar").value;
+export function buscarProductoParaEditar(codigo, formato) {
+    let codigoB = codigo;
+    let tipoFormato = ''; // Valor por defecto
+    // Manejar el caso cuando formato está vacío o es undefined
+    if (!formato || formato === '') {
+        codigoB = document.getElementById("codigoEditar").value;
+        tipoFormato = 'manual';
+    } else {
+        // Extraer tipo de formato de manera segura
+        try {
+            if (formato && typeof formato === 'object' && formato.formato) {
+                tipoFormato = formato.formato.result?.format?.formatName?.toLowerCase() || 'desconocido';
+            } else {
+                tipoFormato = 'manual';
+            }
+        } catch (error) {
+            console.warn("Error al extraer tipo de formato:", error);
+            tipoFormato = 'desconocido';
+        }
+    }
 
     // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
-    if (codigo.length === 4) {
-        buscarPorCodigoParcial(codigo, "Edicion");
+    if (codigoB.length === 4) {
+        buscarPorCodigoParcial(codigoB, "Edicion");
         return;
-    } else if (codigo.length === 12 || codigo.length >= 14) {
-        const codigoSanitizado = sanitizarEntrada(codigo);
+    } else if (formato === "upc-a") {
+        const codigoSanitizado = sanitizarEntrada(codigoB);
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
         console.log('codigo:', codigoSanitizado)
         const codigoCorto = codigoSanitizado.replace(/^0+/, '');
@@ -412,12 +488,11 @@ export function buscarProductoParaEditar() {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
-    } else if (codigo) {
-        const codigoSanitizado = sanitizarEntrada(codigo);
+    } else if (codigoB.length === 13 || formato === "ean-13") {
+        const codigoSanitizado = sanitizarEntrada(codigoB);
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
-        const codigoM = codigoSanitizado.replace(/^0+/, '');
-        const request = objectStore.get(codigoM);
+        const request = objectStore.get(codigoSanitizado);
 
         request.onsuccess = event => {
             if (event.target.result) {
@@ -425,30 +500,6 @@ export function buscarProductoParaEditar() {
             } else {
                 mostrarMensaje("Producto no encontrado", "error");
             }
-        };
-    } else if (nombre || categoria || marca) {
-        // Búsqueda por otros campos
-        const transaction = db.transaction(["productos"], "readonly");
-        const objectStore = transaction.objectStore("productos");
-        const request = objectStore.getAll();
-
-        request.onsuccess = event => {
-            const productos = event.target.result;
-            const resultados = productos.filter(producto =>
-                (nombre && producto.nombre.toLowerCase().includes(nombre.toLowerCase())) ||
-                (categoria && producto.categoria.toLowerCase().includes(categoria.toLowerCase())) ||
-                (marca && producto.marca.toLowerCase().includes(marca.toLowerCase()))
-            );
-
-            if (resultados.length > 0) {
-                mostrarResultadosEdicion(resultados);
-            } else {
-                mostrarMensaje("No se encontraron productos con los criterios ingresados", "error");
-            }
-        };
-
-        request.onerror = () => {
-            mostrarMensaje("Error al buscar en la base de datos", "error");
         };
     } else {
         mostrarMensaje("Ingresa al menos un criterio de búsqueda", "error");
@@ -976,22 +1027,41 @@ async function actualizarEnIndexedDB(data) {
 }
 
 // Función para buscar inventario en nueva base de datos
-export async function buscarProductoInventario() {
+export async function buscarProductoInventario(codigo, formato) {
+    let codigoB = codigo;
+    let tipoFormato = ''; // Valor por defecto
+    if (!formato || formato === '') {
+        codigoB = document.getElementById("codigo").value;
+        tipoFormato = 'manual';
+    } else {
+        // Extraer tipo de formato de manera segura
+        try {
+            if (formato && typeof formato === 'object' && formato.formato) {
+                tipoFormato = formato.formato.result?.format?.formatName?.toLowerCase() || 'desconocido';
+            } else {
+                tipoFormato = 'manual';
+
+            }
+        } catch (error) {
+            console.error("Error al extraer tipo de formato:", error);
+            tipoFormato = 'desconocido';
+
+        }
+    }
     document.getElementById("datosInventario").style.display = "none";
-    const codigo = document.getElementById("codigo").value;
     const nombre = document.getElementById("nombreInventario").value;
     const marca = document.getElementById("marcaInventario").value;
 
     try {
         // Si no hay ningún criterio de búsqueda
-        if (!codigo && !nombre && !marca) {
+        if (!codigoB && !nombre && !marca) {
             mostrarMensaje("Ingresa al menos un criterio de búsqueda", "error");
             return;
         }
 
         // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
-        if (codigo && codigo.length === 4) { // Código PLU
-            buscarPorCodigoParcial(codigo, "Inventario", async (resultados) => {
+        if (codigoB.length === 4) { // Código PLU
+            buscarPorCodigoParcial(codigoB, "Inventario", async (resultados) => {
                 if (resultados.length > 0) {
                     const inventarioResultados = await buscarEnInventario(resultados[0].codigo);
                     console.log('si hay productos existentes')
@@ -1007,41 +1077,41 @@ export async function buscarProductoInventario() {
                 }
             });
             return;  // Detener la ejecución aquí para evitar la búsqueda normal
-        } else if (codigo && (codigo.length === 12 || codigo.length === 13 || codigo.length >= 14)) {
-            // Procesar códigos de barras (UPC-A, EAN-13, Code128)
-            const codigoSanitizado = sanitizarEntrada(codigo);
-            mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
+        } else if (formato === "upc-a") {
+            // Procesar códigos de barras (UPC-A)
+            const codigoSanitizado = sanitizarEntrada(codigoB);
+            mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "success");
             const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
-            if (codigo.length >= 14) {
-                // Para Code128, intentar extraer código parcial
-                const regex = /2(\d{4})/;
-                const match = codigoCorto.match(regex);
 
-                if (match) {
-                    const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
-                    mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
-                    buscarPorCodigoParcial(codigoParcial, "Inventario", async (resultados) => {
-                        if (resultados.length > 0) {
-                            const inventarioResultados = await buscarEnInventario(resultados[0].codigo);
+            // Para Code128, intentar extraer código parcial
+            const regex = /2(\d{4})/;
+            const match = codigoCorto.match(regex);
 
-                            if (inventarioResultados.length > 0) {
-                                // Si existe en inventario, mostrar modal con opciones
-                                mostrarModalProductoExistente(resultados[0], inventarioResultados);
-                            } else {
-                                // Si no existe en inventario, mostrar formulario para agregar producto
-                                mostrarFormularioInventario(resultados[0]);
-                            }
+            if (match) {
+                const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
+                mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
+                buscarPorCodigoParcial(codigoParcial, "Inventario", async (resultados) => {
+                    if (resultados.length > 0) {
+                        const inventarioResultados = await buscarEnInventario(resultados[0].codigoParcial);
+
+                        if (inventarioResultados.length > 0) {
+                            // Si existe en inventario, mostrar modal con opciones
+                            mostrarModalProductoExistente(resultados[0], inventarioResultados);
                         } else {
-                            mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
+                            // Si no existe en inventario, mostrar formulario para agregar producto
+                            mostrarFormularioInventario(resultados[0]);
                         }
-                    });
-                    return;
-                }
+                    } else {
+                        mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
+                    }
+                });
+                return;
             }
 
+
             // Buscar el producto completo en la base de datos
-            const productosResultados = await buscarEnProductos(codigoCorto, null, null);
+            const productosResultados = await buscarEnProductos(codigoParcial);
 
             if (productosResultados.length === 0) {
                 Swal.fire({
@@ -1053,14 +1123,14 @@ export async function buscarProductoInventario() {
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        agregarNuevoProductoDesdeInventario(codigoCorto, true); // Permitir modificar el código
+                        agregarNuevoProductoDesdeInventario(codigoParcial, true); // Permitir modificar el código
                     }
                 });
                 return;
             }
 
             // Si encontramos productos, buscar en inventario
-            const inventarioResultados = await buscarEnInventario(codigoCorto, null, null);
+            const inventarioResultados = await buscarEnInventario(codigoCorto);
 
             if (inventarioResultados.length > 0) {
                 // Si existe en inventario, mostrar modal con opciones
@@ -1081,7 +1151,7 @@ export async function buscarProductoInventario() {
 
             if (productosResultados.length === 1) {
                 // Si solo hay un resultado, buscar en inventario
-                const inventarioResultados = await buscarEnInventario(productosResultados[0].codigo, null, null);
+                const inventarioResultados = await buscarEnInventario(null, nombre, marca);
 
                 if (inventarioResultados.length > 0) {
                     // Si existe en inventario, mostrar modal con opciones
@@ -1094,10 +1164,10 @@ export async function buscarProductoInventario() {
                 // Si hay múltiples resultados, mostrarlos para seleccionar uno
                 mostrarResultadosInventario(productosResultados);
             }
-        } else if (codigo) {
+        } else if (codigoB.length === 13 || formato === "ean-13") {
             // Búsqueda por un código que no sea de los tipos específicos anteriores
-            const codigoSanitizado = sanitizarEntrada(codigo);
-            const productosResultados = await buscarEnProductos(codigoSanitizado, null, null);
+            const codigoSanitizado = sanitizarEntrada(codigoB);
+            const productosResultados = await buscarEnProductos(codigoSanitizado);
 
             if (productosResultados.length === 0) {
                 mostrarMensaje("No se encontró ningún producto con ese código.", "error");
@@ -1118,7 +1188,7 @@ export async function buscarProductoInventario() {
 
             if (productosResultados.length === 1) {
                 // Si solo hay un resultado, buscar en inventario
-                const inventarioResultados = await buscarEnInventario(productosResultados[0].codigo, null, null);
+                const inventarioResultados = await buscarEnInventario(productosResultados[0].codigoSanitizado);
 
                 if (inventarioResultados.length > 0) {
                     // Si existe en inventario, mostrar modal con opciones
@@ -1340,7 +1410,6 @@ function reiniciarBusqueda() {
     document.getElementById("marcaInventario").value = "";
     document.getElementById("datosInventario").style.display = "none";
 }
-
 
 // Función para mostrar formulario de modificación de inventario
 function mostrarFormularioModificacion(productoInventario) {

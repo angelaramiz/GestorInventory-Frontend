@@ -73,10 +73,12 @@
         </div>
 
         <button id="buscarInventario" class="bg-green-500 text-white px-4 py-2 mb-4">Buscar Producto</button>
-        
+
         <!-- Botones temporales para testing -->
-        <button id="testPestanasLotes" class="bg-orange-500 text-white px-4 py-2 mb-4 ml-2">🧪 Test Pestañas Lotes</button>
-        <button id="testExtraccionCodigos" class="bg-purple-500 text-white px-4 py-2 mb-4 ml-2">🔍 Test Códigos Báscula</button>
+        <!-- <button id="testPestanasLotes" class="bg-orange-500 text-white px-4 py-2 mb-4 ml-2">🧪 Test Pestañas
+            Lotes</button>
+        <button id="testExtraccionCodigos" class="bg-purple-500 text-white px-4 py-2 mb-4 ml-2">🔍 Test Códigos
+            Báscula</button> -->
 
         <div id="resultadosInventario" class="mt-4" style="display: none;">
             <!-- Los resultados de la búsqueda se mostrarán aquí -->
@@ -86,10 +88,12 @@
             <!-- Pestañas para productos tipo Kg -->
             <div id="tabsContainer" class="mb-6" style="display: none;">
                 <div class="flex border-b">
-                    <button id="tabInventario" class="px-4 py-2 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500">
+                    <button id="tabInventario"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500">
                         Inventario Normal
                     </button>
-                    <button id="tabLotes" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300">
+                    <button id="tabLotes"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300">
                         Lotes
                     </button>
                 </div>
@@ -131,7 +135,8 @@
                     <button id="guardarInventario" class="bg-blue-500 text-white px-4 py-2">Guardar Inventario</button>
                 </div>
                 <div id="botonmodificar" class="flex items-center justify-between" style="display: none;">
-                    <button id="modificarInventario" class="bg-blue-500 text-white px-4 py-2">Modificar Inventario</button>
+                    <button id="modificarInventario" class="bg-blue-500 text-white px-4 py-2">Modificar
+                        Inventario</button>
                 </div>
             </div>
 
@@ -164,16 +169,17 @@
                 </div>
 
                 <div class="mb-6">
-                    <label for="precioKilo" class="block text-sm font-medium text-gray-700 mb-2">Precio por Kilo ($):</label>
-                    <input type="number" id="precioKilo" step="0.01" min="0" 
-                           class="border border-gray-300 rounded-lg p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="Ingrese el precio por kilogramo">
+                    <label for="precioKilo" class="block text-sm font-medium text-gray-700 mb-2">Precio por Kilo
+                        ($):</label>
+                    <input type="number" id="precioKilo" step="0.01" min="0"
+                        class="border border-gray-300 rounded-lg p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Ingrese el precio por kilogramo">
                 </div>
 
                 <div class="text-center">
-                    <button id="iniciarEscaneoLotes" 
-                            class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
-                            disabled>
+                    <button id="iniciarEscaneoLotes"
+                        class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        disabled>
                         📱 Iniciar Escaneo por Lotes
                     </button>
                 </div>
@@ -181,7 +187,8 @@
         </div>
 
         <!-- Modal de Escaneo por Lotes -->
-        <div id="modalEscaneoLotes" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" style="display: none;">
+        <div id="modalEscaneoLotes" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+            style="display: none;">
             <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
                 <div class="mt-3">
                     <!-- Header del modal -->
@@ -189,17 +196,20 @@
                         <h3 class="text-lg font-bold text-gray-900">Escaneo por Lotes</h3>
                         <button id="cerrarModalLotes" class="text-gray-400 hover:text-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
                     </div>
 
                     <!-- Pestañas del modal -->
                     <div class="flex border-b mb-4">
-                        <button id="tabEscaner" class="px-4 py-2 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500">
+                        <button id="tabEscaner"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500">
                             📱 Escáner
                         </button>
-                        <button id="tabListado" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300">
+                        <button id="tabListado"
+                            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300">
                             📋 Códigos Escaneados (<span id="contadorCodigos">0</span>)
                         </button>
                     </div>
@@ -210,7 +220,8 @@
                             <div id="reader-lotes" class="w-full max-w-lg mx-auto"></div>
                         </div>
                         <div class="text-center">
-                            <button id="pararEscaneoLotes" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                            <button id="pararEscaneoLotes"
+                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
                                 Pausar Escáner
                             </button>
                         </div>
@@ -240,13 +251,13 @@
                     <!-- Footer del modal -->
                     <div class="mt-6 flex justify-between items-center">
                         <div class="text-sm text-gray-600">
-                            Total de códigos: <span id="totalCodigos" class="font-bold">0</span> | 
+                            Total de códigos: <span id="totalCodigos" class="font-bold">0</span> |
                             Peso total: <span id="pesoTotal" class="font-bold">0.00 Kg</span> |
                             Valor total porciones: <span id="precioTotalGeneral" class="font-bold">$0.00</span>
                         </div>
-                        <button id="finalizarEscaneoLotes" 
-                                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
-                                disabled>
+                        <button id="finalizarEscaneoLotes"
+                            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            disabled>
                             ✅ Finalizar Escaneo por Lotes
                         </button>
                     </div>

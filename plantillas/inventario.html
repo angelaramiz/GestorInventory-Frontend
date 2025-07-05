@@ -73,47 +73,183 @@
         </div>
 
         <button id="buscarInventario" class="bg-green-500 text-white px-4 py-2 mb-4">Buscar Producto</button>
+        
+        <!-- Botón temporal para testing de pestañas -->
+        <button id="testPestanasLotes" class="bg-orange-500 text-white px-4 py-2 mb-4 ml-2">🧪 Test Pestañas Lotes</button>
 
         <div id="resultadosInventario" class="mt-4" style="display: none;">
             <!-- Los resultados de la búsqueda se mostrarán aquí -->
         </div>
 
         <div id="datosInventario" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" style="display: none;">
-            <div class="mb-4">
-                <label for="codigoProductoInventario" class="block mb-2">Codigo del Producto:</label>
-                <input type="text" id="codigoProductoInventario" class="border p-2 w-full" readonly>
-            </div>
-            <div class="mb-4">
-                <label for="nombreProductoInventario" class="block mb-2">Nombre del Producto:</label>
-                <input type="text" id="nombreProductoInventario" class="border p-2 w-full" readonly>
-            </div>
-
-            <div class="mb-4">
-                <label for="unidadProducto" class="block mb-2">Unidad:</label>
-                <input type="text" id="unidadProducto" class="border p-2 w-full" readonly>
-                <!-- Mostrar la unidad como texto -->
+            <!-- Pestañas para productos tipo Kg -->
+            <div id="tabsContainer" class="mb-6" style="display: none;">
+                <div class="flex border-b">
+                    <button id="tabInventario" class="px-4 py-2 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500">
+                        Inventario Normal
+                    </button>
+                    <button id="tabLotes" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300">
+                        Lotes
+                    </button>
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label for="cantidad" class="block mb-2">Cantidad:</label>
-                <input type="number" id="cantidad" class="border p-2 w-full">
+            <!-- Formulario de inventario normal -->
+            <div id="formularioInventarioNormal">
+                <div class="mb-4">
+                    <label for="codigoProductoInventario" class="block mb-2">Codigo del Producto:</label>
+                    <input type="text" id="codigoProductoInventario" class="border p-2 w-full" readonly>
+                </div>
+                <div class="mb-4">
+                    <label for="nombreProductoInventario" class="block mb-2">Nombre del Producto:</label>
+                    <input type="text" id="nombreProductoInventario" class="border p-2 w-full" readonly>
+                </div>
+
+                <div class="mb-4">
+                    <label for="unidadProducto" class="block mb-2">Unidad:</label>
+                    <input type="text" id="unidadProducto" class="border p-2 w-full" readonly>
+                    <!-- Mostrar la unidad como texto -->
+                </div>
+
+                <div class="mb-4">
+                    <label for="cantidad" class="block mb-2">Cantidad:</label>
+                    <input type="number" id="cantidad" class="border p-2 w-full">
+                </div>
+
+                <div class="mb-4">
+                    <label for="fechaCaducidad" class="block mb-2">Fecha de Caducidad:</label>
+                    <input type="date" id="fechaCaducidad" class="border p-2 w-full">
+                </div>
+
+                <div class="mb-6">
+                    <label for="comentarios" class="block mb-2">Comentarios:</label>
+                    <textarea id="comentarios" class="border p-2 w-full"></textarea>
+                </div>
+
+                <div id="botonguardar" class="flex items-center justify-between">
+                    <button id="guardarInventario" class="bg-blue-500 text-white px-4 py-2">Guardar Inventario</button>
+                </div>
+                <div id="botonmodificar" class="flex items-center justify-between" style="display: none;">
+                    <button id="modificarInventario" class="bg-blue-500 text-white px-4 py-2">Modificar Inventario</button>
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label for="fechaCaducidad" class="block mb-2">Fecha de Caducidad:</label>
-                <input type="date" id="fechaCaducidad" class="border p-2 w-full">
-            </div>
+            <!-- Formulario de escaneo por lotes para productos Kg -->
+            <div id="formularioLotes" style="display: none;">
+                <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                    <h3 class="text-lg font-bold mb-3 text-blue-800">Información del Producto</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Código:</label>
+                            <span id="codigoProductoLotes" class="text-sm font-semibold"></span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
+                            <span id="nombreProductoLotes" class="text-sm font-semibold"></span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Unidad:</label>
+                            <span id="unidadProductoLotes" class="text-sm font-semibold text-green-600">Kg</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoría:</label>
+                            <span id="categoriaProductoLotes" class="text-sm font-semibold"></span>
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Marca:</label>
+                            <span id="marcaProductoLotes" class="text-sm font-semibold"></span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="mb-6">
-                <label for="comentarios" class="block mb-2">Comentarios:</label>
-                <textarea id="comentarios" class="border p-2 w-full"></textarea>
-            </div>
+                <div class="mb-6">
+                    <label for="precioKilo" class="block text-sm font-medium text-gray-700 mb-2">Precio por Kilo ($):</label>
+                    <input type="number" id="precioKilo" step="0.01" min="0" 
+                           class="border border-gray-300 rounded-lg p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Ingrese el precio por kilogramo">
+                </div>
 
-            <div id="botonguardar" class="flex items-center justify-between">
-                <button id="guardarInventario" class="bg-blue-500 text-white px-4 py-2">Guardar Inventario</button>
+                <div class="text-center">
+                    <button id="iniciarEscaneoLotes" 
+                            class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            disabled>
+                        📱 Iniciar Escaneo por Lotes
+                    </button>
+                </div>
             </div>
-            <div id="botonmodificar" class="flex items-center justify-between" style="display: none;">
-                <button id="modificarInventario" class="bg-blue-500 text-white px-4 py-2">Modificar Inventario</button>
+        </div>
+
+        <!-- Modal de Escaneo por Lotes -->
+        <div id="modalEscaneoLotes" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" style="display: none;">
+            <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <!-- Header del modal -->
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-900">Escaneo por Lotes</h3>
+                        <button id="cerrarModalLotes" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Pestañas del modal -->
+                    <div class="flex border-b mb-4">
+                        <button id="tabEscaner" class="px-4 py-2 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500">
+                            📱 Escáner
+                        </button>
+                        <button id="tabListado" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300">
+                            📋 Códigos Escaneados (<span id="contadorCodigos">0</span>)
+                        </button>
+                    </div>
+
+                    <!-- Contenido del escáner -->
+                    <div id="contenidoEscaner" class="mb-4">
+                        <div id="scanner-container-lotes" class="mb-4">
+                            <div id="reader-lotes" class="w-full max-w-lg mx-auto"></div>
+                        </div>
+                        <div class="text-center">
+                            <button id="pararEscaneoLotes" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                                Pausar Escáner
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contenido del listado -->
+                    <div id="contenidoListado" style="display: none;">
+                        <div class="max-h-96 overflow-y-auto">
+                            <table class="w-full bg-white shadow-md rounded">
+                                <thead class="bg-gray-200">
+                                    <tr>
+                                        <th class="py-2 px-4 text-left">#</th>
+                                        <th class="py-2 px-4 text-left">Código Completo</th>
+                                        <th class="py-2 px-4 text-left">PLU</th>
+                                        <th class="py-2 px-4 text-left">Peso (Kg)</th>
+                                        <th class="py-2 px-4 text-left">Precio Porción</th>
+                                        <th class="py-2 px-4 text-left">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="listadoCodigosEscaneados">
+                                    <!-- Los códigos escaneados aparecerán aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Footer del modal -->
+                    <div class="mt-6 flex justify-between items-center">
+                        <div class="text-sm text-gray-600">
+                            Total de códigos: <span id="totalCodigos" class="font-bold">0</span> | 
+                            Peso total: <span id="pesoTotal" class="font-bold">0.00 Kg</span> |
+                            Valor total porciones: <span id="precioTotalGeneral" class="font-bold">$0.00</span>
+                        </div>
+                        <button id="finalizarEscaneoLotes" 
+                                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                disabled>
+                            ✅ Finalizar Escaneo por Lotes
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 

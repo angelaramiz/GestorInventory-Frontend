@@ -138,6 +138,34 @@ export function mostrarFormularioInventario(producto) {
     document.getElementById("nombreProductoInventario").value = producto.nombre;
     document.getElementById("codigoProductoInventario").value = producto.codigo;
 
+    // Verificar si es un producto tipo Kg y manejar las pestañas
+    const unidad = producto.unidad || "";
+    console.log('Debug - Producto mostrado:', {
+        nombre: producto.nombre,
+        codigo: producto.codigo,
+        unidad: unidad,
+        esTipoKg: unidad.toLowerCase().includes('kg')
+    });
+    
+    import('./lotes-scanner.js').then(module => {
+        console.log('Debug - Módulo lotes-scanner cargado:', module);
+        if (module.manejarTipoProducto) {
+            console.log('Debug - Llamando manejarTipoProducto con unidad:', unidad);
+            module.manejarTipoProducto(unidad);
+        } else {
+            console.warn('Debug - manejarTipoProducto no disponible en el módulo');
+        }
+        // Pasar los datos completos del producto al sistema de lotes
+        if (module.establecerProductoActual) {
+            console.log('Debug - Estableciendo producto actual:', producto);
+            module.establecerProductoActual(producto);
+        } else {
+            console.warn('Debug - establecerProductoActual no disponible en el módulo');
+        }
+    }).catch(error => {
+        console.error('Debug - Error al cargar el módulo de lotes-scanner:', error);
+    });
+
     // Aquí puedes añadir lógica para cargar datos de inventario existentes si es necesario
 }
 export function mostrarResultadosEdicion(resultados) {
@@ -1665,7 +1693,7 @@ export async function agregarNuevoProductoDesdeInventario(codigo, permitirModifi
     }
 }
 
-// Función para mostrar los detalles del producto con código de barras en una vista completa
+// Función para mostrar los detalles del producto with barcode en una vista completa
 export function mostrarDetallesProductoConBarcode(producto) {
     // Verificar si JsBarcode está disponible
     if (typeof window.JsBarcode === 'undefined') {
@@ -1725,9 +1753,9 @@ function mostrarDetallesProductoConBarcodeImpl(producto) {
         </div>
         <div class="space-y-2 mb-6">
             <p class="text-lg"><strong>Código:</strong> ${producto.codigo}</p>
-            <p class="text-lg"><strong>Categoría:</strong> ${producto.categoria}</p>
-            <p class="text-lg"><strong>Marca:</strong> ${producto.marca}</p>
-            <p class="text-lg"><strong>Unidad:</strong> ${producto.unidad || "No especificada"}</p>
+            <p><strong>Categoría:</strong> ${producto.categoria}</p>
+            <p><strong>Marca:</strong> ${producto.marca}</p>
+            <p><strong>Unidad:</strong> ${producto.unidad || "No especificada"}</p>
         </div>
         <div class="mt-6 flex space-x-3 justify-center">
             <button id="btn-imprimir" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">

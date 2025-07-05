@@ -205,6 +205,17 @@ async function init() {
             mostrarUbicacionActual();
             await sincronizarInventarioDesdeSupabase(); // Sincronizar solo en inventario.html
 
+            // Inicializar sistema de lotes
+            try {
+                const { inicializarSistemaLotes } = await import('./lotes-scanner.js');
+                if (inicializarSistemaLotes) {
+                    inicializarSistemaLotes();
+                    console.log('Sistema de lotes inicializado correctamente');
+                }
+            } catch (error) {
+                console.warn('No se pudo inicializar el sistema de lotes:', error);
+            }
+
             // Agregar event listener para cambiar ubicación
             const cambiarUbicacionBtn = document.getElementById('cambiarUbicacion');
             if (cambiarUbicacionBtn) {
@@ -212,6 +223,46 @@ async function init() {
             }
 
             cargarDatosInventarioEnTablaPlantilla();
+
+            // Botón temporal para testing de pestañas lotes
+            document.getElementById('testPestanasLotes')?.addEventListener('click', async () => {
+                console.log('🧪 Test: Forzando mostrar pestañas de lotes');
+                try {
+                    const { manejarTipoProducto, establecerProductoActual } = await import('./lotes-scanner.js');
+                    
+                    // Crear producto de prueba tipo Kg
+                    const productoTest = {
+                        codigo: '226300000001',
+                        nombre: 'Producto Test Kg',
+                        unidad: 'Kg',
+                        categoria: 'Perecedero',
+                        marca: 'Test Brand'
+                    };
+                    
+                    // Mostrar formulario con datos de prueba
+                    document.getElementById("resultadosInventario").style.display = "none";
+                    document.getElementById("datosInventario").style.display = "block";
+                    document.getElementById("unidadProducto").value = productoTest.unidad;
+                    document.getElementById("nombreProductoInventario").value = productoTest.nombre;
+                    document.getElementById("codigoProductoInventario").value = productoTest.codigo;
+                    
+                    // Forzar mostrar pestañas
+                    if (manejarTipoProducto) {
+                        console.log('🧪 Test: Llamando manejarTipoProducto con "Kg"');
+                        manejarTipoProducto('Kg');
+                    }
+                    
+                    if (establecerProductoActual) {
+                        console.log('🧪 Test: Estableciendo producto actual');
+                        establecerProductoActual(productoTest);
+                    }
+                    
+                    console.log('🧪 Test: Completado');
+                    
+                } catch (error) {
+                    console.error('🧪 Test: Error:', error);
+                }
+            });
 
             // Agregar listeners para sincronización manual
             document.getElementById('sync-inventario-down-btn')?.addEventListener('click', sincronizarInventarioDesdeSupabase);

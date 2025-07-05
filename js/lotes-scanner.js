@@ -340,54 +340,112 @@ function validarYProcesarCodigo(codigo, resultado) {
     }, 1000);
 }
 
-// Función para extraer datos de código CODE128 (formato: 2PLUppppppX)
+// Función para extraer datos de código CODE128 (formato real de balanza)
 function extraerDatosCodeCODE128(codigo) {
-    // Nuevo formato: 2 + 4 dígitos PLU + precio variable + 2 dígitos centavos + 1 dígito control
-    // Ejemplo: 2123405005099 = PLU 1234, precio $5005.09, dígito control 9
-    // Los centavos son los 2 dígitos antes del dígito de control
-    // Los pesos son todos los dígitos entre el PLU y los centavos
+    console.log(`\n=== ANÁLISIS DE CÓDIGO CODE128 ===`);
+    console.log(`Código completo: ${codigo} (longitud: ${codigo.length})`);
     
-    const match = codigo.match(/^2(\d{4})(\d+)(\d{2})(\d)$/);
+    // Eliminar cualquier prefijo de ceros si existe
+    const codigoLimpio = codigo.replace(/^0+/, '');
+    console.log(`Código sin ceros iniciales: ${codigoLimpio}`);
     
-    if (!match) {
-        console.log('Código no coincide con formato esperado 2PLU[pesos][centavos]X para peso');
-        console.log(`Código recibido: ${codigo} (longitud: ${codigo.length})`);
+    // Análisis del formato real observado: 022630000287341 (15 dígitos)
+    // Formato parece ser: 0[prefijo]PLU[peso en gramos][dígito control]
+    // 022630000287341 = 0 + 2263 (PLU) + 00002873 (peso en gramos) + 4 (control) + 1 (extra?)
+    
+    let plu, pesoGramos, digitoControl;
+    
+    // Intentar múltiples patrones de extracción basados en longitudes observadas
+    if (codigo.length === 15 && codigo.startsWith('02')) {
+        // Formato báscula real: 022630000287341
+        // Estructura: 02(tipo) + 2630(PLU) + 00028734(precio en centavos) + 1(control)
+        // El precio viene en centavos, no el peso
+        
+        plu = codigo.substring(2, 6);              // Posiciones 2-5: PLU (2630)
+        const precioStr = codigo.substring(6, 14); // Posiciones 6-13: precio en centavos (00028734)
+        const precioCentavos = parseInt(precioStr); // 28734 centavos = 287.34 pesos
+        digitoControl = codigo.substring(14, 15);  // Posición 14: dígito control
+        
+        // Convertir centavos a pesos
+        const precioPorcion = precioCentavos / 100;
+        
+        // Calcular peso basado en el precio y el precio por kilo
+        const pesoCalculado = precioPorcion / precioKiloActual;
+        
+        console.log(`Patrón báscula 15 dígitos detectado (PRECIO):
+            - Prefijo: ${codigo.substring(0, 2)}
+            - PLU: ${plu}
+            - Precio string: ${precioStr}
+            - Precio en centavos: ${precioCentavos}
+            - Precio porción: $${precioPorcion.toFixed(2)}
+            - Precio por kilo: $${precioKiloActual.toFixed(2)}
+            - Peso calculado: ${pesoCalculado.toFixed(3)}kg
+            - Dígito control: ${digitoControl}`);
+            
+        // Validación básica
+        if (pesoCalculado <= 0 || pesoCalculado > 50) {
+            console.log(`Peso calculado fuera de rango: ${pesoCalculado}kg`);
+            return null;
+        }
+        
+        return {
+            plu: plu,
+            peso: pesoCalculado,
+            precioPorcion: precioPorcion,
+            digitoControl: digitoControl
+        };
+            
+    } else if (codigo.length === 13 && codigo.startsWith('2')) {
+        // Formato alternativo: 2 + 4 dígitos PLU + 7 dígitos peso + 1 dígito control
+        plu = codigo.substring(1, 5);
+        const pesoStr = codigo.substring(5, 12);
+        pesoGramos = parseInt(pesoStr);
+        digitoControl = codigo.substring(12, 13);
+        
+        console.log(`Patrón 13 dígitos detectado:
+            - PLU: ${plu}
+            - Peso en gramos: ${pesoGramos}
+            - Dígito control: ${digitoControl}`);
+            
+    } else if (codigo.length >= 9 && codigoLimpio.startsWith('2')) {
+        // Formato original: 2 + 4 dígitos PLU + precio variable + 2 centavos + 1 control
+        const match = codigoLimpio.match(/^2(\d{4})(\d+)(\d{2})(\d)$/);
+        
+        if (match) {
+            plu = match[1];
+            const pesos = parseInt(match[2]);
+            const centavos = parseInt(match[3]);
+            digitoControl = match[4];
+            
+            // En este caso, calcular desde precio
+            const precioPorcion = pesos + (centavos / 100);
+            const pesoCalculado = precioPorcion / precioKiloActual;
+            
+            console.log(`Patrón precio detectado:
+                - PLU: ${plu}
+                - Precio porción: $${precioPorcion.toFixed(2)}
+                - Peso calculado: ${pesoCalculado.toFixed(3)}kg`);
+                
+            if (pesoCalculado <= 0 || pesoCalculado > 50) {
+                console.log(`Peso calculado fuera de rango: ${pesoCalculado}kg`);
+                return null;
+            }
+            
+            return {
+                plu: plu,
+                peso: pesoCalculado,
+                precioPorcion: precioPorcion,
+                digitoControl: digitoControl
+            };
+        }
+    } else {
+        console.log('Formato de código no reconocido');
+        console.log(`Longitud: ${codigo.length}, Inicio: ${codigo.substring(0, 2)}`);
         return null;
     }
     
-    const plu = match[1];
-    const pesos = parseInt(match[2]);
-    const centavos = parseInt(match[3]);
-    const digitoControl = match[4];
-    
-    // Construir el precio de la porción: pesos + centavos
-    // Ejemplo: pesos=5005, centavos=09 -> $5005.09
-    const precioPorcion = pesos + (centavos / 100);
-    
-    // Calcular peso: peso = precioPorcion / precioPorKilo
-    const peso = precioPorcion / precioKiloActual;
-    
-    console.log(`Código decodificado:
-        - PLU: ${plu}
-        - Pesos: ${pesos}
-        - Centavos: ${centavos.toString().padStart(2, '0')}
-        - Precio porción: $${precioPorcion.toFixed(2)}
-        - Precio por kilo: $${precioKiloActual.toFixed(2)}
-        - Peso calculado: ${peso.toFixed(3)}kg
-        - Dígito control: ${digitoControl}`);
-    
-    // Validación básica: el peso debe ser positivo y razonable
-    if (peso <= 0 || peso > 50) { // Peso máximo razonable de 50kg por porción
-        console.log(`Peso calculado fuera de rango: ${peso}kg`);
-        return null;
-    }
-    
-    return {
-        plu: plu,
-        peso: peso,
-        precioPorcion: precioPorcion,
-        digitoControl: digitoControl
-    };
+    console.log('No se pudo extraer datos del código');
+    return null;
 }
 
 // Función para validar que el PLU coincida con el producto actual
@@ -796,17 +854,21 @@ function cerrarModalLotesConAnimacion() {
 }
 
 // Función de prueba para validar la nueva lógica de extracción (TEMPORAL - para testing)
-function probarExtraccionPrecio() {
-    console.log("=== PRUEBA DE EXTRACCIÓN DE PRECIOS ===");
+export function probarExtraccionPrecio() {
+    console.log("=== PRUEBA DE EXTRACCIÓN DE CÓDIGOS ===");
     
     // Simular precio por kilo para las pruebas
     precioKiloActual = 200; // $200 por kilo
     
     const codigosPrueba = [
+        // Códigos formato precio
         "2123405005099", // PLU: 1234, Pesos: 5005, Centavos: 09, Control: 9 -> $5005.09
         "2567812345678", // PLU: 5678, Pesos: 123456, Centavos: 67, Control: 8 -> $123456.67
         "2999900000001", // PLU: 9999, Pesos: 0, Centavos: 00, Control: 1 -> $0.00
-        "2111100050099"  // PLU: 1111, Pesos: 000500, Centavos: 09, Control: 9 -> $500.09
+        "2111100050099", // PLU: 1111, Pesos: 000500, Centavos: 09, Control: 9 -> $500.09
+        
+        // Código real de báscula (contiene precio, no peso)
+        "022630000287341" // PLU: 2630, Precio: 287.34 pesos -> peso calculado según precio/kilo
     ];
     
     codigosPrueba.forEach((codigo, index) => {

@@ -264,6 +264,25 @@ async function init() {
                 }
             });
 
+            // Botón temporal para testing de extracción de códigos
+            document.getElementById('testExtraccionCodigos')?.addEventListener('click', async () => {
+                console.log('🔍 Test: Iniciando prueba de extracción de códigos');
+                try {
+                    // Importar función de prueba
+                    const moduloLotes = await import('./lotes-scanner.js');
+                    
+                    if (moduloLotes.probarExtraccionPrecio) {
+                        console.log('🔍 Test: Ejecutando probarExtraccionPrecio()');
+                        moduloLotes.probarExtraccionPrecio();
+                    } else {
+                        console.error('🔍 Test: No se encontró la función probarExtraccionPrecio');
+                    }
+                    
+                } catch (error) {
+                    console.error('🔍 Test: Error al ejecutar prueba de extracción:', error);
+                }
+            });
+
             // Agregar listeners para sincronización manual
             document.getElementById('sync-inventario-down-btn')?.addEventListener('click', sincronizarInventarioDesdeSupabase);
             document.getElementById('sincronizarManual')?.addEventListener('click', async () => {

@@ -374,7 +374,7 @@ export async function agregarProducto(evento) {
  * buscarProducto("012345678901", { formato: { result: { format: { formatName: "UPC-A" } } } });
  */
 export function buscarProducto(codigo, formato) {
-    console.log(`codigo: ${codigoCorto}, tipo de formato: ${formato}`);
+    console.log(`codigo: ${codigo}, tipo de formato: ${formato}`);
     let codigoB = codigo;
     let tipoFormato = ''; // Valor por defecto
     
@@ -475,7 +475,7 @@ export function buscarProducto(codigo, formato) {
 }
 
 export function buscarProductoParaEditar(codigo, formato) {
-    console.log(`codigo: ${codigoCorto}, tipo de formato: ${formato}`);
+    console.log(`codigo: ${codigo}, tipo de formato: ${formato}`);
     let codigoB = codigo;
     let tipoFormato = ''; // Valor por defecto
     // Manejar el caso cuando formato está vacío o es undefined
@@ -1058,7 +1058,7 @@ async function actualizarEnIndexedDB(data) {
 
 // Función para buscar inventario en nueva base de datos
 export async function buscarProductoInventario(codigo, formato) {
-    console.log(`codigo: ${codigoCorto}, tipo de formato: ${formato}`);
+    console.log(`codigo: ${codigo}, tipo de formato: ${formato}`);
     let codigoB = codigo;
     let tipoFormato = ''; // Valor por defecto
     if (!formato || formato === '') {

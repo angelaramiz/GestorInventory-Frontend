@@ -4,7 +4,7 @@
 
 GestorInventory es un sistema completo de gestión de inventario basado en web que permite a empresas y negocios administrar eficientemente sus productos e inventarios. Desarrollado con tecnologías modernas como JavaScript, Supabase para almacenamiento en la nube y capacidades offline mediante IndexedDB.
 
-![GestorInventory Logo](ruta/al/logo.png) *(Incluir logo si está disponible)*
+![GestorInventory Logo](assets/logo.svg)
 
 ## 🚀 Características principales
 

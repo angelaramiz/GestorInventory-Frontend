@@ -1,13 +1,18 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Entradas</title>
-    <link href="../librerías/tailwind.min.css" rel="stylesheet">
-    <script src="../librerías/sweetalert2@11.js"></script>
-    <script src="../librerías/jspdf.umd.min.js"></script>
+    <title>Registro de Entradas</title>    
+    <!-- Favicon y iconos -->
+    <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/logo.svg">
+    
+    <link href="../librerÃ­as/tailwind.min.css" rel="stylesheet">
+    <script src="../librerÃ­as/sweetalert2@11.js"></script>
+    <script src="../librerÃ­as/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <script src="../js/theme-manager.js"></script>
     <script src="../js/theme-toggle.js"></script>
@@ -17,7 +22,7 @@
     <header class="bg-green-600 text-white p-4 flex justify-between items-center shadow-lg">
         <div class="flex items-center space-x-3">
             <div class="p-2 bg-green-700 rounded-lg">
-                📦
+                ðŸ“¦
             </div>
             <h1 class="text-3xl font-bold tracking-wide">Registro de Entradas</h1>
         </div>
@@ -35,38 +40,38 @@
     <div id="sideMenu"
         class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform z-50">
         <div class="p-4 border-b">
-            <h2 class="text-xl font-bold">Menú de Navegación</h2>
+            <h2 class="text-xl font-bold">MenÃº de NavegaciÃ³n</h2>
             <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
         </div>
         <ul id="menuRoutes" class="p-4 space-y-2">
-            <!-- Las rutas se generarán dinámicamente -->
+            <!-- Las rutas se generarÃ¡n dinÃ¡micamente -->
         </ul>
     </div>
     <div class="container mx-auto mt-8 p-4">
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center space-x-4">
                 <h1 class="text-4xl font-bold text-gray-800 flex items-center">
-                    📦 Registro de Entradas
+                    ðŸ“¦ Registro de Entradas
                     <span class="ml-3 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        Sistema de Gestión
+                        Sistema de GestiÃ³n
                     </span>
                 </h1>
             </div>
             <div class="flex items-center space-x-3">
                 <a href="./main.html"
                     class="text-green-600 hover:text-green-800 hover:underline font-medium flex items-center space-x-2 transition-colors">
-                    <span>←</span>
-                    <span>Regresar al Menú Principal</span>
+                    <span>â†</span>
+                    <span>Regresar al MenÃº Principal</span>
                 </a>
                 <button id="menuToggle"
                     class="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 border-2 border-green-600 font-semibold transition-all hover:shadow-md">
-                    📋 Menú de Navegación
+                    ðŸ“‹ MenÃº de NavegaciÃ³n
                 </button>
             </div>
-        </div> <!-- Sección de búsqueda de productos -->
+        </div> <!-- SecciÃ³n de bÃºsqueda de productos -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover">
             <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
-                🔍 Buscar Producto
+                ðŸ” Buscar Producto
                 <span id="searchStatus" class="ml-3 text-sm"></span>
                 <div class="ml-auto text-sm text-gray-500">
                     <span id="ultimaBusqueda"></span>
@@ -76,22 +81,22 @@
             <div class="grid md:grid-cols-3 gap-6 mb-6">
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🏷️ Buscar por Código:
+                        ðŸ·ï¸ Buscar por CÃ³digo:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaCodigo"
                             class="flex-1 border-0 p-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                            placeholder="Ingrese código del producto">
+                            placeholder="Ingrese cÃ³digo del producto">
                         <button id="buscarPorCodigo"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
-                            <span id="btnCodigoText">🔍 Buscar</span>
+                            <span id="btnCodigoText">ðŸ” Buscar</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaNombre" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        📝 Buscar por Nombre:
+                        ðŸ“ Buscar por Nombre:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaNombre"
@@ -99,14 +104,14 @@
                             placeholder="Ingrese nombre del producto">
                         <button id="buscarPorNombre"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
-                            <span id="btnNombreText">🔍 Buscar</span>
+                            <span id="btnNombreText">ðŸ” Buscar</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaMarca" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🏢 Buscar por Marca:
+                        ðŸ¢ Buscar por Marca:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaMarca"
@@ -114,7 +119,7 @@
                             placeholder="Ingrese marca del producto">
                         <button id="buscarPorMarca"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
-                            <span id="btnMarcaText">🔍 Buscar</span>
+                            <span id="btnMarcaText">ðŸ” Buscar</span>
                         </button>
                     </div>
                 </div>
@@ -123,16 +128,16 @@
             <div class="flex justify-center">
                 <button id="escanearBtn"
                     class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                    <span>📷</span>
-                    <span>Escanear Código de Barras</span>
+                    <span>ðŸ“·</span>
+                    <span>Escanear CÃ³digo de Barras</span>
                 </button>
             </div>
 
-            <!-- Mensaje de búsqueda reciente -->
+            <!-- Mensaje de bÃºsqueda reciente -->
             <div id="busquedaReciente" class="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded"
                 style="display: none;">
                 <p class="text-sm text-blue-700">
-                    <strong>Búsqueda reciente:</strong> <span id="textoUltimaBusqueda"></span>
+                    <strong>BÃºsqueda reciente:</strong> <span id="textoUltimaBusqueda"></span>
                 </p>
             </div>
         </div> <!-- Formulario de datos del producto y entrada -->
@@ -140,16 +145,16 @@
             class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover"
             style="display: none;">
             <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
-                📦 Datos del Producto
+                ðŸ“¦ Datos del Producto
                 <div id="productLoadingIndicator" class="ml-3" style="display: none;">
                     <div
                         class="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin">
                     </div>
-                    <span class="ml-2">Cargando información...</span>
+                    <span class="ml-2">Cargando informaciÃ³n...</span>
                 </div>
                 <div class="ml-auto">
                     <span class="text-sm text-gray-500 bg-green-100 px-3 py-1 rounded-full">
-                        Producto encontrado ✅
+                        Producto encontrado âœ…
                     </span>
                 </div>
             </h2>
@@ -160,7 +165,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="codigoProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            🏷️ <span class="ml-2">Código del Producto:</span>
+                            ðŸ·ï¸ <span class="ml-2">CÃ³digo del Producto:</span>
                         </label>
                         <input type="text" id="codigoProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white font-mono text-lg rounded-lg shadow-sm"
@@ -170,7 +175,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="nombreProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            📝 <span class="ml-2">Nombre del Producto:</span>
+                            ðŸ“ <span class="ml-2">Nombre del Producto:</span>
                         </label>
                         <input type="text" id="nombreProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white font-semibold text-lg rounded-lg shadow-sm"
@@ -180,7 +185,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="marcaProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            🏢 <span class="ml-2">Marca:</span>
+                            ðŸ¢ <span class="ml-2">Marca:</span>
                         </label>
                         <input type="text" id="marcaProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
@@ -191,7 +196,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="categoriaProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            📂 <span class="ml-2">Categoría:</span>
+                            ðŸ“‚ <span class="ml-2">CategorÃ­a:</span>
                         </label>
                         <input type="text" id="categoriaProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
@@ -200,15 +205,15 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="unidadProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            📏 <span class="ml-2">Unidad de Medida:</span>
+                            ðŸ“ <span class="ml-2">Unidad de Medida:</span>
                         </label>
                         <input type="text" id="unidadProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
                     </div>
 
-                    <!-- Información adicional del stock actual -->
+                    <!-- InformaciÃ³n adicional del stock actual -->
                     <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <h4 class="text-sm font-semibold text-blue-700 mb-2">📊 Stock Actual</h4>
+                        <h4 class="text-sm font-semibold text-blue-700 mb-2">ðŸ“Š Stock Actual</h4>
                         <div class="text-2xl font-bold text-blue-600" id="stockActual">--</div>
                         <div class="text-xs text-blue-500">unidades disponibles</div>
                     </div>
@@ -216,7 +221,7 @@
             </div>
             <div class="border-t-2 border-gray-200 pt-8">
                 <h3 class="text-lg font-semibold mb-6 text-green-600 flex items-center">
-                    📝 Datos de la Entrada
+                    ðŸ“ Datos de la Entrada
                     <span class="ml-3 text-sm text-gray-500 bg-yellow-100 px-3 py-1 rounded-full">
                         * Campos obligatorios
                     </span>
@@ -229,7 +234,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="cantidadEntrada"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            📊 <span class="ml-2">Cantidad Recibida *:</span>
+                            ðŸ“Š <span class="ml-2">Cantidad Recibida *:</span>
                         </label>
                         <div class="relative">
                             <input type="number" id="cantidadEntrada"
@@ -245,59 +250,59 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="fechaEntrada"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            📅 <span class="ml-2">Fecha de Entrada *:</span>
+                            ðŸ“… <span class="ml-2">Fecha de Entrada *:</span>
                         </label>
                         <input type="date" id="fechaEntrada"
                             class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg"
                             required>
-                        <div class="text-xs text-gray-500 mt-1">Fecha en que se recibió el producto</div>
+                        <div class="text-xs text-gray-500 mt-1">Fecha en que se recibiÃ³ el producto</div>
                     </div>
 
                     <div class="transform transition-all hover:scale-105">
                         <label for="loteEntrada" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            🏷️ <span class="ml-2">Número de Lote:</span>
+                            ðŸ·ï¸ <span class="ml-2">NÃºmero de Lote:</span>
                         </label>
                         <input type="text" id="loteEntrada"
                             class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
                             placeholder="Opcional">
-                        <div class="text-xs text-gray-500 mt-1">Número de lote del proveedor</div>
+                        <div class="text-xs text-gray-500 mt-1">NÃºmero de lote del proveedor</div>
                     </div>
                 </div>
 
                 <div class="mb-6">
                     <label for="comentariosEntrada"
                         class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        💬 <span class="ml-2">Comentarios y Observaciones:</span>
+                        ðŸ’¬ <span class="ml-2">Comentarios y Observaciones:</span>
                     </label>
                     <textarea id="comentariosEntrada"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
                         rows="4"
-                        placeholder="Información adicional: estado del producto, observaciones del proveedor, condiciones especiales..."></textarea>
+                        placeholder="InformaciÃ³n adicional: estado del producto, observaciones del proveedor, condiciones especiales..."></textarea>
                 </div>
 
                 <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
                     <button id="limpiarFormulario"
                         class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span>🗑️</span>
+                        <span>ðŸ—‘ï¸</span>
                         <span>Limpiar Formulario</span>
                     </button>
                     <button id="registrarEntrada"
                         class="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span id="btnRegistrarText">✅ Registrar Entrada</span>
+                        <span id="btnRegistrarText">âœ… Registrar Entrada</span>
                     </button>
                 </div>
 
                 <!-- Resumen de la entrada -->
                 <div id="resumenEntrada" class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded"
                     style="display: none;">
-                    <h4 class="font-semibold text-blue-700 mb-2">📋 Resumen de la Entrada:</h4>
+                    <h4 class="font-semibold text-blue-700 mb-2">ðŸ“‹ Resumen de la Entrada:</h4>
                     <div id="textoResumen" class="text-sm text-blue-600"></div>
                 </div>
             </div>
         </div> <!-- Filtros y controles -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-blue-500 card-hover">
             <h2 class="text-xl font-bold mb-6 text-blue-600 flex items-center">
-                🔧 Filtros y Controles del Sistema
+                ðŸ”§ Filtros y Controles del Sistema
                 <div id="syncStatus" class="ml-3 text-sm"></div>
                 <div class="ml-auto text-sm text-gray-500">
                     <span id="estadoSistema" class="bg-green-100 text-green-700 px-3 py-1 rounded-full">
@@ -309,16 +314,16 @@
             <div class="grid md:grid-cols-4 gap-6 mb-6">
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🏷️ <span class="ml-2">Filtrar por Código:</span>
+                        ðŸ·ï¸ <span class="ml-2">Filtrar por CÃ³digo:</span>
                     </label>
                     <input type="text" id="filtroCodigo"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
-                        placeholder="Código del producto...">
+                        placeholder="CÃ³digo del producto...">
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroNombre" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        📝 <span class="ml-2">Filtrar por Nombre:</span>
+                        ðŸ“ <span class="ml-2">Filtrar por Nombre:</span>
                     </label>
                     <input type="text" id="filtroNombre"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
@@ -327,7 +332,7 @@
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroMarca" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🏢 <span class="ml-2">Filtrar por Marca:</span>
+                        ðŸ¢ <span class="ml-2">Filtrar por Marca:</span>
                     </label>
                     <input type="text" id="filtroMarca"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
@@ -337,12 +342,12 @@
                 <div class="flex items-end space-x-2">
                     <button id="filtrarEntradas"
                         class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
-                        <span>🔍</span>
+                        <span>ðŸ”</span>
                         <span>Filtrar</span>
                     </button>
                     <button id="limpiarFiltros"
                         class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-3 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
-                        <span>🗑️</span>
+                        <span>ðŸ—‘ï¸</span>
                         <span>Limpiar</span>
                     </button>
                 </div>
@@ -352,14 +357,14 @@
             <div class="grid md:grid-cols-3 gap-6 mb-6 p-4 bg-gray-50 rounded-lg">
                 <div>
                     <label for="fechaDesde" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        📅 <span class="ml-2">Desde:</span>
+                        ðŸ“… <span class="ml-2">Desde:</span>
                     </label>
                     <input type="date" id="fechaDesde"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
                 </div>
                 <div>
                     <label for="fechaHasta" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        📅 <span class="ml-2">Hasta:</span>
+                        ðŸ“… <span class="ml-2">Hasta:</span>
                     </label>
                     <input type="date" id="fechaHasta"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
@@ -367,7 +372,7 @@
                 <div class="flex items-end">
                     <button id="filtrarPorFecha"
                         class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all w-full">
-                        📊 Filtrar por Fechas
+                        ðŸ“Š Filtrar por Fechas
                     </button>
                 </div>
             </div>
@@ -376,23 +381,23 @@
                 <div class="flex flex-wrap gap-3">
                     <button id="sincronizarEntradas"
                         class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span id="btnSincText">🔄 Sincronizar con Servidor</span>
+                        <span id="btnSincText">ðŸ”„ Sincronizar con Servidor</span>
                     </button>
                     <button id="generarReporte"
                         class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span>📊</span>
+                        <span>ðŸ“Š</span>
                         <span>Generar Reporte CSV</span>
                     </button>
                     <button id="autoRefresh"
                         class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span>⚡</span>
-                        <span>Auto-actualización: OFF</span>
+                        <span>âš¡</span>
+                        <span>Auto-actualizaciÃ³n: OFF</span>
                     </button>
                 </div>
 
                 <div class="flex items-center space-x-3 text-sm text-gray-600">
                     <div class="bg-gray-100 px-3 py-2 rounded-lg">
-                        <span class="font-semibold">Última sincronización:</span>
+                        <span class="font-semibold">Ãšltima sincronizaciÃ³n:</span>
                         <span id="ultimaSync">--:--</span>
                     </div>
                     <div class="bg-gray-100 px-3 py-2 rounded-lg">
@@ -406,7 +411,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-purple-600 flex items-center">
-                        📋 Historial de Entradas del Sistema
+                        ðŸ“‹ Historial de Entradas del Sistema
                         <div id="tableLoadingIndicator" class="ml-3" style="display: none;">
                             <div
                                 class="inline-block w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin">
@@ -427,34 +432,34 @@
                     <button id="refreshTable"
                         class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-2 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
                         title="Actualizar tabla">
-                        <span>🔄</span>
+                        <span>ðŸ”„</span>
                         <span class="hidden md:inline">Actualizar</span>
                     </button>
                     <button id="exportVisible"
                         class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
                         title="Exportar datos visibles">
-                        <span>📥</span>
+                        <span>ðŸ“¥</span>
                         <span class="hidden md:inline">Exportar</span>
                     </button>
                     <button id="expandirTabla"
                         class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
                         title="Expandir/Contraer tabla">
-                        <span>⛶</span>
+                        <span>â›¶</span>
                         <span class="hidden md:inline">Expandir</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Barra de búsqueda rápida -->
+            <!-- Barra de bÃºsqueda rÃ¡pida -->
             <div class="mb-4 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                     <input type="text" id="busquedaRapida"
                         class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        placeholder="🔍 Búsqueda rápida en la tabla...">
+                        placeholder="ðŸ” BÃºsqueda rÃ¡pida en la tabla...">
                     <select id="ordenarPor"
                         class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500">
-                        <option value="fecha-desc">Más reciente primero</option>
-                        <option value="fecha-asc">Más antiguo primero</option>
+                        <option value="fecha-desc">MÃ¡s reciente primero</option>
+                        <option value="fecha-asc">MÃ¡s antiguo primero</option>
                         <option value="cantidad-desc">Mayor cantidad primero</option>
                         <option value="cantidad-asc">Menor cantidad primero</option>
                         <option value="nombre-asc">Nombre A-Z</option>
@@ -473,69 +478,69 @@
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('codigo')">
                                 <div class="flex items-center space-x-1">
-                                    <span>🏷️ Código</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <span>ðŸ·ï¸ CÃ³digo</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('nombre')">
                                 <div class="flex items-center space-x-1">
-                                    <span>📝 Nombre</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <span>ðŸ“ Nombre</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('marca')">
                                 <div class="flex items-center space-x-1">
-                                    <span>🏢 Marca</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <span>ðŸ¢ Marca</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('categoria')">
                                 <div class="flex items-center space-x-1">
-                                    <span>📂 Categoría</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <span>ðŸ“‚ CategorÃ­a</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('unidad')">
                                 <div class="flex items-center space-x-1">
-                                    <span>📏 Unidad</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <span>ðŸ“ Unidad</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('cantidad')">
                                 <div class="flex items-center space-x-1">
-                                    <span>📊 Cantidad</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <span>ðŸ“Š Cantidad</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('fecha')">
                                 <div class="flex items-center space-x-1">
-                                    <span>📅 Fecha</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <span>ðŸ“… Fecha</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
                                 </div>
                             </th>
                             <th
                                 class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                                💬 Comentarios
+                                ðŸ’¬ Comentarios
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ⚙️ Acciones
+                                âš™ï¸ Acciones
                             </th>
                         </tr>
                     </thead>
                     <tbody id="tablaEntradasBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Las entradas se cargarán dinámicamente aquí -->
+                        <!-- Las entradas se cargarÃ¡n dinÃ¡micamente aquÃ­ -->
                         <tr class="text-center text-gray-500 bg-gray-50">
                             <td colspan="9" class="px-6 py-8">
                                 <div class="flex flex-col items-center space-y-3">
-                                    <div class="text-4xl">📦</div>
+                                    <div class="text-4xl">ðŸ“¦</div>
                                     <div class="text-lg font-medium">No hay entradas registradas</div>
-                                    <div class="text-sm">Las entradas aparecerán aquí cuando se registren productos
+                                    <div class="text-sm">Las entradas aparecerÃ¡n aquÃ­ cuando se registren productos
                                     </div>
                                 </div>
                             </td>
@@ -544,7 +549,7 @@
                 </table>
             </div>
 
-            <!-- Paginación -->
+            <!-- PaginaciÃ³n -->
             <div class="mt-6 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     <span class="text-sm text-gray-600">Mostrar:</span>
@@ -554,10 +559,10 @@
                         <option value="50">50</option>
                         <option value="100">100</option>
                     </select>
-                    <span class="text-sm text-gray-600">registros por página</span>
+                    <span class="text-sm text-gray-600">registros por pÃ¡gina</span>
                 </div>
                 <div id="paginacion" class="flex items-center space-x-2">
-                    <!-- Los controles de paginación se generarán dinámicamente -->
+                    <!-- Los controles de paginaciÃ³n se generarÃ¡n dinÃ¡micamente -->
                 </div>
             </div>
         </div> <!-- Scanner container -->
@@ -568,18 +573,18 @@
                 class="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl border-4 border-green-500 transform transition-all">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold text-gray-800 flex items-center">
-                        📷 <span class="ml-2">Escáner de Código de Barras</span>
+                        ðŸ“· <span class="ml-2">EscÃ¡ner de CÃ³digo de Barras</span>
                     </h3>
                     <button id="cerrarEscaner"
                         class="text-red-500 hover:text-red-700 text-2xl font-bold transition-colors transform hover:scale-110">
-                        ✕
+                        âœ•
                     </button>
                 </div>
 
                 <div class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
                     <p class="text-sm text-blue-700">
-                        <strong>Instrucciones:</strong> Coloque el código de barras dentro del marco verde.
-                        El escáner detectará automáticamente el código.
+                        <strong>Instrucciones:</strong> Coloque el cÃ³digo de barras dentro del marco verde.
+                        El escÃ¡ner detectarÃ¡ automÃ¡ticamente el cÃ³digo.
                     </p>
                 </div>
 
@@ -589,38 +594,38 @@
                 <div class="flex space-x-3">
                     <button id="detenerEscaner"
                         class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 w-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
-                        <span>🛑</span>
-                        <span>Detener Escáner</span>
+                        <span>ðŸ›‘</span>
+                        <span>Detener EscÃ¡ner</span>
                     </button>
                 </div>
 
-                <!-- Estado del escáner -->
+                <!-- Estado del escÃ¡ner -->
                 <div id="estadoEscaner" class="mt-4 text-center text-sm text-gray-600">
                     <div class="flex items-center justify-center space-x-2">
                         <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span>Escáner activo - Listo para escanear</span>
+                        <span>EscÃ¡ner activo - Listo para escanear</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="../librerías/html5-qrcode.min.js"></script>
+    <script src="../librerÃ­as/html5-qrcode.min.js"></script>
     <script src="../js/extension-conflict-detector.js"></script>
     <script type="module" src="../js/main.js"></script>
     <script type="module" src="../js/registro-entradas-operations.js"></script>
     <script type="module">
         import { inicializarRegistroEntradas } from '../js/registro-entradas-operations.js';
         import { inicializarDB } from '../js/db-operations.js';
-        import { toggleEscaner } from '../js/scanner.js';        // Inicializar cuando el DOM esté cargado
+        import { toggleEscaner } from '../js/scanner.js';        // Inicializar cuando el DOM estÃ© cargado
         document.addEventListener('DOMContentLoaded', async function () {
             try {
                 // Inicializar base de datos principal
                 await inicializarDB();
 
-                // Inicializar página de registro de entradas
+                // Inicializar pÃ¡gina de registro de entradas
                 await inicializarRegistroEntradas();
 
-                // Configurar escáner
+                // Configurar escÃ¡ner
                 const escanearBtn = document.getElementById('escanearBtn');
                 if (escanearBtn) {
                     escanearBtn.addEventListener('click', () => {
@@ -643,26 +648,26 @@
                     });
                 }
 
-                // Inicializar funcionalidades dinámicas
+                // Inicializar funcionalidades dinÃ¡micas
                 initializeDynamicFeatures();
 
-                console.log('Página de registro de entradas inicializada correctamente');
+                console.log('PÃ¡gina de registro de entradas inicializada correctamente');
 
             } catch (error) {
-                console.error('Error al inicializar página de registro de entradas:', error);
+                console.error('Error al inicializar pÃ¡gina de registro de entradas:', error);
             }
-        });        // Funcionalidades dinámicas
+        });        // Funcionalidades dinÃ¡micas
         function initializeDynamicFeatures() {
             // Reloj en tiempo real
             updateClock();
             setInterval(updateClock, 1000);
 
-            // Estado de conexión
+            // Estado de conexiÃ³n
             updateConnectionStatus();
             window.addEventListener('online', updateConnectionStatus);
             window.addEventListener('offline', updateConnectionStatus);
 
-            // Auto-actualización
+            // Auto-actualizaciÃ³n
             setupAutoRefresh();
 
             // Efectos de carga
@@ -671,13 +676,13 @@
             // Animaciones de entrada
             setupEntranceAnimations();
 
-            // Notificaciones dinámicas
+            // Notificaciones dinÃ¡micas
             setupDynamicNotifications();
 
             // Configurar fecha actual
             setupCurrentDate();
 
-            // Búsqueda rápida en tabla
+            // BÃºsqueda rÃ¡pida en tabla
             setupQuickSearch();
 
             // Autocompletado
@@ -724,11 +729,11 @@
                 const isOnline = navigator.onLine;
                 const status = isOnline
                     ? '<span class="status-indicator status-success"></span>Conectado'
-                    : '<span class="status-indicator status-error"></span>Sin conexión';
+                    : '<span class="status-indicator status-error"></span>Sin conexiÃ³n';
 
                 if (statusElement) statusElement.innerHTML = status;
                 if (estadoConexion) {
-                    estadoConexion.textContent = isOnline ? 'Conectado' : 'Sin conexión';
+                    estadoConexion.textContent = isOnline ? 'Conectado' : 'Sin conexiÃ³n';
                     estadoConexion.className = isOnline ? 'text-green-600' : 'text-red-600';
                 }
 
@@ -781,13 +786,13 @@
         }
 
         function setupAutoComplete() {
-            // Autocompletado para campos de búsqueda
+            // Autocompletado para campos de bÃºsqueda
             const campos = ['busquedaCodigo', 'busquedaNombre', 'busquedaMarca'];
             campos.forEach(campoId => {
                 const campo = document.getElementById(campoId);
                 if (campo) {
                     campo.addEventListener('input', debounce((e) => {
-                        // Aquí se implementaría la lógica de autocompletado
+                        // AquÃ­ se implementarÃ­a la lÃ³gica de autocompletado
                         showAutoCompleteHint(campo, e.target.value);
                     }, 300));
                 }
@@ -797,7 +802,7 @@
         function showAutoCompleteHint(element, value) {
             if (value.length < 2) return;
 
-            // Simular sugerencias (en producción vendría de la base de datos)
+            // Simular sugerencias (en producciÃ³n vendrÃ­a de la base de datos)
             const hints = ['Producto A', 'Producto B', 'Marca X', 'Marca Y'];
             const matchingHints = hints.filter(hint =>
                 hint.toLowerCase().includes(value.toLowerCase())
@@ -867,18 +872,18 @@
                 });
             }
 
-            // Validación de fecha
+            // ValidaciÃ³n de fecha
             const fechaInput = document.getElementById('fechaEntrada');
             if (fechaInput) {
                 fechaInput.addEventListener('change', (e) => {
                     const selectedDate = new Date(e.target.value);
                     const today = new Date();
                     const maxDate = new Date();
-                    maxDate.setDate(today.getDate() + 30); // Máximo 30 días en el futuro
+                    maxDate.setDate(today.getDate() + 30); // MÃ¡ximo 30 dÃ­as en el futuro
 
                     if (selectedDate > maxDate) {
                         e.target.classList.add('border-yellow-500');
-                        showToast('⚠️ La fecha seleccionada está muy lejos en el futuro', 'warning');
+                        showToast('âš ï¸ La fecha seleccionada estÃ¡ muy lejos en el futuro', 'warning');
                     } else {
                         e.target.classList.remove('border-yellow-500');
                         updateEntryPreview();
@@ -909,7 +914,7 @@
             }
         }
 
-        // Función auxiliar para debounce
+        // FunciÃ³n auxiliar para debounce
         function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {
@@ -922,9 +927,9 @@
             };
         }
 
-        // Función para mostrar mensajes toast
+        // FunciÃ³n para mostrar mensajes toast
         function showToast(message, type = 'info') {
-            // Implementación simple de toast
+            // ImplementaciÃ³n simple de toast
             const toast = document.createElement('div');
             toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500' :
                     type === 'warning' ? 'bg-yellow-500' :
@@ -939,10 +944,10 @@
             }, 3000);
         }
 
-        // Función para ordenar tabla
+        // FunciÃ³n para ordenar tabla
         function sortTable(column) {
             console.log(`Ordenando por: ${column}`);
-            // Aquí se implementaría la lógica de ordenamiento
+            // AquÃ­ se implementarÃ­a la lÃ³gica de ordenamiento
         } function setupAutoRefresh() {
             let autoRefreshEnabled = false;
             let autoRefreshInterval;
@@ -953,7 +958,7 @@
                     autoRefreshEnabled = !autoRefreshEnabled;
 
                     if (autoRefreshEnabled) {
-                        autoRefreshBtn.innerHTML = '<span>⚡</span><span>Auto-actualización: ON</span>';
+                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualizaciÃ³n: ON</span>';
                         autoRefreshBtn.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-indigo-600', 'hover:from-indigo-600', 'hover:to-indigo-700');
                         autoRefreshBtn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
 
@@ -962,16 +967,16 @@
                             updateLastSyncTime();
                         }, 30000); // Cada 30 segundos
 
-                        showToast('✅ Auto-actualización activada', 'success');
+                        showToast('âœ… Auto-actualizaciÃ³n activada', 'success');
                     } else {
-                        autoRefreshBtn.innerHTML = '<span>⚡</span><span>Auto-actualización: OFF</span>';
+                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualizaciÃ³n: OFF</span>';
                         autoRefreshBtn.classList.remove('bg-gradient-to-r', 'from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
                         autoRefreshBtn.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-indigo-600', 'hover:from-indigo-600', 'hover:to-indigo-700');
 
                         if (autoRefreshInterval) {
                             clearInterval(autoRefreshInterval);
                         }
-                        showToast('⏸️ Auto-actualización desactivada', 'info');
+                        showToast('â¸ï¸ Auto-actualizaciÃ³n desactivada', 'info');
                     }
                 });
             }
@@ -989,17 +994,17 @@
         }
 
         function setupLoadingEffects() {
-            // Interceptar clicks en botones de búsqueda
+            // Interceptar clicks en botones de bÃºsqueda
             ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca'].forEach(btnId => {
                 const btn = document.getElementById(btnId);
                 if (btn) {
                     btn.addEventListener('click', () => {
                         const textId = btnId.replace('buscar', 'btn') + 'Text';
-                        showButtonLoading(btn, textId, '🔍 Buscando...');
+                        showButtonLoading(btn, textId, 'ðŸ” Buscando...');
 
-                        // Simular búsqueda exitosa
+                        // Simular bÃºsqueda exitosa
                         setTimeout(() => {
-                            hideButtonLoading(btn, textId, '🔍 Buscar');
+                            hideButtonLoading(btn, textId, 'ðŸ” Buscar');
                             updateSearchHistory(btnId);
                         }, 2000);
                     });
@@ -1010,31 +1015,31 @@
             const registrarBtn = document.getElementById('registrarEntrada');
             if (registrarBtn) {
                 registrarBtn.addEventListener('click', () => {
-                    showButtonLoading(registrarBtn, 'btnRegistrarText', '⏳ Registrando entrada...');
+                    showButtonLoading(registrarBtn, 'btnRegistrarText', 'â³ Registrando entrada...');
 
                     setTimeout(() => {
-                        hideButtonLoading(registrarBtn, 'btnRegistrarText', '✅ Registrar Entrada');
-                        showToast('✅ Entrada registrada exitosamente', 'success');
+                        hideButtonLoading(registrarBtn, 'btnRegistrarText', 'âœ… Registrar Entrada');
+                        showToast('âœ… Entrada registrada exitosamente', 'success');
                         updateEntryCounter();
                     }, 3000);
                 });
             }
 
-            // Interceptar sincronización
+            // Interceptar sincronizaciÃ³n
             const sincBtn = document.getElementById('sincronizarEntradas');
             if (sincBtn) {
                 sincBtn.addEventListener('click', () => {
-                    showButtonLoading(sincBtn, 'btnSincText', '🔄 Sincronizando con servidor...');
+                    showButtonLoading(sincBtn, 'btnSincText', 'ðŸ”„ Sincronizando con servidor...');
 
                     setTimeout(() => {
-                        hideButtonLoading(sincBtn, 'btnSincText', '🔄 Sincronizar con Servidor');
-                        showToast('✅ Sincronización completada', 'success');
+                        hideButtonLoading(sincBtn, 'btnSincText', 'ðŸ”„ Sincronizar con Servidor');
+                        showToast('âœ… SincronizaciÃ³n completada', 'success');
                         updateLastSyncTime();
                     }, 4000);
                 });
             }
 
-            // Interceptar actualización de tabla
+            // Interceptar actualizaciÃ³n de tabla
             const refreshBtn = document.getElementById('refreshTable');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', () => {
@@ -1043,7 +1048,7 @@
                         indicator.style.display = 'block';
                         setTimeout(() => {
                             indicator.style.display = 'none';
-                            showToast('🔄 Tabla actualizada', 'info');
+                            showToast('ðŸ”„ Tabla actualizada', 'info');
                         }, 2000);
                     }
                 });
@@ -1056,9 +1061,9 @@
 
             if (busquedaReciente && textoUltimaBusqueda) {
                 const tipoTexto = {
-                    'buscarPorCodigo': 'Búsqueda por código',
-                    'buscarPorNombre': 'Búsqueda por nombre',
-                    'buscarPorMarca': 'Búsqueda por marca'
+                    'buscarPorCodigo': 'BÃºsqueda por cÃ³digo',
+                    'buscarPorNombre': 'BÃºsqueda por nombre',
+                    'buscarPorMarca': 'BÃºsqueda por marca'
                 };
 
                 const now = new Date().toLocaleTimeString('es-ES', {
@@ -1069,7 +1074,7 @@
                 textoUltimaBusqueda.textContent = `${tipoTexto[searchType]} a las ${now}`;
                 busquedaReciente.style.display = 'block';
 
-                // Ocultar después de 10 segundos
+                // Ocultar despuÃ©s de 10 segundos
                 setTimeout(() => {
                     busquedaReciente.style.display = 'none';
                 }, 10000);
@@ -1085,7 +1090,7 @@
                 const newCount = currentCount + 1;
                 contador.textContent = `Total: ${newCount} entradas registradas`;
 
-                // Animación del contador
+                // AnimaciÃ³n del contador
                 contador.classList.add('animate-pulse');
                 setTimeout(() => {
                     contador.classList.remove('animate-pulse');
@@ -1131,7 +1136,7 @@
                     if (entry.isIntersecting) {
                         entry.target.classList.add('animate-fade-in-up');
 
-                        // Añadir un pequeño retraso para elementos consecutivos
+                        // AÃ±adir un pequeÃ±o retraso para elementos consecutivos
                         const siblings = Array.from(entry.target.parentElement.children);
                         const index = siblings.indexOf(entry.target);
                         entry.target.style.animationDelay = `${index * 0.1}s`;
@@ -1162,7 +1167,7 @@
                 });
             });
 
-            // Animación de aparecer para modales
+            // AnimaciÃ³n de aparecer para modales
             const scanner = document.getElementById('scanner-container');
             if (scanner) {
                 const originalDisplay = scanner.style.display;
@@ -1208,14 +1213,14 @@
                             const codigoProducto = document.getElementById('codigoProducto');
 
                             if (productForm && codigoProducto && codigoProducto.value) {
-                                // Mostrar formulario con animación
+                                // Mostrar formulario con animaciÃ³n
                                 productForm.style.display = 'block';
                                 productForm.scrollIntoView({
                                     behavior: 'smooth',
                                     block: 'center'
                                 });
 
-                                // Animación de aparición
+                                // AnimaciÃ³n de apariciÃ³n
                                 productForm.style.opacity = '0';
                                 productForm.style.transform = 'translateY(30px)';
 
@@ -1251,7 +1256,7 @@
                     e.target.style.transform = 'scale(1.02)';
                     e.target.style.transition = 'transform 0.2s ease';
 
-                    // Añadir indicador de foco
+                    // AÃ±adir indicador de foco
                     const label = e.target.previousElementSibling;
                     if (label && label.tagName === 'LABEL') {
                         label.style.color = '#10B981';
@@ -1271,7 +1276,7 @@
                     }
                 });
 
-                // Validación visual en tiempo real
+                // ValidaciÃ³n visual en tiempo real
                 if (input.type === 'number') {
                     input.addEventListener('input', (e) => {
                         const value = parseFloat(e.target.value);
@@ -1303,7 +1308,7 @@
                 const stock = Math.floor(Math.random() * 500) + 10;
                 stockActual.textContent = stock;
 
-                // Animación del contador
+                // AnimaciÃ³n del contador
                 stockActual.style.transform = 'scale(1.2)';
                 stockActual.style.transition = 'transform 0.3s ease';
 
@@ -1368,14 +1373,14 @@
         }
 
         function setupSystemStatusNotifications() {
-            // Notificaciones periódicas de estado
+            // Notificaciones periÃ³dicas de estado
             setInterval(() => {
                 if (Math.random() < 0.1) { // 10% de probabilidad cada minuto
                     const messages = [
-                        '✅ Sistema funcionando correctamente',
-                        '📊 Base de datos sincronizada',
-                        '🔄 Datos actualizados automáticamente',
-                        '📈 Rendimiento óptimo del sistema'
+                        'âœ… Sistema funcionando correctamente',
+                        'ðŸ“Š Base de datos sincronizada',
+                        'ðŸ”„ Datos actualizados automÃ¡ticamente',
+                        'ðŸ“ˆ Rendimiento Ã³ptimo del sistema'
                     ];
 
                     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
@@ -1414,7 +1419,7 @@
                 row.removeEventListener('mouseenter', handleRowHover);
                 row.removeEventListener('mouseleave', handleRowLeave);
 
-                // Añadir nuevos eventos
+                // AÃ±adir nuevos eventos
                 row.addEventListener('mouseenter', handleRowHover);
                 row.addEventListener('mouseleave', handleRowLeave);
             });
@@ -1441,18 +1446,18 @@
             }, 1000);
         });
 
-        // Características adicionales
+        // CaracterÃ­sticas adicionales
         function initializeAdditionalFeatures() {
             // Configurar filtros de fecha inteligentes
             setupIntelligentDateFilters();
 
-            // Configurar exportación mejorada
+            // Configurar exportaciÃ³n mejorada
             setupEnhancedExport();
 
             // Configurar modo expandido de tabla
             setupTableExpandMode();
 
-            // Configurar estadísticas en tiempo real
+            // Configurar estadÃ­sticas en tiempo real
             setupRealTimeStats();
         }
 
@@ -1470,9 +1475,9 @@
                             const hasta = new Date(fechaHasta).toLocaleDateString('es-ES');
                             rangoFechas.textContent = `Mostrando entradas del ${desde} al ${hasta}`;
                         }
-                        showToast(`📅 Filtro aplicado: ${fechaDesde} a ${fechaHasta}`, 'info');
+                        showToast(`ðŸ“… Filtro aplicado: ${fechaDesde} a ${fechaHasta}`, 'info');
                     } else {
-                        showToast('⚠️ Seleccione ambas fechas para filtrar', 'warning');
+                        showToast('âš ï¸ Seleccione ambas fechas para filtrar', 'warning');
                     }
                 });
             }
@@ -1482,10 +1487,10 @@
             const exportBtn = document.getElementById('exportVisible');
             if (exportBtn) {
                 exportBtn.addEventListener('click', () => {
-                    showToast('📥 Preparando exportación...', 'info');
+                    showToast('ðŸ“¥ Preparando exportaciÃ³n...', 'info');
 
                     setTimeout(() => {
-                        showToast('✅ Datos exportados exitosamente', 'success');
+                        showToast('âœ… Datos exportados exitosamente', 'success');
                     }, 2000);
                 });
             }
@@ -1501,31 +1506,31 @@
 
                     if (!isExpanded) {
                         tableContainer.classList.add('fixed', 'inset-4', 'z-40', 'overflow-auto');
-                        expandBtn.innerHTML = '<span>⛶</span><span class="hidden md:inline">Contraer</span>';
+                        expandBtn.innerHTML = '<span>â›¶</span><span class="hidden md:inline">Contraer</span>';
                         isExpanded = true;
-                        showToast('⛶ Tabla expandida', 'info');
+                        showToast('â›¶ Tabla expandida', 'info');
                     } else {
                         tableContainer.classList.remove('fixed', 'inset-4', 'z-40', 'overflow-auto');
-                        expandBtn.innerHTML = '<span>⛶</span><span class="hidden md:inline">Expandir</span>';
+                        expandBtn.innerHTML = '<span>â›¶</span><span class="hidden md:inline">Expandir</span>';
                         isExpanded = false;
-                        showToast('⛶ Tabla contraída', 'info');
+                        showToast('â›¶ Tabla contraÃ­da', 'info');
                     }
                 });
             }
         }
 
         function setupRealTimeStats() {
-            // Actualizar estadísticas cada 30 segundos
+            // Actualizar estadÃ­sticas cada 30 segundos
             setInterval(() => {
                 updateSystemStats();
             }, 30000);
 
-            // Actualización inicial
+            // ActualizaciÃ³n inicial
             updateSystemStats();
         }
 
         function updateSystemStats() {
-            // Simular actualización de estadísticas
+            // Simular actualizaciÃ³n de estadÃ­sticas
             const totalEntradas = document.getElementById('totalEntradas');
             if (totalEntradas) {
                 const currentCount = parseInt(totalEntradas.textContent || 0);
@@ -1645,10 +1650,10 @@
             </style>
         `;
 
-        // Añadir estilos al head
+        // AÃ±adir estilos al head
         document.head.insertAdjacentHTML('beforeend', additionalStyles);
 
-        // Llamar después de cargar datos en la tabla
+        // Llamar despuÃ©s de cargar datos en la tabla
         window.addEventListener('load', () => {
             setTimeout(addTableRowEffects, 1000);
         });

@@ -395,7 +395,7 @@ export function buscarProducto(codigo, formato) {
             tipoFormato = 'desconocido';
         }
     }
-
+    console.log(`codigo: ${codigo}, tipo de formato: ${formato.result.format.formatName.toLowerCase()}`)
     const nombre = document.getElementById("nombreConsulta").value;
     const categoria = document.getElementById("categoriaConsulta").value;
 
@@ -404,7 +404,7 @@ export function buscarProducto(codigo, formato) {
         mostrarMensaje(`Código de 4 dígitos manual detectado: ${codigoB}`, "success");
         buscarPorCodigoParcial(codigoB, "Consulta");
         return;  // Detener la ejecución aquí para evitar la búsqueda normal
-    } else if (formato === "upc-a") {
+    } else if (formato.result.format.formatName.toLowerCase() === "upc-a") {
         const codigoSanitizado = sanitizarNumeroEntero(codigoB);
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
         const codigoCorto = codigoSanitizado.replace(/^0+/, '');

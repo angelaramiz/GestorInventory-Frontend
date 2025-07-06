@@ -374,25 +374,13 @@ export async function agregarProducto(evento) {
  */
 export function buscarProducto(codigo, formato) {
     let codigoB = codigo;
-    let tipoFormato = ''; // Valor por defecto
-    
+    let tipoFormato = formato || ''; // Valor por defecto
+
     // Manejar el caso cuando formato está vacío o es undefined
-    if (!formato || formato === '') {
+    if (!tipoFormato || tipoFormato === '') {
         codigoB = document.getElementById("codigoConsulta").value;
         tipoFormato = 'manual';
-    } else {
-        // Extraer tipo de formato de manera segura
-        try {
-            if (formato && typeof formato === 'object' && formato.formato) {
-                tipoFormato = formato.formato.result?.format?.formatName?.toLowerCase() || 'desconocido';
-            } else {
-                tipoFormato = 'manual';
-            }
-        } catch (error) {
-            console.warn("Error al extraer tipo de formato:", error);
-            tipoFormato = 'desconocido';
-        }
-    }
+    } 
     console.log(`codigo: ${codigoB}, tipo de formato: ${tipoFormato}`)
     const nombre = document.getElementById("nombreConsulta").value;
     const categoria = document.getElementById("categoriaConsulta").value;
@@ -479,24 +467,12 @@ export function buscarProducto(codigo, formato) {
 export function buscarProductoParaEditar(codigo, formato) {
     console.log(`codigo: ${codigo}, tipo de formato: ${tipoFormato}`);
     let codigoB = codigo;
-    let tipoFormato = ''; // Valor por defecto
+    let tipoFormato = formato || ''; // Valor por defecto
     // Manejar el caso cuando formato está vacío o es undefined
-    if (!formato || formato === '') {
+    if (!tipoFormato || tipoFormato === '') {
         codigoB = document.getElementById("codigoEditar").value;
         tipoFormato = 'manual';
-    } else {
-        // Extraer tipo de formato de manera segura
-        try {
-            if (formato && typeof formato === 'object' && formato.formato) {
-                tipoFormato = formato.formato.result?.format?.formatName?.toLowerCase() || 'desconocido';
-            } else {
-                tipoFormato = 'manual';
-            }
-        } catch (error) {
-            console.warn("Error al extraer tipo de formato:", error);
-            tipoFormato = 'desconocido';
-        }
-    }
+    } 
 
     // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
     if (codigoB.length === 4) {
@@ -1122,27 +1098,12 @@ async function actualizarEnIndexedDB(data) {
 
 // Función para buscar inventario en nueva base de datos
 export async function buscarProductoInventario(codigo, formato) {
-    console.log(`codigo: ${codigo}, tipo de formato: ${tipoFormato}`);
     let codigoB = codigo;
-    let tipoFormato = ''; // Valor por defecto
-    if (!formato || formato === '') {
+    let tipoFormato = formato || ''; // Valor por defecto
+    if (!tipoFormato || tipoFormato === '') {
         codigoB = document.getElementById("codigo").value;
         tipoFormato = 'manual';
-    } else {
-        // Extraer tipo de formato de manera segura
-        try {
-            if (formato && typeof formato === 'object' && formato.formato) {
-                tipoFormato = formato.formato.result?.format?.formatName?.toLowerCase() || 'desconocido';
-            } else {
-                tipoFormato = 'manual';
-
-            }
-        } catch (error) {
-            console.error("Error al extraer tipo de formato:", error);
-            tipoFormato = 'desconocido';
-
-        }
-    }
+    } 
     document.getElementById("datosInventario").style.display = "none";
     const nombre = document.getElementById("nombreInventario").value;
     const marca = document.getElementById("marcaInventario").value;

@@ -421,7 +421,7 @@ export function buscarProducto(codigo, formato) {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
-    } else if (codigoB.length === 13 || tipoFormato === "ean-13") {
+    } else if (codigoB.length === 13 || tipoFormato === "ean_13") {
         console.log(`Código EAN-13 detectado: ${codigoB}, tipo de formato: ${tipoFormato}`);
         const codigoSanitizado = sanitizarNumeroEntero(codigoB); // Usar sanitizarNumeroEntero en lugar de sanitizarEntrada
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "success");
@@ -502,7 +502,7 @@ export function buscarProductoParaEditar(codigo, formato) {
     if (codigoB.length === 4) {
         buscarPorCodigoParcial(codigoB, "Edicion");
         return;
-    } else if (formato === "upc-a") {
+    } else if (formato === "upc_a") {
         const codigoSanitizado = sanitizarEntrada(codigoB);
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
         console.log('codigo:', codigoSanitizado)
@@ -520,7 +520,7 @@ export function buscarProductoParaEditar(codigo, formato) {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
-    } else if (codigoB.length === 13 || formato === "ean-13") {
+    } else if (codigoB.length === 13 || formato === "ean_13") {
         const codigoSanitizado = sanitizarEntrada(codigoB);
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
@@ -1172,7 +1172,7 @@ export async function buscarProductoInventario(codigo, formato) {
                 }
             });
             return;  // Detener la ejecución aquí para evitar la búsqueda normal
-        } else if (formato === "upc-a") {
+        } else if (formato === "upc_a") {
             // Procesar códigos de barras (UPC-A)
             const codigoSanitizado = sanitizarEntrada(codigoB);
             mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "success");
@@ -1259,7 +1259,7 @@ export async function buscarProductoInventario(codigo, formato) {
                 // Si hay múltiples resultados, mostrarlos para seleccionar uno
                 mostrarResultadosInventario(productosResultados);
             }
-        } else if (codigoB.length === 13 || formato === "ean-13") {
+        } else if (codigoB.length === 13 || formato === "ean_13") {
             // Búsqueda por un código que no sea de los tipos específicos anteriores
             const codigoSanitizado = sanitizarEntrada(codigoB);
             const productosResultados = await buscarEnProductos(codigoSanitizado);

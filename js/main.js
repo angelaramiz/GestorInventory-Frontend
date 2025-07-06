@@ -416,6 +416,52 @@ async function init() {
     }
 }
 
+// Función para debugging de estado de inventario
+function debugEstadoInventario() {
+    console.log('🔍 === DEBUG ESTADO INVENTARIO ===');
+    
+    // Debug de IndexedDB
+    if (typeof dbInventario !== 'undefined') {
+        const transaction = dbInventario.transaction(["inventario"], "readonly");
+        const objectStore = transaction.objectStore("inventario");
+        const request = objectStore.getAll();
+        
+        request.onsuccess = () => {
+            const registros = request.result || [];
+            console.log(`🔍 Total registros en IndexedDB: ${registros.length}`);
+            
+            registros.forEach((registro, index) => {
+                if (index < 5) { // Solo mostrar los primeros 5 para no saturar
+                    console.log(`🔍 Registro ${index + 1}:`, {
+                        id: registro.id,
+                        codigo: registro.codigo,
+                        lote: registro.lote,
+                        cantidad: registro.cantidad,
+                        area_id: registro.area_id,
+                        is_temp_id: registro.is_temp_id
+                    });
+                }
+            });
+        };
+    }
+    
+    // Debug de localStorage
+    const inventarioLocal = localStorage.getItem('inventario');
+    if (inventarioLocal) {
+        try {
+            const parsed = JSON.parse(inventarioLocal);
+            console.log(`🔍 Registros en localStorage: ${Array.isArray(parsed) ? parsed.length : 'No es array'}`);
+        } catch (e) {
+            console.log('🔍 Error al parsear localStorage inventario:', e);
+        }
+    }
+    
+    console.log('🔍 === FIN DEBUG ESTADO INVENTARIO ===');
+}
+
+// Agregar función de debug al objeto global para acceso desde consola
+window.debugEstadoInventario = debugEstadoInventario;
+
 // Event listener principal
 document.addEventListener('DOMContentLoaded', init);
 

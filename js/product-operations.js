@@ -690,6 +690,15 @@ export function limpiarFormularioInventario() {
 
 // Función para guardar productos en la base de datos para inventariar
 export async function guardarInventario() {
+    // Verificar sesión antes de continuar
+    const { verificarSesionValida } = await import('./auth.js');
+    const sesionValida = await verificarSesionValida();
+    
+    if (!sesionValida) {
+        console.error('Sesión no válida al intentar guardar inventario');
+        return;
+    }
+
     const codigo = document.getElementById("codigoProductoInventario")?.value;
     const lote = document.getElementById("loteInventario")?.value || "1";
     const cantidad = document.getElementById("cantidad").value;
@@ -894,6 +903,15 @@ export async function guardarInventario() {
 }
 
 export async function modificarInventario() {
+    // Verificar sesión antes de continuar
+    const { verificarSesionValida } = await import('./auth.js');
+    const sesionValida = await verificarSesionValida();
+    
+    if (!sesionValida) {
+        console.error('Sesión no válida al intentar modificar inventario');
+        return;
+    }
+
     const codigo = document.getElementById("codigoProductoInventario")?.value;
     const lote = document.getElementById("loteInventario")?.value || "1"; // Lote es parte del ID compuesto
     const cantidad = document.getElementById("cantidad").value;
@@ -921,15 +939,51 @@ export async function modificarInventario() {
 
     const idInventario = `${codigo}-${lote}`;
 
+    console.log(`🔍 Debug - Buscando inventario:`, {
+        codigo,
+        lote,
+        idInventario,
+        timestamp: new Date().toISOString()
+    });
+
     let registroInventarioActual = await new Promise((resolve) => {
         const transaction = dbInventario.transaction(["inventario"], "readonly");
         const objectStore = transaction.objectStore("inventario");
         const request = objectStore.get(idInventario);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
+        request.onsuccess = () => {
+            console.log(`🔍 Debug - Resultado búsqueda IndexedDB:`, {
+                found: !!request.result,
+                data: request.result ? {
+                    id: request.result.id,
+                    codigo: request.result.codigo,
+                    lote: request.result.lote,
+                    area_id: request.result.area_id
+                } : null
+            });
+            resolve(request.result);
+        };
+        request.onerror = () => {
+            console.error(`🔍 Debug - Error en búsqueda IndexedDB:`, request.error);
+            resolve(null);
+        };
     });
 
     if (!registroInventarioActual) {
+        console.error(`🔍 Debug - No se encontró registro con ID: ${idInventario}`);
+        
+        // Intentar buscar todos los registros para debug
+        const todosLosRegistros = await new Promise((resolve) => {
+            const transaction = dbInventario.transaction(["inventario"], "readonly");
+            const objectStore = transaction.objectStore("inventario");
+            const request = objectStore.getAll();
+            request.onsuccess = () => resolve(request.result || []);
+            request.onerror = () => resolve([]);
+        });
+        
+        console.log(`🔍 Debug - Registros existentes en inventario:`, 
+            todosLosRegistros.map(r => ({ id: r.id, codigo: r.codigo, lote: r.lote }))
+        );
+        
         mostrarMensaje(`No se encontró el registro de inventario con ID ${idInventario} para modificar.`, "error");
         return;
     }
@@ -979,6 +1033,14 @@ export async function modificarInventario() {
 
             if (error) {
                 console.error("Error al actualizar en Supabase:", error);
+                
+                // Manejar errores de autenticación específicamente
+                const errorResult = await manejarErrorSupabase(error, 'modificar inventario');
+                if (errorResult.shouldRetry) {
+                    mostrarMensaje("Sesión renovada. Por favor, intente guardar nuevamente.", "info");
+                    return;
+                }
+                
                 const datosParaIndexedDBError = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
                 delete datosParaIndexedDBError.usuario_id;
                 await actualizarEnIndexedDB(datosParaIndexedDBError);
@@ -1768,6 +1830,7 @@ function mostrarDetallesProductoConBarcodeImpl(producto) {
     `;
 
     // Agregar el contenido y el botón de cerrar al modal
+
     modal.appendChild(contenido);
     contenido.appendChild(btnCerrar);
 
@@ -1990,4 +2053,36 @@ function descargarPDFProducto(producto) {
         console.error("Error al generar el PDF:", error);
         mostrarMensaje("Error al generar el PDF", "error");
     }
+}
+
+// Función auxiliar para manejar errores de autenticación en operaciones de Supabase
+async function manejarErrorSupabase(error, operacion) {
+    console.error(`Error en ${operacion}:`, error);
+    
+    // Verificar si es un error de autenticación
+    if (error?.message?.includes('JWT') || 
+        error?.message?.includes('expired') || 
+        error?.message?.includes('invalid') ||
+        error?.code === 'PGRST301' ||
+        error?.code === '401') {
+        
+        console.warn('Error de autenticación detectado, intentando renovar sesión...');
+        mostrarMensaje('Token expirado, renovando sesión automáticamente...', 'warning');
+        
+        const { verificarSesionValida } = await import('./auth.js');
+        const sesionRenovada = await verificarSesionValida();
+        
+        if (sesionRenovada) {
+            mostrarMensaje('Sesión renovada. Por favor, intente la operación nuevamente.', 'info');
+            return { shouldRetry: true };
+        } else {
+            mostrarMensaje('No se pudo renovar la sesión. Redirigiendo al login...', 'error');
+            setTimeout(() => {
+                window.location.href = '../index.html';
+            }, 2000);
+            return { shouldRetry: false };
+        }
+    }
+    
+    return { shouldRetry: false };
 }

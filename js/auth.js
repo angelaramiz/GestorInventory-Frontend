@@ -1,6 +1,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { mostrarAlertaBurbuja } from './logs.js'; // Importar la nueva función
 import { resetearBaseDeDatos, db } from './db-operations.js';
+import { getTokenConfig, logTokenEvent } from './token-config.js';
 
 let supabase = null;
 let supabaseInitializing = false; // Flag para evitar inicializaciones múltiples
@@ -197,6 +198,9 @@ async function iniciarSesion(email, password) {
                     access_token: access_token,
                     refresh_token: refresh_token
                 });
+
+                // Inicializar sistema de renovación automática de tokens
+                inicializarRenovacionAutomatica();
 
                 mostrarAlertaBurbuja('Inicio de sesión exitoso', 'success');
                 setTimeout(() => {
@@ -425,4 +429,185 @@ function configurarRutasManifest() {
 // Ejecutar inmediatamente al cargar el script
 configurarRutasManifest();
 
-// ...existing code...
+// Variables para manejo de tokens
+let tokenCheckInterval = null;
+let lastTokenRefresh = null;
+const tokenConfig = getTokenConfig();
+
+// Función para verificar y renovar token automáticamente
+async function verificarYRenovarToken() {
+    try {
+        if (!supabase) {
+            logTokenEvent('ERROR', { message: 'Supabase no está inicializado' });
+            return false;
+        }
+
+        const { data: session, error } = await supabase.auth.getSession();
+        
+        if (error) {
+            logTokenEvent('ERROR', { message: 'Error al obtener sesión', error: error.message });
+            return false;
+        }
+
+        if (!session?.session) {
+            logTokenEvent('WARNING', { message: 'No hay sesión activa' });
+            return false;
+        }
+
+        const token = session.session.access_token;
+        const expiresAt = session.session.expires_at;
+        const now = Math.floor(Date.now() / 1000);
+        
+        // Verificar si el token está próximo a expirar
+        const timeUntilExpiry = expiresAt - now;
+        const shouldRefresh = timeUntilExpiry < tokenConfig.REFRESH_THRESHOLD;
+
+        logTokenEvent('CHECK', { 
+            timeUntilExpiry: Math.floor(timeUntilExpiry / 60), 
+            shouldRefresh,
+            threshold: Math.floor(tokenConfig.REFRESH_THRESHOLD / 60)
+        });
+
+        if (shouldRefresh) {
+            logTokenEvent('REFRESH_START', { timeUntilExpiry });
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            
+            if (refreshError) {
+                logTokenEvent('REFRESH_ERROR', { error: refreshError.message });
+                mostrarAlertaBurbuja('Error al renovar sesión. Por favor, inicia sesión nuevamente.', 'error');
+                return false;
+            }
+
+            if (refreshData?.session) {
+                logTokenEvent('REFRESH_SUCCESS', { 
+                    newExpiresAt: refreshData.session.expires_at,
+                    oldExpiresAt: expiresAt 
+                });
+                lastTokenRefresh = Date.now();
+                mostrarAlertaBurbuja('Sesión renovada automáticamente', 'success');
+                return true;
+            }
+        }
+
+        return true;
+    } catch (error) {
+        logTokenEvent('ERROR', { message: 'Error en verificarYRenovarToken', error: error.message });
+        return false;
+    }
+}
+
+// Función para inicializar el sistema de renovación automática
+function inicializarRenovacionAutomatica() {
+    // Limpiar interval existente si hay uno
+    if (tokenCheckInterval) {
+        clearInterval(tokenCheckInterval);
+    }
+
+    // Configurar verificación periódica
+    tokenCheckInterval = setInterval(async () => {
+        const success = await verificarYRenovarToken();
+        if (!success) {
+            logTokenEvent('AUTO_RENEWAL_FAILED');
+        }
+    }, tokenConfig.CHECK_INTERVAL);
+
+    logTokenEvent('AUTO_RENEWAL_INITIALIZED', { 
+        checkInterval: tokenConfig.CHECK_INTERVAL / 1000,
+        refreshThreshold: tokenConfig.REFRESH_THRESHOLD 
+    });
+}
+
+// Función para detener la renovación automática
+function detenerRenovacionAutomatica() {
+    if (tokenCheckInterval) {
+        clearInterval(tokenCheckInterval);
+        tokenCheckInterval = null;
+        console.log('🛑 Sistema de renovación automática detenido');
+    }
+}
+
+// Función para verificar si la sesión es válida antes de operaciones críticas
+export async function verificarSesionValida() {
+    try {
+        if (!supabase) {
+            await inicializeSupabase();
+        }
+
+        const { data: session, error } = await supabase.auth.getSession();
+        
+        if (error || !session?.session) {
+            console.warn('Sesión no válida, redirigiendo al login');
+            mostrarAlertaBurbuja('Sesión expirada. Redirigiendo al login...', 'warning');
+            
+            // Redirigir al login después de un breve delay
+            setTimeout(() => {
+                window.location.href = '../index.html';
+            }, 2000);
+            
+            return false;
+        }
+
+        // Si la sesión está próxima a expirar, renovarla
+        const expiresAt = session.session.expires_at;
+        const now = Math.floor(Date.now() / 1000);
+        const timeUntilExpiry = expiresAt - now;
+
+        if (timeUntilExpiry < 300) { // Menos de 5 minutos
+            const renewed = await verificarYRenovarToken();
+            return renewed;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error al verificar sesión:', error);
+        return false;
+    }
+}
+
+// Función para inicializar el sistema de renovación en páginas del sistema
+export async function inicializarSistemaPagina() {
+    try {
+        // Verificar si no estamos en la página de login/registro
+        const currentPath = window.location.pathname;
+        const isLoginPage = currentPath.includes('index.html') || 
+                           currentPath.includes('register.html') || 
+                           currentPath === '/' ||
+                           currentPath.endsWith('/GestorInventory-Frontend/');
+
+        if (isLoginPage) {
+            console.log('En página de login/registro, no inicializar renovación automática');
+            return;
+        }
+
+        // Verificar si hay una sesión válida
+        if (!supabase) {
+            await inicializeSupabase();
+        }
+
+        const { data: session, error } = await supabase.auth.getSession();
+        
+        if (error || !session?.session) {
+            console.warn('No hay sesión válida, redirigiendo al login');
+            window.location.href = getLoginRedirectPath();
+            return;
+        }
+
+        // Inicializar sistema de renovación automática
+        inicializarRenovacionAutomatica();
+        console.log('✅ Sistema de renovación automática inicializado para la página');
+
+        // Verificar inmediatamente el estado del token
+        await verificarYRenovarToken();
+
+    } catch (error) {
+        console.error('Error al inicializar sistema de página:', error);
+    }
+}
+
+// Event listener para inicializar el sistema cuando se carga el DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarSistemaPagina);
+} else {
+    // Si el DOM ya está cargado, ejecutar inmediatamente
+    inicializarSistemaPagina();
+}

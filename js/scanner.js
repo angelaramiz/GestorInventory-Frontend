@@ -205,14 +205,15 @@ export function manejarCodigoEscaneado(codigo, formato) {
         // Eliminar ceros iniciales
         console.log('codigo:', codigoSanitizado, formato.result.format.formatName.toLowerCase());
         codigo = codigoSanitizado.replace(/^0+/, '');
-
+        console.log('codigo:', codigo, formato.result.format.formatName.toLowerCase());
         // Expresión regular para capturar los 4 dígitos después del primer "2"
         const regex = /2(\d{4})/;
         const match = codigo.match(regex);
-
+        console.log('codigoPLU:', match, formato.result.format.formatName.toLowerCase());
         if (match) {
             const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
             mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
+            
             buscarPorCodigoParcial(codigoParcial);
         } else {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");

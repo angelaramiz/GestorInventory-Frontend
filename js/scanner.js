@@ -211,10 +211,11 @@ export function manejarCodigoEscaneado(codigo, formato) {
         const match = codigo.match(regex);
         console.log('codigoPLU:', match, formato.result.format.formatName.toLowerCase());
         if (match) {
-            const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
-            mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
-            
-            buscarPorCodigoParcial(codigoParcial);
+            const codigo = match[1]; // Extraer los 4 dígitos capturados
+            mostrarMensaje(`Código parcial extraído: ${codigo}`, "info");
+            console.log(`codigoPLU:${codigo}`)
+            //buscarPorCodigoParcial(codigoParcial);
+            return codigo 
         } else {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }

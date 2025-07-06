@@ -214,7 +214,6 @@ export function buscarPorCodigoParcial(codigoCorto, tipo, callback) {
     const transaction = db.transaction(["productos"], "readonly");
     const objectStore = transaction.objectStore("productos");
     const request = objectStore.getAll();
-    console.log(`codigo: ${codigoCorto}, tipo de consulta: ${tipo}`);
     request.onsuccess = function (event) {
         const productos = event.target.result || [];
         let resultados = [];
@@ -374,7 +373,6 @@ export async function agregarProducto(evento) {
  * buscarProducto("012345678901", { formato: { result: { format: { formatName: "UPC-A" } } } });
  */
 export function buscarProducto(codigo, formato) {
-    console.log(`codigo: ${codigo}, tipo de formato: ${formato.result.format.formatName.toLowerCase()}`);
     let codigoB = codigo;
     let tipoFormato = ''; // Valor por defecto
     
@@ -395,16 +393,18 @@ export function buscarProducto(codigo, formato) {
             tipoFormato = 'desconocido';
         }
     }
-    console.log(`codigo: ${codigo}, tipo de formato: ${formato.result.format.formatName.toLowerCase()}`)
+    console.log(`codigo: ${codigoB}, tipo de formato: ${tipoFormato}`)
     const nombre = document.getElementById("nombreConsulta").value;
     const categoria = document.getElementById("categoriaConsulta").value;
 
     // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
     if (codigoB.length === 4) {
+        console.log(`Código de 4 dígitos detectado: ${codigoB}`);
         mostrarMensaje(`Código de 4 dígitos manual detectado: ${codigoB}`, "success");
         buscarPorCodigoParcial(codigoB, "Consulta");
         return;  // Detener la ejecución aquí para evitar la búsqueda normal
-    } else if (formato.result.format.formatName.toLowerCase() === "upc-a") {
+    } else if (formato.result.format.formatName.toLowerCase() === "upc_a") {
+        console.log(`Código UPC-A detectado: ${codigoB}, tipo de formato: ${tipoFormato}`);
         const codigoSanitizado = sanitizarNumeroEntero(codigoB);
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
         const codigoCorto = codigoSanitizado.replace(/^0+/, '');
@@ -421,7 +421,8 @@ export function buscarProducto(codigo, formato) {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
-    } else if (codigoB && (codigoB.length === 13 || tipoFormato === "ean-13")) {
+    } else if (codigoB.length === 13 || tipoFormato === "ean-13") {
+        console.log(`Código EAN-13 detectado: ${codigoB}, tipo de formato: ${tipoFormato}`);
         const codigoSanitizado = sanitizarNumeroEntero(codigoB); // Usar sanitizarNumeroEntero en lugar de sanitizarEntrada
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "success");
         const transaction = db.transaction(["productos"], "readonly");
@@ -443,6 +444,7 @@ export function buscarProducto(codigo, formato) {
         }
         return; // Detener la ejecución para evitar búsqueda por nombre y categoría
     } else {
+        console.log(`Búsqueda por nombre y/o categoría: ${nombre}, ${categoria}`);
         // Búsqueda por nombre y/o categoría
         if (nombre || categoria) {
             const transaction = db.transaction(["productos"], "readonly");

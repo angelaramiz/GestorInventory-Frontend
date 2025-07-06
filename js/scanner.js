@@ -211,22 +211,18 @@ export function iniciarEscaneoConModal(inputId) {
 export function manejarCodigoEscaneado(codigo, formato, callback) {
     let codigoSanitizado = sanitizarEntrada(codigo);
     mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
-
+    console.log(`Código escaneado: ${codigoSanitizado}, Formato: ${formato.result.format.formatName}`);
     if (formato.result.format.formatName.toLowerCase() === "code_128") {
         // Eliminar ceros iniciales
-        console.log('codigo:', codigoSanitizado, formato.result.format.formatName.toLowerCase());
         let codigoLimpio = codigoSanitizado.replace(/^0+/, '');
-        console.log('codigo:', codigoLimpio, formato.result.format.formatName.toLowerCase());
         
         // Expresión regular para capturar los 4 dígitos después del primer "2"
         const regex = /2(\d{4})/;
         const match = codigoLimpio.match(regex);
-        console.log('codigoPLU:', match, formato.result.format.formatName.toLowerCase());
         
         if (match) {
             const codigoExtraido = match[1]; // Extraer los 4 dígitos capturados
             mostrarMensaje(`Código parcial extraído: ${codigoExtraido}`, "info");
-            console.log(`codigoPLU:${codigoExtraido}`);
             
             // Ejecutar callback con el código procesado
             if (callback && typeof callback === 'function') {

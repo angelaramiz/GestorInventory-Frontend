@@ -178,7 +178,7 @@ export function iniciarEscaneoConModal(inputId) {
                     
                     // 3. Actualizar el input con el código procesado
                     document.getElementById(inputId).value = codigoProcesado;
-                    
+                    const formatoCodigo = decodedResult.result.format.formatName.toLowerCase();
                     // 4. Mostrar mensaje de éxito
                     mostrarMensaje(`Código detectado: ${codigoProcesado}`, "success", { timer: 1000 });
                     
@@ -189,11 +189,11 @@ export function iniciarEscaneoConModal(inputId) {
                     // 6. Ejecutar búsqueda con el código procesado DESPUÉS de detener el escáner
                     setTimeout(() => {
                         if (inputId === "codigoConsulta") {
-                            buscarProducto(codigoProcesado, decodedResult);
+                            buscarProducto(codigoProcesado, formatoCodigo);
                         } else if (inputId === "codigoEditar") {
-                            buscarProductoParaEditar(codigoProcesado, decodedResult);
+                            buscarProductoParaEditar(codigoProcesado, formatoCodigo);
                         } else if (inputId === "codigo") {
-                            buscarProductoInventario(codigoProcesado, decodedResult);
+                            buscarProductoInventario(codigoProcesado, formatoCodigo);
                         }
                     }, 100); // Pequeño delay para asegurar que el escáner se detuvo completamente
                 });

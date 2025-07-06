@@ -465,7 +465,6 @@ export function buscarProducto(codigo, formato) {
 }
 
 export function buscarProductoParaEditar(codigo, formato) {
-    console.log(`codigo: ${codigo}, tipo de formato: ${tipoFormato}`);
     let codigoB = codigo;
     let tipoFormato = formato || ''; // Valor por defecto
     // Manejar el caso cuando formato está vacío o es undefined

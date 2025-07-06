@@ -168,24 +168,35 @@ export function iniciarEscaneoConModal(inputId) {
         scanner.start(
             { facingMode: "environment" },
             {
-                fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 // Mantener relación 1:1 
+                fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0
             },
             (decodedText, decodedResult) => {
-                manejarCodigoEscaneado(decodedText, decodedResult);
-                playTone(440, 0.2); // Reproducir un tono al escanear un código
-                document.getElementById(inputId).value = decodedText;
-                mostrarMensaje(`Código detectado: ${decodedText}`, "success", { timer: 1000 });
-                cerrarModalEscaneo(document.getElementById('scanner-modal'));
-                detenerEscaner();
-
-                if (inputId === "codigoConsulta") {
-                    buscarProducto(decodedText,decodedResult);
-                } else if (inputId === "codigoEditar") {
-                    buscarProductoParaEditar(decodedText,decodedResult);
-                } else if (inputId === "codigo") {
-                    buscarProductoInventario(decodedText,decodedResult);
-                }
-
+                // 1. Procesar el código primero
+                manejarCodigoEscaneado(decodedText, decodedResult, (codigoProcesado) => {
+                    // 2. Reproducir sonido de confirmación
+                    playTone(440, 0.2);
+                    
+                    // 3. Actualizar el input con el código procesado
+                    document.getElementById(inputId).value = codigoProcesado;
+                    
+                    // 4. Mostrar mensaje de éxito
+                    mostrarMensaje(`Código detectado: ${codigoProcesado}`, "success", { timer: 1000 });
+                    
+                    // 5. Cerrar modal y detener escáner
+                    cerrarModalEscaneo(document.getElementById('scanner-modal'));
+                    detenerEscaner();
+                    
+                    // 6. Ejecutar búsqueda con el código procesado DESPUÉS de detener el escáner
+                    setTimeout(() => {
+                        if (inputId === "codigoConsulta") {
+                            buscarProducto(codigoProcesado, decodedResult);
+                        } else if (inputId === "codigoEditar") {
+                            buscarProductoParaEditar(codigoProcesado, decodedResult);
+                        } else if (inputId === "codigo") {
+                            buscarProductoInventario(codigoProcesado, decodedResult);
+                        }
+                    }, 100); // Pequeño delay para asegurar que el escáner se detuvo completamente
+                });
             },
             (error) => console.log("Error de escaneo:", error)
         ).catch((err) => {
@@ -197,29 +208,44 @@ export function iniciarEscaneoConModal(inputId) {
     }
 }
 // Función para manejar el código escaneado
-export function manejarCodigoEscaneado(codigo, formato) {
+export function manejarCodigoEscaneado(codigo, formato, callback) {
     let codigoSanitizado = sanitizarEntrada(codigo);
     mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
 
     if (formato.result.format.formatName.toLowerCase() === "code_128") {
         // Eliminar ceros iniciales
         console.log('codigo:', codigoSanitizado, formato.result.format.formatName.toLowerCase());
-        codigo = codigoSanitizado.replace(/^0+/, '');
-        console.log('codigo:', codigo, formato.result.format.formatName.toLowerCase());
+        let codigoLimpio = codigoSanitizado.replace(/^0+/, '');
+        console.log('codigo:', codigoLimpio, formato.result.format.formatName.toLowerCase());
+        
         // Expresión regular para capturar los 4 dígitos después del primer "2"
         const regex = /2(\d{4})/;
-        const match = codigo.match(regex);
+        const match = codigoLimpio.match(regex);
         console.log('codigoPLU:', match, formato.result.format.formatName.toLowerCase());
+        
         if (match) {
-            const codigo = match[1]; // Extraer los 4 dígitos capturados
-            mostrarMensaje(`Código parcial extraído: ${codigo}`, "info");
-            console.log(`codigoPLU:${codigo}`)
-            //buscarPorCodigoParcial(codigoParcial);
-            return codigo 
+            const codigoExtraido = match[1]; // Extraer los 4 dígitos capturados
+            mostrarMensaje(`Código parcial extraído: ${codigoExtraido}`, "info");
+            console.log(`codigoPLU:${codigoExtraido}`);
+            
+            // Ejecutar callback con el código procesado
+            if (callback && typeof callback === 'function') {
+                callback(codigoExtraido);
+            }
+            return codigoExtraido;
         } else {
             mostrarMensaje("No se encontraron 4 dígitos después del primer '2'.", "warning");
+            if (callback && typeof callback === 'function') {
+                callback(codigoSanitizado); // Devolver el código original si no hay match
+            }
+            return codigoSanitizado;
         }
-    } 
-    return
+    } else {
+        // Para otros formatos, devolver el código sanitizado
+        if (callback && typeof callback === 'function') {
+            callback(codigoSanitizado);
+        }
+        return codigoSanitizado;
+    }
 }
 

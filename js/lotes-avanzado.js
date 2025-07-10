@@ -1,6 +1,9 @@
 // Funcionalidad de escaneo por lotes avanzado
 // Mejora del sistema de lotes con detección automática y agrupación de productos
 
+// Importar configuración de Supabase
+import { supabase } from './db-operations.js';
+
 // Variables globales para el escaneo por lotes avanzado
 let scannerLotesAvanzado = null;
 let productosEscaneados = []; // Array de productos escaneados
@@ -21,21 +24,21 @@ function inicializarSistemaLotesAvanzado() {
     document.getElementById('tabInventarioManual')?.addEventListener('click', () => {
         cambiarPestanaPrincipal('manual');
     });
-    
+
     document.getElementById('tabLotesAvanzado')?.addEventListener('click', () => {
         cambiarPestanaPrincipal('avanzado');
     });
 
     // Event listeners para configuración
-    document.getElementById('confirmarProductosSimilares')?.addEventListener('change', function() {
+    document.getElementById('confirmarProductosSimilares')?.addEventListener('change', function () {
         configuracionEscaneo.confirmarProductosSimilares = this.checked;
     });
 
-    document.getElementById('agruparAutomaticamente')?.addEventListener('change', function() {
+    document.getElementById('agruparAutomaticamente')?.addEventListener('change', function () {
         configuracionEscaneo.agruparAutomaticamente = this.checked;
     });
 
-    document.getElementById('sonidoConfirmacion')?.addEventListener('change', function() {
+    document.getElementById('sonidoConfirmacion')?.addEventListener('change', function () {
         configuracionEscaneo.sonidoConfirmacion = this.checked;
     });
 
@@ -51,7 +54,7 @@ function inicializarSistemaLotesAvanzado() {
     document.getElementById('tabEscanerAvanzado')?.addEventListener('click', () => {
         cambiarTabModalAvanzado('escaner');
     });
-    
+
     document.getElementById('tabListadoAvanzado')?.addEventListener('click', () => {
         cambiarTabModalAvanzado('listado');
     });
@@ -79,7 +82,7 @@ function cambiarPestanaPrincipal(tipo) {
         // Activar pestaña manual
         tabManual.className = 'px-6 py-3 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500 font-semibold';
         tabAvanzado.className = 'px-6 py-3 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300 font-semibold';
-        
+
         // Mostrar contenido manual
         contenidoManual.style.display = 'block';
         contenidoAvanzado.style.display = 'none';
@@ -87,7 +90,7 @@ function cambiarPestanaPrincipal(tipo) {
         // Activar pestaña avanzado
         tabAvanzado.className = 'px-6 py-3 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500 font-semibold';
         tabManual.className = 'px-6 py-3 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300 font-semibold';
-        
+
         // Mostrar contenido avanzado
         contenidoAvanzado.style.display = 'block';
         contenidoManual.style.display = 'none';
@@ -105,11 +108,11 @@ function cambiarTabModalAvanzado(tab) {
         // Activar pestaña escáner
         tabEscaner.className = 'px-4 py-2 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500';
         tabListado.className = 'px-4 py-2 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300';
-        
+
         // Mostrar contenido escáner
         contenidoEscaner.style.display = 'block';
         contenidoListado.style.display = 'none';
-        
+
         // Reanudar escáner si estaba pausado
         if (!isEscaneoLotesAvanzadoActivo && scannerLotesAvanzado) {
             reanudarEscaneoLotesAvanzado();
@@ -118,16 +121,16 @@ function cambiarTabModalAvanzado(tab) {
         // Activar pestaña listado
         tabListado.className = 'px-4 py-2 bg-blue-500 text-white rounded-t-lg border-b-2 border-blue-500';
         tabEscaner.className = 'px-4 py-2 bg-gray-200 text-gray-700 rounded-t-lg ml-2 hover:bg-gray-300';
-        
+
         // Mostrar contenido listado
         contenidoListado.style.display = 'block';
         contenidoEscaner.style.display = 'none';
-        
+
         // Pausar escáner cuando se cambia a listado
         if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
             pausarEscaneoLotesAvanzado();
         }
-        
+
         // Actualizar listado
         actualizarListadoProductosAvanzado();
     }
@@ -136,29 +139,60 @@ function cambiarTabModalAvanzado(tab) {
 // Función para cargar diccionario de subproductos desde Supabase
 async function cargarDiccionarioSubproductos() {
     try {
-        console.log('Cargando diccionario de subproductos...');
-        
-        // Aquí deberías implementar la conexión a Supabase
-        // Por ahora, simularemos con datos de ejemplo
-        const datosEjemplo = [
-            { id: 1, primarioProductID: '1001', subProductoID: '2630' },
-            { id: 2, primarioProductID: '1002', subProductoID: '2631' },
-            { id: 3, primarioProductID: '1003', subProductoID: '2632' }
-        ];
-        
+        console.log('Cargando diccionario de subproductos desde Supabase...');
+
+        // Consultar productos_subproducto desde Supabase
+        const { data, error } = await supabase
+            .from('productos_subproducto')
+            .select(`
+                id,
+                primario_product_id,
+                sub_producto_id
+            `);
+
+        if (error) {
+            throw error;
+        }
+
         // Limpiar diccionario existente
         diccionarioSubproductos.clear();
-        
-        // Llenar diccionario
-        datosEjemplo.forEach(item => {
-            diccionarioSubproductos.set(item.subProductoID, item.primarioProductID);
-        });
-        
-        console.log(`Diccionario cargado con ${diccionarioSubproductos.size} relaciones`);
-        
+
+        // Llenar diccionario con datos reales
+        if (data && data.length > 0) {
+            data.forEach(item => {
+                // Mapear subproducto ID a producto primario ID
+                diccionarioSubproductos.set(
+                    item.sub_producto_id.toString(),
+                    item.primario_product_id.toString()
+                );
+            });
+
+            console.log(`Diccionario cargado desde Supabase con ${diccionarioSubproductos.size} relaciones`);
+        } else {
+            console.log('No se encontraron relaciones de subproductos en Supabase');
+        }
+
     } catch (error) {
-        console.error('Error al cargar diccionario de subproductos:', error);
-        mostrarMensaje('Error al cargar diccionario de productos', 'error');
+        console.error('Error al cargar diccionario de subproductos desde Supabase:', error);
+
+        // En caso de error, usar datos de ejemplo como fallback
+        console.warn('Usando datos de ejemplo como fallback para diccionario');
+        const datosEjemplo = [
+            { id: 1, primario_product_id: '1001', sub_producto_id: '2630' },
+            { id: 2, primario_product_id: '1002', sub_producto_id: '2631' },
+            { id: 3, primario_product_id: '1003', sub_producto_id: '2632' }
+        ];
+
+        // Limpiar diccionario existente
+        diccionarioSubproductos.clear();
+
+        // Llenar diccionario con datos de ejemplo
+        datosEjemplo.forEach(item => {
+            diccionarioSubproductos.set(item.sub_producto_id, item.primario_product_id);
+        });
+
+        console.log(`Diccionario cargado con datos de ejemplo: ${diccionarioSubproductos.size} relaciones`);
+        mostrarMensaje('Error al cargar diccionario desde servidor, usando datos locales', 'warning');
     }
 }
 
@@ -167,13 +201,13 @@ function iniciarEscaneoLotesAvanzado() {
     // Limpiar arrays de productos
     productosEscaneados = [];
     productosAgrupados = [];
-    
+
     // Mostrar modal
     document.getElementById('modalEscaneoLotesAvanzado').style.display = 'block';
-    
+
     // Activar la pestaña del escáner por defecto
     cambiarTabModalAvanzado('escaner');
-    
+
     // Inicializar el escáner
     setTimeout(() => {
         inicializarEscanerLotesAvanzado();
@@ -188,7 +222,7 @@ function inicializarEscanerLotesAvanzado() {
     }
 
     scannerLotesAvanzado = new Html5Qrcode("reader-lotes-avanzado");
-    
+
     const config = {
         fps: 10,
         qrbox: { width: 300, height: 200 },
@@ -214,16 +248,16 @@ function inicializarEscanerLotesAvanzado() {
 // Función cuando el escaneo es exitoso
 function onEscaneoExitosoLotesAvanzado(decodedText, decodedResult) {
     console.log(`Código escaneado en lotes avanzado: ${decodedText}`);
-    
+
     // Sanitizar el código escaneado
     const codigoLimpio = sanitizarEntrada(decodedText);
-    
+
     // Pausar el escáner temporalmente
     if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
         scannerLotesAvanzado.pause(true);
         isEscaneoLotesAvanzadoActivo = false;
     }
-    
+
     // Procesar el código escaneado
     procesarCodigoEscaneadoLotesAvanzado(codigoLimpio, decodedResult);
 }
@@ -239,28 +273,28 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
     try {
         // Mostrar animación de procesamiento
         mostrarAnimacionProcesamiento('Procesando código...', 'processing');
-        
+
         // 1. Extraer datos del código CODE128
         const datosExtraidos = extraerDatosCodeCODE128(codigo);
-        
+
         if (!datosExtraidos) {
             mostrarAnimacionProcesamiento('Código no válido', 'error');
             reanudarEscannerDespuesDeProcesamiento();
             return;
         }
-        
+
         // 2. Buscar producto por PLU
         const producto = await buscarProductoPorPLU(datosExtraidos.plu);
-        
+
         if (!producto) {
             mostrarAnimacionProcesamiento('Producto no encontrado', 'error');
             reanudarEscannerDespuesDeProcesamiento();
             return;
         }
-        
+
         // 3. Verificar si el producto ya fue escaneado previamente
         const productoExistente = verificarProductoExistente(datosExtraidos.plu);
-        
+
         if (productoExistente) {
             if (configuracionEscaneo.confirmarProductosSimilares) {
                 // Mostrar ventana de confirmación
@@ -272,7 +306,7 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
         } else {
             // 4. Verificar si es subproducto o producto primario
             const productoPrimario = diccionarioSubproductos.get(datosExtraidos.plu);
-            
+
             if (productoPrimario) {
                 // Es un subproducto
                 const infoPrimario = await buscarProductoPorPLU(productoPrimario);
@@ -282,7 +316,7 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
                 mostrarModalInformacionProducto(producto, datosExtraidos, null, 'primario');
             }
         }
-        
+
     } catch (error) {
         console.error('Error al procesar código:', error);
         mostrarAnimacionProcesamiento('Error al procesar', 'error');
@@ -293,19 +327,54 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
 // Función para buscar producto por PLU
 async function buscarProductoPorPLU(plu) {
     try {
-        // Aquí deberías implementar la búsqueda en tu base de datos
-        // Por ahora, simularemos con datos de ejemplo
-        const productosEjemplo = [
-            { codigo: '2630', nombre: 'Manzana Roja', marca: 'Frutas del Valle', unidad: 'Kg', categoria: 'Frutas' },
-            { codigo: '2631', nombre: 'Plátano', marca: 'Tropical', unidad: 'Kg', categoria: 'Frutas' },
-            { codigo: '2632', nombre: 'Naranja', marca: 'Cítricos SA', unidad: 'Kg', categoria: 'Frutas' }
-        ];
-        
-        return productosEjemplo.find(p => p.codigo === plu);
-        
+        console.log(`Buscando producto con PLU: ${plu}`);
+
+        // Consultar producto en Supabase por código
+        const { data, error } = await supabase
+            .from('productos')
+            .select(`
+                codigo,
+                nombre,
+                marca,
+                unidad,
+                categoria:categorias(nombre)
+            `)
+            .eq('codigo', plu)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                // No se encontró el producto
+                console.log(`Producto con PLU ${plu} no encontrado en la base de datos`);
+                return null;
+            }
+            throw error;
+        }
+
+        if (data) {
+            // Formatear los datos del producto
+            const producto = {
+                codigo: data.codigo,
+                nombre: data.nombre,
+                marca: data.marca || 'Sin marca',
+                unidad: data.unidad,
+                categoria: data.categoria?.nombre || 'Sin categoría'
+            };
+
+            console.log(`Producto encontrado:`, producto);
+            return producto;
+        }
+
+        return null;
+
     } catch (error) {
         console.error('Error al buscar producto por PLU:', error);
-        return null;
+
+        // En caso de error de conexión, usar datos de ejemplo como fallback
+        console.warn('Usando datos de ejemplo como fallback');
+        ;
+
+        return productosEjemplo.find(p => p.codigo === plu) || null;
     }
 }
 
@@ -318,12 +387,12 @@ function verificarProductoExistente(plu) {
 function mostrarModalInformacionProducto(producto, datosExtraidos, productoPrimario, tipo) {
     // Ocultar animación de procesamiento
     ocultarAnimacionProcesamiento();
-    
+
     const modal = document.getElementById('modalInfoProducto');
     const contenido = document.getElementById('contenidoInfoProducto');
-    
+
     let htmlContenido = '';
-    
+
     if (tipo === 'subproducto' && productoPrimario) {
         htmlContenido = `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -386,7 +455,7 @@ function mostrarModalInformacionProducto(producto, datosExtraidos, productoPrima
             </div>
         `;
     }
-    
+
     // Agregar campo para precio por kilo
     htmlContenido += `
         <div class="mt-4">
@@ -398,21 +467,21 @@ function mostrarModalInformacionProducto(producto, datosExtraidos, productoPrima
                    placeholder="Ingrese el precio por kilogramo">
         </div>
     `;
-    
+
     contenido.innerHTML = htmlContenido;
-    
+
     // Almacenar datos para usar en guardar
     modal.dataset.producto = JSON.stringify(producto);
     modal.dataset.datosExtraidos = JSON.stringify(datosExtraidos);
     modal.dataset.productoPrimario = JSON.stringify(productoPrimario);
     modal.dataset.tipo = tipo;
-    
+
     // Event listener para habilitar botón cuando se ingrese precio
-    document.getElementById('precioKiloProducto').addEventListener('input', function() {
+    document.getElementById('precioKiloProducto').addEventListener('input', function () {
         const btnGuardar = document.getElementById('guardarInfoProducto');
         btnGuardar.disabled = !this.value || parseFloat(this.value) <= 0;
     });
-    
+
     modal.style.display = 'block';
 }
 
@@ -420,20 +489,20 @@ function mostrarModalInformacionProducto(producto, datosExtraidos, productoPrima
 function guardarInfoProducto() {
     const modal = document.getElementById('modalInfoProducto');
     const precioKilo = parseFloat(document.getElementById('precioKiloProducto').value);
-    
+
     if (!precioKilo || precioKilo <= 0) {
         mostrarMensaje('Debe ingresar un precio válido por kilogramo', 'error');
         return;
     }
-    
+
     const producto = JSON.parse(modal.dataset.producto);
     const datosExtraidos = JSON.parse(modal.dataset.datosExtraidos);
     const productoPrimario = JSON.parse(modal.dataset.productoPrimario);
     const tipo = modal.dataset.tipo;
-    
+
     // Recalcular peso con el precio por kilo ingresado
     const pesoCalculado = datosExtraidos.precioPorcion / precioKilo;
-    
+
     // Crear objeto del producto escaneado
     const productoEscaneado = {
         id: Date.now() + Math.random(),
@@ -450,24 +519,24 @@ function guardarInfoProducto() {
         productoPrimario: productoPrimario,
         timestamp: new Date().toISOString()
     };
-    
+
     // Agregar a la lista de productos escaneados
     productosEscaneados.push(productoEscaneado);
-    
+
     // Actualizar contadores
     actualizarContadoresAvanzado();
-    
+
     // Reproducir sonido de confirmación
     if (configuracionEscaneo.sonidoConfirmacion) {
         reproducirSonidoConfirmacion();
     }
-    
+
     // Mostrar mensaje de éxito
     mostrarMensaje(`Producto agregado: ${producto.nombre} - ${pesoCalculado.toFixed(3)}kg`, 'success');
-    
+
     // Cerrar modal
     cerrarModalInfoProducto();
-    
+
     // Reanudar escáner
     reanudarEscannerDespuesDeProcesamiento();
 }
@@ -481,7 +550,7 @@ function cerrarModalInfoProducto() {
 function procesarProductoExistente(producto, datosExtraidos, productoExistente) {
     // Usar el precio por kilo ya almacenado
     const pesoCalculado = datosExtraidos.precioPorcion / productoExistente.precioKilo;
-    
+
     // Crear objeto del producto escaneado
     const productoEscaneado = {
         id: Date.now() + Math.random(),
@@ -498,21 +567,21 @@ function procesarProductoExistente(producto, datosExtraidos, productoExistente) 
         productoPrimario: productoExistente.productoPrimario,
         timestamp: new Date().toISOString()
     };
-    
+
     // Agregar a la lista
     productosEscaneados.push(productoEscaneado);
-    
+
     // Actualizar contadores
     actualizarContadoresAvanzado();
-    
+
     // Reproducir sonido
     if (configuracionEscaneo.sonidoConfirmacion) {
         reproducirSonidoConfirmacion();
     }
-    
+
     // Mostrar mensaje
     mostrarMensaje(`Producto agregado: ${producto.nombre} - ${pesoCalculado.toFixed(3)}kg`, 'success');
-    
+
     // Reanudar escáner
     reanudarEscannerDespuesDeProcesamiento();
 }
@@ -521,7 +590,7 @@ function procesarProductoExistente(producto, datosExtraidos, productoExistente) 
 function mostrarVentanaConfirmacionProducto(producto, datosExtraidos, productoExistente) {
     // Ocultar animación de procesamiento
     ocultarAnimacionProcesamiento();
-    
+
     // Usar SweetAlert2 para mostrar la confirmación
     if (typeof Swal !== 'undefined') {
         Swal.fire({
@@ -559,7 +628,7 @@ function mostrarVentanaConfirmacionProducto(producto, datosExtraidos, productoEx
             `Nuevo peso: ${(datosExtraidos.precioPorcion / productoExistente.precioKilo).toFixed(3)} kg\n` +
             `¿Desea agregarlo con los datos anteriores?`
         );
-        
+
         if (confirmacion) {
             procesarProductoExistente(producto, datosExtraidos, productoExistente);
         } else {
@@ -573,12 +642,12 @@ function actualizarContadoresAvanzado() {
     const totalProductos = productosEscaneados.length;
     const pesoTotal = productosEscaneados.reduce((sum, item) => sum + item.peso, 0);
     const productosPrimarios = new Set(productosEscaneados.map(p => p.productoPrimario?.codigo || p.codigo)).size;
-    
+
     document.getElementById('contadorProductosAvanzado').textContent = totalProductos;
     document.getElementById('totalProductosAvanzado').textContent = totalProductos;
     document.getElementById('pesoTotalAvanzado').textContent = pesoTotal.toFixed(3);
     document.getElementById('totalProductosPrimarios').textContent = productosPrimarios;
-    
+
     // Habilitar botón finalizar si hay productos
     const btnFinalizar = document.getElementById('finalizarEscaneoLotesAvanzado');
     if (totalProductos > 0) {
@@ -592,7 +661,7 @@ function actualizarContadoresAvanzado() {
 function actualizarListadoProductosAvanzado() {
     const tbody = document.getElementById('listadoProductosAvanzado');
     tbody.innerHTML = '';
-    
+
     productosEscaneados.forEach((item, index) => {
         const row = tbody.insertRow();
         row.innerHTML = `
@@ -619,7 +688,7 @@ function actualizarListadoProductosAvanzado() {
 }
 
 // Función para eliminar un producto escaneado
-window.eliminarProductoEscaneado = function(id) {
+window.eliminarProductoEscaneado = function (id) {
     productosEscaneados = productosEscaneados.filter(item => item.id !== id);
     actualizarListadoProductosAvanzado();
     actualizarContadoresAvanzado();
@@ -662,15 +731,15 @@ function finalizarEscaneoLotesAvanzado() {
         mostrarMensaje('No hay productos escaneados para procesar', 'error');
         return;
     }
-    
+
     // Agrupar productos por producto primario
     agruparProductosPorPrimario();
-    
+
     // Mostrar confirmación
     const totalProductos = productosEscaneados.length;
     const pesoTotal = productosEscaneados.reduce((sum, item) => sum + item.peso, 0);
     const productosPrimarios = productosAgrupados.length;
-    
+
     const mensaje = `
         Resumen del escaneo por lotes avanzado:
         • Total de productos escaneados: ${totalProductos}
@@ -679,7 +748,7 @@ function finalizarEscaneoLotesAvanzado() {
         
         ¿Confirmar el procesamiento?
     `;
-    
+
     if (confirm(mensaje)) {
         // Cerrar modal y mostrar resultados
         cerrarModalLotesAvanzado();
@@ -691,10 +760,10 @@ function finalizarEscaneoLotesAvanzado() {
 function agruparProductosPorPrimario() {
     productosAgrupados = [];
     const grupos = new Map();
-    
+
     productosEscaneados.forEach(producto => {
         const codigoPrimario = producto.productoPrimario?.codigo || producto.codigo;
-        
+
         if (!grupos.has(codigoPrimario)) {
             grupos.set(codigoPrimario, {
                 productoPrimario: producto.productoPrimario || producto,
@@ -702,12 +771,12 @@ function agruparProductosPorPrimario() {
                 pesoTotal: 0
             });
         }
-        
+
         const grupo = grupos.get(codigoPrimario);
         grupo.subproductos.push(producto);
         grupo.pesoTotal += producto.peso;
     });
-    
+
     productosAgrupados = Array.from(grupos.values());
 }
 
@@ -715,9 +784,9 @@ function agruparProductosPorPrimario() {
 function mostrarResultadosLotesAvanzado() {
     const contenedor = document.getElementById('contenedorProductosPrimarios');
     const resultados = document.getElementById('resultadosLotesAvanzado');
-    
+
     contenedor.innerHTML = '';
-    
+
     productosAgrupados.forEach((grupo, index) => {
         const tarjeta = document.createElement('div');
         tarjeta.className = 'bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer';
@@ -736,17 +805,17 @@ function mostrarResultadosLotesAvanzado() {
                 </div>
             </div>
         `;
-        
+
         tarjeta.addEventListener('click', () => {
             mostrarDetalleProductoPrimario(grupo);
         });
-        
+
         contenedor.appendChild(tarjeta);
     });
-    
+
     // Mostrar sección de resultados
     resultados.classList.remove('hidden');
-    
+
     // Habilitar botón guardar
     document.getElementById('guardarInventarioLotesAvanzado').disabled = false;
 }
@@ -779,7 +848,7 @@ function mostrarDetalleProductoPrimario(grupo) {
                     </thead>
                     <tbody class="divide-y divide-gray-200">
     `;
-    
+
     grupo.subproductos.forEach(sub => {
         detalleHTML += `
             <tr>
@@ -791,14 +860,14 @@ function mostrarDetalleProductoPrimario(grupo) {
             </tr>
         `;
     });
-    
+
     detalleHTML += `
                     </tbody>
                 </table>
             </div>
         </div>
     `;
-    
+
     // Mostrar en modal usando SweetAlert
     Swal.fire({
         title: 'Detalle del Producto',
@@ -824,7 +893,7 @@ async function guardarInventarioLotesAvanzado() {
                 Swal.showLoading();
             }
         });
-        
+
         // Procesar cada grupo de productos
         for (const grupo of productosAgrupados) {
             // Crear entrada de inventario para el producto primario
@@ -840,17 +909,17 @@ async function guardarInventarioLotesAvanzado() {
                 ubicacion: document.getElementById('ubicacionActual')?.textContent || 'Sin ubicación',
                 timestamp: new Date().toISOString()
             };
-            
+
             // Aquí deberías guardar en tu base de datos
             console.log('Guardando entrada de inventario:', entradaInventario);
-            
+
             // Simular guardado
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-        
+
         // Cerrar loading
         Swal.close();
-        
+
         // Mostrar éxito
         Swal.fire({
             title: '¡Éxito!',
@@ -861,17 +930,17 @@ async function guardarInventarioLotesAvanzado() {
             // Limpiar datos
             productosEscaneados = [];
             productosAgrupados = [];
-            
+
             // Ocultar resultados
             document.getElementById('resultadosLotesAvanzado').classList.add('hidden');
-            
+
             // Actualizar tabla de inventario
             // Aquí deberías llamar a tu función de actualización de tabla
-            
+
             // Volver a pestaña manual
             cambiarPestanaPrincipal('manual');
         });
-        
+
     } catch (error) {
         console.error('Error al guardar inventario:', error);
         Swal.fire({
@@ -892,9 +961,9 @@ function cerrarModalLotesAvanzado() {
             console.error('Error al detener scanner:', err);
         });
     }
-    
+
     document.getElementById('modalEscaneoLotesAvanzado').style.display = 'none';
-    
+
     // Limpiar animaciones
     ocultarAnimacionProcesamiento();
 }
@@ -903,7 +972,7 @@ function cerrarModalLotesAvanzado() {
 function mostrarAnimacionProcesamiento(mensaje, tipo) {
     const reader = document.getElementById('reader-lotes-avanzado');
     let overlay = document.getElementById('processingOverlay');
-    
+
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'processingOverlay';
@@ -911,10 +980,10 @@ function mostrarAnimacionProcesamiento(mensaje, tipo) {
         reader.style.position = 'relative';
         reader.appendChild(overlay);
     }
-    
+
     let iconHTML = '';
     let colorClass = '';
-    
+
     switch (tipo) {
         case 'processing':
             iconHTML = '<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>';
@@ -929,14 +998,14 @@ function mostrarAnimacionProcesamiento(mensaje, tipo) {
             colorClass = 'bg-red-500';
             break;
     }
-    
+
     overlay.innerHTML = `
         <div class="${colorClass} text-white p-4 rounded-lg flex items-center space-x-3">
             ${iconHTML}
             <span class="font-semibold">${mensaje}</span>
         </div>
     `;
-    
+
     overlay.style.display = 'flex';
 }
 
@@ -951,29 +1020,29 @@ function ocultarAnimacionProcesamiento() {
 // Función para extraer datos CODE128 (implementación local)
 function extraerDatosCodeCODE128(codigo) {
     console.log(`Extrayendo datos de código: ${codigo}`);
-    
+
     // Eliminar cualquier prefijo de ceros si existe
     const codigoLimpio = codigo.replace(/^0+/, '');
-    
+
     if (codigo.length === 15 && codigo.startsWith('02')) {
         // Formato báscula real: 022630000287341
         // Estructura: 02(tipo) + 2630(PLU) + 00028734(precio en centavos) + 1(control)
-        
+
         const plu = codigo.substring(2, 6);              // Posiciones 2-5: PLU (2630)
         const precioStr = codigo.substring(6, 14);       // Posiciones 6-13: precio en centavos
         const precioCentavos = parseInt(precioStr);      // Convertir a número
         const digitoControl = codigo.substring(14, 15);  // Posición 14: dígito control
-        
+
         // Convertir centavos a pesos
         const precioPorcion = precioCentavos / 100;
-        
+
         // Para el cálculo del peso, usar un precio por kilo temporal
         // En la implementación real, este valor vendrá del usuario
         const precioKiloTemporal = 200; // $200 por kilo
         const pesoCalculado = precioPorcion / precioKiloTemporal;
-        
+
         console.log(`Datos extraídos - PLU: ${plu}, Precio: $${precioPorcion.toFixed(2)}, Peso: ${pesoCalculado.toFixed(3)}kg`);
-        
+
         return {
             plu: plu,
             peso: pesoCalculado,
@@ -981,7 +1050,7 @@ function extraerDatosCodeCODE128(codigo) {
             digitoControl: digitoControl
         };
     }
-    
+
     console.log('Formato de código no reconocido');
     return null;
 }
@@ -992,14 +1061,14 @@ function reproducirSonidoConfirmacion() {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
+
         oscillator.frequency.value = 800;
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-        
+
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.1);
     } catch (error) {
@@ -1018,14 +1087,14 @@ function sanitizarEntrada(entrada) {
 // Función para mostrar mensaje
 function mostrarMensaje(mensaje, tipo) {
     console.log(`${tipo.toUpperCase()}: ${mensaje}`);
-    
+
     // Usar SweetAlert si está disponible
     if (typeof Swal !== 'undefined') {
         let icon = 'info';
         if (tipo === 'error') icon = 'error';
         if (tipo === 'success') icon = 'success';
         if (tipo === 'warning') icon = 'warning';
-        
+
         Swal.fire({
             title: mensaje,
             icon: icon,
@@ -1036,7 +1105,7 @@ function mostrarMensaje(mensaje, tipo) {
             timerProgressBar: true
         });
     }
-    
+
     // Fallback: mostrar en el elemento mensaje si existe
     const elementoMensaje = document.getElementById('mensaje');
     if (elementoMensaje) {

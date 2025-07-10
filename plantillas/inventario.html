@@ -19,9 +19,9 @@
     <script src="../js/theme-toggle.js"></script>
 </head>
 
-<body class="bg-gray-100">
-    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
-        <h1 class="text-3xl font-bold">Inventario</h1>
+<body class="bg-gray-100 dark-theme-body">
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center dark-theme-header">
+        <h1 class="text-3xl font-bold dark-theme-title">Inventario</h1>
         <div class="flex items-center space-x-4">
             <!-- Botón de alternar tema -->
             <button id="themeToggleBtn" class="p-2 rounded-lg bg-blue-700 hover:bg-blue-800 transition-colors"
@@ -36,18 +36,18 @@
     </header>
 
     <div id="sideMenu"
-        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
-        <div class="p-4 border-b">
-            <h2 class="text-xl font-bold">Menú de Navegación</h2>
-            <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform dark-theme-sidebar">
+        <div class="p-4 border-b dark-theme-sidebar-header">
+            <h2 class="text-xl font-bold dark-theme-title">Menú de Navegación</h2>
+            <button id="closeMenu" class="text-red-500 hover:underline mt-2 dark-theme-close-btn">Cerrar</button>
         </div>
-        <ul id="menuRoutes" class="p-4 space-y-2">
+        <ul id="menuRoutes" class="p-4 space-y-2 dark-theme-nav-list">
             <!-- Las rutas se generarán dinámicamente -->
         </ul>
     </div>
 
     <div id="inventario" class="container mx-auto mt-8 p-4">
-        <h1 class="text-3xl font-bold mb-6">Inventario</h1>
+        <h1 class="text-3xl font-bold mb-6 dark-theme-title">Inventario</h1>
 
         <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
         <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">

@@ -42,7 +42,7 @@ function inicializarMenu() {
         routes.forEach(route => {
             if (!rutasBloqueadas.includes(route.id)) {
                 const li = document.createElement('li');
-                li.innerHTML = `<a href="${route.path}" id="${route.id}Link" class="text-blue-500 hover:underline">${route.name}</a>`;
+                li.innerHTML = `<a href="${route.path}" id="${route.id}Link" class="text-blue-500 hover:underline dark-theme-nav-link">${route.name}</a>`;
                 menuRoutes.appendChild(li);
             }
         });
@@ -636,4 +636,4 @@ window.addEventListener('beforeunload', () => {
 });
 
 // Exportar funciones necesarias
-export { mostrarSeccion, resetearBaseDatos, generarHojaInventario };
+export { mostrarSeccion, resetearBaseDatos, generarHojaInventario, mostrarMensaje };

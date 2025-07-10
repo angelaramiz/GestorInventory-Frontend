@@ -217,20 +217,20 @@ class ThemeManager {
         }
 
         const themeToggle = document.createElement('div');
-        themeToggle.className = 'theme-toggle-container';
+        themeToggle.className = 'theme-toggle-container dark-theme-bg dark-theme-text';
         themeToggle.innerHTML = `
-            <div class="theme-toggle-wrapper">
-                <label class="theme-toggle-label">
-                    <svg class="theme-icon sun-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="theme-toggle-wrapper dark-theme-bg">
+                <label class="theme-toggle-label dark-theme-text">
+                    <svg class="theme-icon sun-icon dark-theme-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                               d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
                         </path>
                     </svg>
-                    <span class="theme-toggle-switch">
-                        <input type="checkbox" class="theme-checkbox" ${this.getActualTheme() === 'dark' ? 'checked' : ''}>
-                        <span class="theme-slider"></span>
+                    <span class="theme-toggle-switch dark-theme-accent">
+                        <input type="checkbox" class="theme-checkbox dark-theme-input" ${this.getActualTheme() === 'dark' ? 'checked' : ''}>
+                        <span class="theme-slider dark-theme-slider"></span>
                     </span>
-                    <svg class="theme-icon moon-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="theme-icon moon-icon dark-theme-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                               d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
                         </path>
@@ -269,11 +269,11 @@ class ThemeManager {
     // Crear un selector de tema más completo (con opción auto)
     createThemeSelector(container = null) {
         const themeSelector = document.createElement('div');
-        themeSelector.className = 'theme-selector-container';
+        themeSelector.className = 'theme-selector-container dark-theme-bg dark-theme-text';
         themeSelector.innerHTML = `
-            <div class="theme-selector-wrapper">
-                <label class="theme-selector-label" for="theme-select">Tema:</label>
-                <select id="theme-select" class="theme-select">
+            <div class="theme-selector-wrapper dark-theme-bg">
+                <label class="theme-selector-label dark-theme-text" for="theme-select">Tema:</label>
+                <select id="theme-select" class="theme-select dark-theme-input dark-theme-bg dark-theme-text">
                     <option value="light" ${this.currentTheme === 'light' ? 'selected' : ''}>Claro</option>
                     <option value="dark" ${this.currentTheme === 'dark' ? 'selected' : ''}>Oscuro</option>
                     <option value="auto" ${this.currentTheme === 'auto' ? 'selected' : ''}>Automático</option>

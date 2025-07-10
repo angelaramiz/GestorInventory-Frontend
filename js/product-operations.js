@@ -32,10 +32,10 @@ export function mostrarResultados(resultados) {
                     "transition-colors"
                 );
                 productoDiv.innerHTML = `
-                    <h3 class="text-xl font-semibold mb-2">${producto.nombre}</h3>
-                    <p><strong>Código/PLU:</strong> ${producto.codigo}</p>
-                    <p><strong>Categoría:</strong> ${producto.categoria}</p>
-                    <p><strong>Marca:</strong> ${producto.marca}</p>
+                    <h3 class="text-xl font-semibold mb-2 dark-theme-card-title">${producto.nombre}</h3>
+                    <p class="dark-theme-card-text"><strong>Código/PLU:</strong> ${producto.codigo}</p>
+                    <p class="dark-theme-card-text"><strong>Categoría:</strong> ${producto.categoria}</p>
+                    <p class="dark-theme-card-text"><strong>Marca:</strong> ${producto.marca}</p>
                 `;
 
                 // Agregar evento de clic para mostrar detalles completos con código de barras
@@ -50,7 +50,7 @@ export function mostrarResultados(resultados) {
         });
     } else {
         resultadoDiv.innerHTML =
-            '<p class="text-red-500">No se encontraron productos.</p>';
+            '<p class="text-red-500 dark-theme-alert-error">No se encontraron productos.</p>';
     }
 }
 
@@ -60,7 +60,7 @@ export function mostrarResultadosInventario(resultados) {
     resultadosDiv.innerHTML = "";
 
     if (resultados.length === 0) {
-        resultadosDiv.innerHTML = "<p class='text-red-500'>No se encontraron productos.</p>";
+        resultadosDiv.innerHTML = "<p class='text-red-500 dark-theme-alert-error'>No se encontraron productos.</p>";
         resultadosDiv.style.display = "block";
         document.getElementById("datosInventario").style.display = "none";
         return;
@@ -94,12 +94,12 @@ export function mostrarResultadosInventario(resultados) {
             "transition-colors"
         );
         productoDiv.innerHTML = `
-            <h4 class="text-lg font-semibold mb-2">${producto.nombre}</h4>
+            <h4 class="text-lg font-semibold mb-2 dark-theme-card-title">${producto.nombre}</h4>
             <div class="grid grid-cols-2 gap-2">
-                <p><strong>Código:</strong> ${producto.codigo}</p>
-                <p><strong>Categoría:</strong> ${producto.categoria || 'N/A'}</p>
-                <p><strong>Marca:</strong> ${producto.marca || 'N/A'}</p>
-                <p><strong>Unidad:</strong> ${producto.unidad || 'Pz'}</p>
+                <p class="dark-theme-card-text"><strong>Código:</strong> ${producto.codigo}</p>
+                <p class="dark-theme-card-text"><strong>Categoría:</strong> ${producto.categoria || 'N/A'}</p>
+                <p class="dark-theme-card-text"><strong>Marca:</strong> ${producto.marca || 'N/A'}</p>
+                <p class="dark-theme-card-text"><strong>Unidad:</strong> ${producto.unidad || 'Pz'}</p>
             </div>
         `;
         productoDiv.addEventListener("click", () => mostrarFormularioInventario(producto));
@@ -172,15 +172,15 @@ export function mostrarResultadosEdicion(resultados) {
     const resultadosDiv = document.getElementById("resultados");
     resultadosDiv.id = "resultadosEdicion";
     resultadosDiv.classList = "container mx-auto mt-4 p-4";
-    resultadosDiv.innerHTML = '<h3 class="text-xl font-semibold mb-2">Seleccione un producto para editar:</h3>';
+    resultadosDiv.innerHTML = '<h3 class="text-xl font-semibold mb-2 dark-theme-title">Seleccione un producto para editar:</h3>';
 
     resultados.forEach(producto => {
         const productoDiv = document.createElement("div");
-        productoDiv.classList.add("bg-white", "rounded-lg", "shadow-md", "p-6", "mb-4", "border", "border-gray-200");
+        productoDiv.classList.add("bg-white", "rounded-lg", "shadow-md", "p-6", "mb-4", "border", "border-gray-200", "dark-theme-card");
         productoDiv.innerHTML = `
-            <p><strong>Código:</strong> ${producto.codigo}</p>
-            <p><strong>Nombre:</strong> ${producto.nombre}</p>
-            <p><strong>Marca:</strong> ${producto.marca}</p>
+            <p class="dark-theme-card-text"><strong>Código:</strong> ${producto.codigo}</p>
+            <p class="dark-theme-card-text"><strong>Nombre:</strong> ${producto.nombre}</p>
+            <p class="dark-theme-card-text"><strong>Marca:</strong> ${producto.marca}</p>
         `;
         productoDiv.addEventListener("click", () => {
             llenarFormularioEdicion(producto);

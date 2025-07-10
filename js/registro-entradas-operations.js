@@ -212,8 +212,8 @@ export async function actualizarTablaEntradas(filtros = {}) {
 
         if (entradas.length === 0) {
             tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                <tr class="dark-theme-bg">
+                    <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500 dark-theme-text-secondary">
                         No hay entradas registradas
                     </td>
                 </tr>
@@ -223,36 +223,36 @@ export async function actualizarTablaEntradas(filtros = {}) {
 
         entradas.forEach((entrada, index) => {
             const fila = document.createElement('tr');
-            fila.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+            fila.className = index % 2 === 0 ? 'bg-white dark-theme-bg' : 'bg-gray-50 dark-theme-bg-secondary';
 
             fila.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark-theme-text">
                     ${entrada.codigo || 'N/A'}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark-theme-text-secondary">
                     ${entrada.nombre || 'N/A'}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark-theme-text-secondary">
                     ${entrada.marca || 'N/A'}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark-theme-text-secondary">
                     ${entrada.categoria || 'N/A'}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark-theme-text-secondary">
                     ${entrada.unidad || 'N/A'}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark-theme-text-secondary">
                     ${entrada.cantidad || 0}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark-theme-text-secondary">
                     ${entrada.fecha_entrada ? new Date(entrada.fecha_entrada).toLocaleDateString() : 'N/A'}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark-theme-text-secondary">
                     ${entrada.comentarios || '-'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button onclick="eliminarEntrada(${entrada.id})" 
-                            class="text-red-600 hover:text-red-900 transition-colors">
+                            class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors">
                         Eliminar
                     </button>
                 </td>

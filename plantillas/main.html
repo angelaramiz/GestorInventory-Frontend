@@ -18,9 +18,9 @@
     <script src="../js/theme-toggle.js"></script>
 </head>
 
-<body class="bg-gray-100">
-    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
-        <h1 class="text-3xl font-bold">Sistema de Gestión de Productos</h1>
+<body class="bg-gray-100 dark-theme-body">
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center dark-theme-header">
+        <h1 class="text-3xl font-bold dark-theme-title">Sistema de Gestión de Productos</h1>
         <div class="flex items-center space-x-4">
             <!-- Botón de alternar tema -->
             <button id="themeToggleBtn" class="p-2 rounded-lg bg-blue-700 hover:bg-blue-800 transition-colors" title="Alternar tema">
@@ -34,83 +34,83 @@
     </header>
 
     <div id="sideMenu"
-        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
-        <div class="p-4 border-b">
-            <h2 class="text-xl font-bold">Menú de Navegación</h2>
-            <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform dark-theme-sidebar">
+        <div class="p-4 border-b dark-theme-sidebar-header">
+            <h2 class="text-xl font-bold dark-theme-title">Menú de Navegación</h2>
+            <button id="closeMenu" class="text-red-500 hover:underline mt-2 dark-theme-close-btn">Cerrar</button>
         </div>
-        <ul id="menuRoutes" class="p-4 space-y-2">
+        <ul id="menuRoutes" class="p-4 space-y-2 dark-theme-nav-list">
             <!-- Las rutas se generarán dinámicamente -->
         </ul>
     </div>
 
-    <a href="../index.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
-    <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">
+    <a href="../index.html" class="text-blue-500 hover:underline mb-4 inline-block dark-theme-link">← Regresar</a>
+    <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200 dark-theme-menu-toggle">
         Menú
     </button>
 
     <main class="container mx-auto mt-8">
         <section id="dashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div id="consulta" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-4">Consulta de Producto</h2>
-                <p class="mb-4">Busca productos en la base de datos por diferentes criterios.</p>
+            <div id="consulta" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
+                <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Consulta de Producto</h2>
+                <p class="mb-4 dark-theme-card-text">Busca productos en la base de datos por diferentes criterios.</p>
                 <a id="consultaLink" href="./consulta.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Consulta Producto</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Consulta Producto</a>
             </div>
 
-            <div id="editar" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-4">Editar Producto</h2>
-                <p class="mb-4">Edita los atributos de los productos existentes en la base de datos.</p>
+            <div id="editar" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
+                <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Editar Producto</h2>
+                <p class="mb-4 dark-theme-card-text">Edita los atributos de los productos existentes en la base de datos.</p>
                 <a id="editarLink" href="./editar.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Editar Producto</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Editar Producto</a>
             </div>
 
-            <div id="inventario" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-4">Inventario</h2>
-                <p class="mb-4">Gestiona el inventario de productos con datos adicionales.</p>
+            <div id="inventario" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
+                <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Inventario</h2>
+                <p class="mb-4 dark-theme-card-text">Gestiona el inventario de productos con datos adicionales.</p>
                 <a id="inventarioLink" href="./inventario.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Inventario</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Inventario</a>
             </div>
 
-            <div id="registro-entradas" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-4">Registro de Entradas</h2>
-                <p class="mb-4">Registra las entradas de productos recibidos en el almacén.</p>
+            <div id="registro-entradas" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
+                <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Registro de Entradas</h2>
+                <p class="mb-4 dark-theme-card-text">Registra las entradas de productos recibidos en el almacén.</p>
                 <a id="registroEntradasLink" href="./registro-entradas.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Registro de Entradas</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Registro de Entradas</a>
             </div>
 
-            <div id="reporte" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-4">Reporte para Inventario</h2>
-                <p class="mb-4">Genera reportes detallados del inventario de productos.</p>
+            <div id="reporte" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
+                <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Reporte para Inventario</h2>
+                <p class="mb-4 dark-theme-card-text">Genera reportes detallados del inventario de productos.</p>
                 <a id="reporteLink" href="./report.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Reporte para Inventario</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Reporte para Inventario</a>
             </div>
 
-            <div id="agregar" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-4">Agregar Productos</h2>
-                <p class="mb-4">Escanea y agrega nuevos productos a la base de datos.</p>
+            <div id="agregar" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
+                <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Agregar Productos</h2>
+                <p class="mb-4 dark-theme-card-text">Escanea y agrega nuevos productos a la base de datos.</p>
                 <a id="agregarLink" href="./agregar.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Agregar Productos</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Agregar Productos</a>
             </div>
 
-            <div id="archivos" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-4">Administración de Archivos</h2>
-                <p class="mb-4">Sube o descarga archivos CSV para la base de datos.</p>
+            <div id="archivos" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
+                <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Administración de Archivos</h2>
+                <p class="mb-4 dark-theme-card-text">Sube o descarga archivos CSV para la base de datos.</p>
                 <a id="archivosLink" href="./archivos.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Archivos</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Archivos</a>
             </div>
 
-            <div id="configuraciones" class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold mb-4">Configuraciones</h2>
-                <p class="mb-4">Gestiona las configuraciones del sistema, perfil de usuario y preferencias.</p>
+            <div id="configuraciones" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
+                <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Configuraciones</h2>
+                <p class="mb-4 dark-theme-card-text">Gestiona las configuraciones del sistema, perfil de usuario y preferencias.</p>
                 <a id="configuracionesLink" href="./configuraciones.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ir a Configuraciones</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Configuraciones</a>
             </div>
         </section>
     </main>
 
-    <footer class="bg-blue-600 text-white p-4 mt-8">
-        <p class="text-center">&copy; 2024 Sistema de Gestión de Productos. Todos los derechos reservados.</p>
+    <footer class="bg-blue-600 text-white p-4 mt-8 dark-theme-footer">
+        <p class="text-center dark-theme-footer-text">&copy; 2024 Sistema de Gestión de Productos. Todos los derechos reservados.</p>
     </footer>
 
     <script type="module" src="../js/main.js"></script>
@@ -134,7 +134,7 @@
             // Generar las rutas dinámicamente
             routes.forEach(route => {
                 const li = document.createElement('li');
-                li.innerHTML = `<a href="${route.path}" class="text-blue-500 hover:underline">${route.name}</a>`;
+                li.innerHTML = `<a href="${route.path}" class="text-blue-500 hover:underline dark-theme-nav-link">${route.name}</a>`;
                 menuRoutes.appendChild(li);
             });
 

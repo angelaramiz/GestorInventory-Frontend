@@ -12,9 +12,9 @@ let audioContext;
 const scannerOverlay = document.createElement('div');
 scannerOverlay.id = 'scanner-overlay';
 scannerOverlay.innerHTML = `
-    <div class="scanner-area"></div>
-    <div class="scanner-line"></div>
-    <div id="scanner-ready-indicator"></div>
+    <div class="scanner-area dark-theme-scanner-area"></div>
+    <div class="scanner-line dark-theme-scanner-line"></div>
+    <div id="scanner-ready-indicator" class="dark-theme-scanner-indicator"></div>
 `;
 
 // Agregar estilos

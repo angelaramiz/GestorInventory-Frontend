@@ -117,21 +117,12 @@ export const TIPOS_PRODUCTOS = {
 export const UNIDADES_PERMITIDAS = {
     PESO: {
         kg: { nombre: 'Kilogramos', simbolo: 'kg', decimal: 3 },
-        g: { nombre: 'Gramos', simbolo: 'g', decimal: 0 },
-        lb: { nombre: 'Libras', simbolo: 'lb', decimal: 3 },
-        oz: { nombre: 'Onzas', simbolo: 'oz', decimal: 2 }
+        g: { nombre: 'Gramos', simbolo: 'g', decimal: 0 }
     },
     
-    VOLUMEN: {
-        l: { nombre: 'Litros', simbolo: 'l', decimal: 3 },
-        ml: { nombre: 'Mililitros', simbolo: 'ml', decimal: 0 },
-        gal: { nombre: 'Galones', simbolo: 'gal', decimal: 3 }
-    },
     
     UNIDAD: {
-        pza: { nombre: 'Piezas', simbolo: 'pza', decimal: 0 },
-        paq: { nombre: 'Paquetes', simbolo: 'paq', decimal: 0 },
-        caja: { nombre: 'Cajas', simbolo: 'caja', decimal: 0 }
+        pza: { nombre: 'Piezas', simbolo: 'pza', decimal: 0 }
     }
 };
 

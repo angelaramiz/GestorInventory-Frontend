@@ -13,7 +13,7 @@ export function mostrarMensaje(mensaje, tipo, opciones = {}) {
         title: tipo.charAt(0).toUpperCase() + tipo.slice(1),
         text: mensaje,
         icon: icono,
-        timer: opciones.timer || 2000,
+        timer: opciones.timer || 1500, // Reducido de 2000 a 1500ms (1.5s)
         showConfirmButton: opciones.showConfirmButton || false,
     });
 }

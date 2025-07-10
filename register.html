@@ -18,56 +18,67 @@
     <script src="./js/theme-toggle.js"></script>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 dark-theme-body">
     <div class="container mx-auto mt-8 p-4">
-        <h1 class="text-3xl font-bold mb-6">Registro de Usuario</h1>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold dark-theme-title">Registro de Usuario</h1>
+            <!-- Botón de alternar tema -->
+            <button id="themeToggleBtn" class="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                title="Alternar tema">
+                <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+            </button>
+        </div>
 
         <!-- Formulario de Registro -->
-        <form id="formRegistro" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <form id="formRegistro" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 dark-theme-form">
             <div class="mb-4">
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="nombre">
+                    <label class="block text-gray-700 text-sm font-bold mb-2 dark-theme-label" for="nombre">
                         Nombre de Usuario:
                     </label>
                     <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark-theme-input"
                         id="nombre" type="text" placeholder="Ingresa tu nombre de usuario" required>
                 </div>
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+                <label class="block text-gray-700 text-sm font-bold mb-2 dark-theme-label" for="email">
                     Email:
                 </label>
                 <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark-theme-input"
                     id="email" type="email" placeholder="Ingresa tu correo electrónico" required>
             </div>
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                <label class="block text-gray-700 text-sm font-bold mb-2 dark-theme-label" for="password">
                     Contraseña:
                 </label>
                 <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark-theme-input"
                     id="password" type="password" placeholder="Ingresa tu contraseña" required>
             </div>
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">
+                <label class="block text-gray-700 text-sm font-bold mb-2 dark-theme-label" for="confirmPassword">
                     Confirmar Contraseña:
                 </label>
                 <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark-theme-input"
                     id="confirmPassword" type="password" placeholder="Confirma tu contraseña" required>
             </div>
             <div class="flex items-center justify-between">
                 <button
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark-theme-button"
                     type="submit">
                     Registrarse
                 </button>
-                <a href="./index.html" class="text-blue-500 hover:underline">¿Ya tienes una cuenta? Inicia Sesión</a>
+                <a href="./index.html" class="text-blue-500 hover:underline dark-theme-link">¿Ya tienes una cuenta? Inicia Sesión</a>
             </div>
         </form>
 
         <!-- Mensajes de error o éxito -->
-        <div id="mensaje" class="mt-4"></div>
+        <div id="mensaje" class="mt-4 dark-theme-message"></div>
     </div>
 
     <!-- Script para manejar el registro -->

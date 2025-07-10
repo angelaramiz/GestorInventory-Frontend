@@ -216,6 +216,17 @@ async function init() {
                 console.warn('No se pudo inicializar el sistema de lotes:', error);
             }
 
+            // Inicializar sistema de lotes avanzado
+            try {
+                const { inicializarSistemaLotesAvanzado } = await import('./lotes-avanzado.js');
+                if (inicializarSistemaLotesAvanzado) {
+                    inicializarSistemaLotesAvanzado();
+                    console.log('Sistema de lotes avanzado inicializado correctamente');
+                }
+            } catch (error) {
+                console.warn('No se pudo inicializar el sistema de lotes avanzado:', error);
+            }
+
             // Agregar event listener para cambiar ubicación
             const cambiarUbicacionBtn = document.getElementById('cambiarUbicacion');
             if (cambiarUbicacionBtn) {

@@ -934,6 +934,480 @@
     }
 }
 
+/* ===== ESTILOS PARA LOTES AVANZADO ===== */
+
+/* Estilos para pestañas principales */
+.tabs-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    padding: 2px;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.tab-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.tab-button:hover::before {
+    left: 100%;
+}
+
+.tab-button.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Estilos para tarjetas de productos */
+.product-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.product-card .product-name {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.product-card .product-code {
+    font-size: 0.9em;
+    color: #718096;
+    font-family: 'Courier New', monospace;
+}
+
+.product-card .product-weight {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #38a169;
+    margin-top: 10px;
+}
+
+.product-card .product-count {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+/* Estilos para el modal de información */
+.modal-info-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.modal-info-content h4 {
+    margin-bottom: 15px;
+    font-size: 1.3em;
+}
+
+.modal-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.modal-info-item {
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.modal-info-item strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* Estilos para animaciones de procesamiento */
+.processing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+.processing-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.processing-icon {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.processing-icon.loading {
+    background: #667eea;
+    color: white;
+}
+
+.processing-icon.success {
+    background: #38a169;
+    color: white;
+}
+
+.processing-icon.error {
+    background: #e53e3e;
+    color: white;
+}
+
+.processing-text {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+/* Estilos para alertas y configuración */
+.config-panel {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.config-panel h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.config-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.config-option:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+}
+
+.config-option input[type="checkbox"] {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    accent-color: #667eea;
+}
+
+.config-option label {
+    font-size: 0.95em;
+    color: #4a5568;
+    cursor: pointer;
+    flex: 1;
+}
+
+/* Estilos para el botón de inicio avanzado */
+.btn-start-advanced {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-start-advanced:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.btn-start-advanced:active {
+    transform: translateY(0);
+}
+
+/* Estilos para tabla de productos avanzada */
+.advanced-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.advanced-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.advanced-table th {
+    padding: 15px 12px;
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.9em;
+}
+
+.advanced-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.9em;
+}
+
+.advanced-table tbody tr:hover {
+    background: #f7fafc;
+}
+
+/* Estilos para badges de tipo de producto */
+.product-type-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.product-type-badge.primary {
+    background: #bee3f8;
+    color: #2b6cb0;
+}
+
+.product-type-badge.subproduct {
+    background: #c6f6d5;
+    color: #276749;
+}
+
+/* Estilos para contadores */
+.counter-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9em;
+    margin-left: 8px;
+}
+
+/* Estilos para alertas de información */
+.alert-info {
+    background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
+    border-left: 4px solid #f59e0b;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-info h3 {
+    color: #92400e;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.alert-info ul {
+    color: #b45309;
+    margin-left: 20px;
+}
+
+.alert-info li {
+    margin-bottom: 5px;
+}
+
+/* Estilos para modal detalle */
+.detail-modal {
+    background: white;
+    border-radius: 15px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.detail-modal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.detail-modal .modal-body {
+    padding: 20px;
+}
+
+.detail-modal .product-info {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .product-card {
+        padding: 15px;
+    }
+    
+    .modal-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn-start-advanced {
+        padding: 12px 24px;
+        font-size: 1em;
+    }
+    
+    .config-panel {
+        padding: 15px;
+    }
+    
+    .advanced-table {
+        font-size: 0.8em;
+    }
+    
+    .advanced-table th,
+    .advanced-table td {
+        padding: 8px 6px;
+    }
+}
+
+/* Animaciones adicionales */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Estilos para el overlay de validación */
+.validation-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+.validation-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    max-width: 300px;
+}
+
+.validation-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.validation-icon.loading {
+    background: #667eea;
+    color: white;
+}
+
+.validation-icon.success {
+    background: #38a169;
+    color: white;
+}
+
+.validation-icon.error {
+    background: #e53e3e;
+    color: white;
+}
+
+.validation-title {
+    font-size: 1.3em;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #2d3748;
+}
+
+.validation-message {
+    font-size: 0.9em;
+    color: #718096;
+    line-height: 1.4;
+}
+
 /* ===== ESTILOS ESPECÍFICOS PARA REGISTRO DE ENTRADAS ===== */
 
 /* Variables específicas */
@@ -2091,7 +2565,7 @@ body.has-extension-errors::after {
     left: 0;
     height: 4px;
     background: #3b82f6;
-    border-radius: 0 0 12px 12px;
+    border-radius:  0 0 12px 12px;
     animation: validation-progress-fill 2s ease-in-out;
     z-index: 10;
 }

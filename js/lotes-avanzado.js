@@ -152,11 +152,11 @@ async function cargarDiccionarioSubproductos() {
         
         // Consultar productos_subproducto desde Supabase
         const { data, error } = await supabase
-            .from('productos_subproducto')
+            .from('productos_subproductos')
             .select(`
                 id,
-                primario_product_id,
-                sub_producto_id
+                principalproductid,
+                subproductid
             `);
 
         if (error) {
@@ -171,8 +171,8 @@ async function cargarDiccionarioSubproductos() {
             data.forEach(item => {
                 // Mapear subproducto ID a producto primario ID
                 diccionarioSubproductos.set(
-                    item.sub_producto_id.toString(),
-                    item.primario_product_id.toString()
+                    item.subproductid.toString(),
+                    item.principalproductid.toString()
                 );
             });
 

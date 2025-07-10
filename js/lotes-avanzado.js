@@ -1636,7 +1636,7 @@ async function guardarEnIndexedDBConReintento(inventarioData, maxReintentos = 3)
     for (let intento = 1; intento <= maxReintentos; intento++) {
         try {
             await new Promise((resolve, reject) => {
-                const request = indexedDB.open("InventarioDB", 2);
+                const request = indexedDB.open("InventarioDB", 3);
                 request.onsuccess = function(event) {
                     const db = event.target.result;
                     const transaction = db.transaction(['inventario'], 'readwrite');
@@ -1683,6 +1683,8 @@ async function guardarEnIndexedDBConReintento(inventarioData, maxReintentos = 3)
                         objectStore.createIndex('cantidad', 'cantidad', { unique: false });
                         objectStore.createIndex('caducidad', 'caducidad', { unique: false });
                         objectStore.createIndex('comentarios', 'comentarios', { unique: false });
+                        // Crear índice compuesto para código y lote (no único para permitir actualizaciones)
+                        objectStore.createIndex('codigo_lote', ['codigo', 'lote'], { unique: false });
                     }
                 };
             });

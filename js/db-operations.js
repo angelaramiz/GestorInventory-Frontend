@@ -162,7 +162,7 @@ export function inicializarDB() {
 // Inicialización de la base de datos de inventario
 export function inicializarDBInventario() {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open("InventarioDB", 2); // Incrementamos la versión para forzar la actualización
+        const request = indexedDB.open("InventarioDB", 3); // Incrementamos la versión para forzar la actualización de índices
 
         request.onerror = event => {
             console.error(
@@ -203,8 +203,8 @@ export function inicializarDBInventario() {
             objectStore.createIndex("caducidad", "caducidad", { unique: false });
             objectStore.createIndex("comentarios", "comentarios", { unique: false });
 
-            // Crear índice compuesto para código y lote
-            objectStore.createIndex("codigo_lote", ["codigo", "lote"], { unique: true });
+            // Crear índice compuesto para código y lote (no único para permitir actualizaciones)
+            objectStore.createIndex("codigo_lote", ["codigo", "lote"], { unique: false });
 
             console.log("Base de datos de inventario creada/actualizada con nuevo esquema");
         };

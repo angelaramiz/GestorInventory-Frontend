@@ -172,3 +172,54 @@ El sistema incluye logging detallado para facilitar debugging:
 3. **Sonidos Personalizables**: Diferentes tonos para éxito/error
 4. **Vibración Móvil**: Feedback háptico en dispositivos compatibles
 5. **Estadísticas de Escaneo**: Métricas de velocidad y precisión
+
+## 🚀 **ÚLTIMA ACTUALIZACIÓN - Refactorización de Cálculo de Peso**
+
+### **Cambios Realizados:**
+
+#### **1. Función `extraerDatosCodeCODE128` Refactorizada**
+- **ANTES**: Calculaba el peso usando un `precioKiloTemporal` inexistente
+- **DESPUÉS**: Solo extrae PLU, precio por porción y dígito de control
+- **RESULTADO**: Eliminación del error de variable indefinida
+
+```javascript
+// CÓDIGO ANTERIOR (CON ERROR)
+const pesoCalculado = precioPorcion / precioKiloTemporal; // ❌ Variable no definida
+
+// CÓDIGO ACTUAL (CORREGIDO)
+return {
+    plu: plu,
+    precioPorcion: precioPorcion,
+    digitoControl: digitoControl
+}; // ✅ Solo datos extraídos del código
+```
+
+#### **2. Cálculo de Peso Movido al Modal**
+- **UBICACIÓN**: Función `guardarInfoProducto`
+- **MOMENTO**: Cuando el usuario ingresa el precio por kilo
+- **VENTAJA**: Peso calculado con precio real del usuario
+
+```javascript
+// Recalcular peso con el precio por kilo ingresado
+const pesoCalculado = datosExtraidos.precioPorcion / precioKilo;
+```
+
+#### **3. Actualización del Modal de Información**
+- **ANTES**: Mostraba peso calculado con precio temporal
+- **DESPUÉS**: Solo muestra PLU y precio por porción
+- **MEJORA**: Información más clara y precisa
+
+#### **4. Flujo de Trabajo Mejorado**
+1. **Escaneo** → Extrae PLU, precio por porción, dígito de control
+2. **Búsqueda** → Encuentra producto en base de datos
+3. **Modal** → Usuario ingresa precio por kilo
+4. **Cálculo** → Peso = precio por porción ÷ precio por kilo
+5. **Guardado** → Producto con todos los datos correctos
+
+### **Beneficios de la Refactorización:**
+
+✅ **Eliminación de errores**: No más variables indefinidas
+✅ **Precisión**: Cálculo con precio real del usuario
+✅ **Claridad**: Separación de responsabilidades
+✅ **Mantenibilidad**: Código más limpio y entendible
+✅ **UX mejorada**: Proceso más intuitivo para el usuario

@@ -18,6 +18,12 @@ let configuracionEscaneo = {
 // Diccionario para productos subproductos (se cargará desde Supabase)
 let diccionarioSubproductos = new Map();
 
+// Precio por kilo temporal para cálculos iniciales (se actualizará con el precio real del usuario)
+const precioKiloTemporal = 100.00; // Precio base temporal en pesos
+
+// Mapa para almacenar precios por kilo ingresados por el usuario (PLU -> precio por kilo)
+let preciosPorKiloGuardados = new Map();
+
 // Función para inicializar el sistema de lotes avanzado
 function inicializarSistemaLotesAvanzado() {
     // Event listeners para las pestañas principales
@@ -177,11 +183,7 @@ async function cargarDiccionarioSubproductos() {
 
         // En caso de error, usar datos de ejemplo como fallback
         console.warn('Usando datos de ejemplo como fallback para diccionario');
-        const datosEjemplo = [
-            { id: 1, primario_product_id: '1001', sub_producto_id: '2630' },
-            { id: 2, primario_product_id: '1002', sub_producto_id: '2631' },
-            { id: 3, primario_product_id: '1003', sub_producto_id: '2632' }
-        ];
+        
 
         // Limpiar diccionario existente
         diccionarioSubproductos.clear();
@@ -292,10 +294,11 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
             return;
         }
 
-        // 3. Verificar si el producto ya fue escaneado previamente
+        // 3. Verificar si el producto ya fue escaneado previamente o si tenemos precio guardado
         const productoExistente = verificarProductoExistente(datosExtraidos.plu);
 
-        if (productoExistente) {
+        if (productoExistente && productoExistente.nombre) {
+            // Producto completo ya fue escaneado anteriormente
             if (configuracionEscaneo.confirmarProductosSimilares) {
                 // Mostrar ventana de confirmación
                 mostrarVentanaConfirmacionProducto(producto, datosExtraidos, productoExistente);
@@ -303,6 +306,28 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
                 // Procesar directamente con el precio existente
                 procesarProductoExistente(producto, datosExtraidos, productoExistente);
             }
+        } else if (productoExistente && productoExistente.precioKilo) {
+            // Solo tenemos precio por kilo guardado, procesar directamente
+            console.log(`Usando precio por kilo guardado: $${productoExistente.precioKilo.toFixed(2)}`);
+            
+            // Determinar tipo y producto primario
+            const productoPrimarioId = diccionarioSubproductos.get(datosExtraidos.plu);
+            let infoPrimario = null;
+            let tipo = 'primario';
+            
+            if (productoPrimarioId) {
+                infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
+                tipo = 'subproducto';
+            }
+            
+            // Crear objeto producto existente completo
+            const productoCompleto = {
+                precioKilo: productoExistente.precioKilo,
+                tipo: tipo,
+                productoPrimario: infoPrimario
+            };
+            
+            procesarProductoExistente(producto, datosExtraidos, productoCompleto);
         } else {
             // 4. Verificar si es subproducto o producto primario
             const productoPrimario = diccionarioSubproductos.get(datosExtraidos.plu);
@@ -380,7 +405,21 @@ async function buscarProductoPorPLU(plu) {
 
 // Función para verificar si un producto ya fue escaneado
 function verificarProductoExistente(plu) {
-    return productosEscaneados.find(p => p.plu === plu);
+    const productoExistente = productosEscaneados.find(p => p.plu === plu);
+    
+    if (productoExistente) {
+        console.log(`Producto con PLU ${plu} ya fue escaneado anteriormente`);
+        return productoExistente;
+    }
+    
+    // Si no fue escaneado, verificar si tenemos precio por kilo guardado
+    const precioKiloGuardado = preciosPorKiloGuardados.get(plu);
+    if (precioKiloGuardado) {
+        console.log(`Precio por kilo guardado para PLU ${plu}: $${precioKiloGuardado.toFixed(2)}`);
+        return { plu: plu, precioKilo: precioKiloGuardado };
+    }
+    
+    return null;
 }
 
 // Función para mostrar el modal de información del producto
@@ -427,7 +466,10 @@ function mostrarModalInformacionProducto(producto, datosExtraidos, productoPrima
                 <div class="grid grid-cols-3 gap-4">
                     <div><strong>PLU:</strong> ${datosExtraidos.plu}</div>
                     <div><strong>Precio Porción:</strong> $${datosExtraidos.precioPorcion.toFixed(2)}</div>
-                    <div><strong>Peso Calculado:</strong> ${datosExtraidos.peso.toFixed(3)} kg</div>
+                    <div><strong>Peso Estimado:</strong> ${datosExtraidos.pesoTemporal.toFixed(3)} kg</div>
+                </div>
+                <div class="mt-2 text-sm text-gray-600">
+                    <em>* El peso se recalculará con el precio por kilo que ingrese</em>
                 </div>
             </div>
         `;
@@ -450,8 +492,12 @@ function mostrarModalInformacionProducto(producto, datosExtraidos, productoPrima
                 <div class="grid grid-cols-3 gap-4">
                     <div><strong>PLU:</strong> ${datosExtraidos.plu}</div>
                     <div><strong>Precio Porción:</strong> $${datosExtraidos.precioPorcion.toFixed(2)}</div>
-                    <div><strong>Peso Calculado:</strong> ${datosExtraidos.peso.toFixed(3)} kg</div>
+                    <div><strong>Peso Estimado:</strong> ${datosExtraidos.pesoTemporal.toFixed(3)} kg</div>
                 </div>
+                <div class="mt-2 text-sm text-gray-600">
+                    <em>* El peso se recalculará con el precio por kilo que ingrese</em>
+                </div>
+            </div>
             </div>
         `;
     }
@@ -500,6 +546,10 @@ function guardarInfoProducto() {
     const productoPrimario = JSON.parse(modal.dataset.productoPrimario);
     const tipo = modal.dataset.tipo;
 
+    // Guardar precio por kilo temporalmente para futuros escaneos del mismo PLU
+    preciosPorKiloGuardados.set(datosExtraidos.plu, precioKilo);
+    console.log(`Precio por kilo guardado para PLU ${datosExtraidos.plu}: $${precioKilo.toFixed(2)}`);
+
     // Recalcular peso con el precio por kilo ingresado
     const pesoCalculado = datosExtraidos.precioPorcion / precioKilo;
 
@@ -526,6 +576,9 @@ function guardarInfoProducto() {
     // Actualizar contadores
     actualizarContadoresAvanzado();
 
+    // Actualizar listado inmediatamente
+    actualizarListadoProductosAvanzado();
+
     // Reproducir sonido de confirmación
     if (configuracionEscaneo.sonidoConfirmacion) {
         reproducirSonidoConfirmacion();
@@ -548,8 +601,9 @@ function cerrarModalInfoProducto() {
 
 // Función para procesar producto existente
 function procesarProductoExistente(producto, datosExtraidos, productoExistente) {
-    // Usar el precio por kilo ya almacenado
-    const pesoCalculado = datosExtraidos.precioPorcion / productoExistente.precioKilo;
+    // Usar el precio por kilo ya almacenado (puede venir de producto escaneado o precio guardado)
+    const precioKilo = productoExistente.precioKilo;
+    const pesoCalculado = datosExtraidos.precioPorcion / precioKilo;
 
     // Crear objeto del producto escaneado
     const productoEscaneado = {
@@ -562,9 +616,9 @@ function procesarProductoExistente(producto, datosExtraidos, productoExistente) 
         categoria: producto.categoria,
         peso: pesoCalculado,
         precioPorcion: datosExtraidos.precioPorcion,
-        precioKilo: productoExistente.precioKilo,
-        tipo: productoExistente.tipo,
-        productoPrimario: productoExistente.productoPrimario,
+        precioKilo: precioKilo,
+        tipo: productoExistente.tipo || 'primario', // Usar tipo existente o primario por defecto
+        productoPrimario: productoExistente.productoPrimario || null,
         timestamp: new Date().toISOString()
     };
 
@@ -573,6 +627,9 @@ function procesarProductoExistente(producto, datosExtraidos, productoExistente) 
 
     // Actualizar contadores
     actualizarContadoresAvanzado();
+
+    // Actualizar listado inmediatamente
+    actualizarListadoProductosAvanzado();
 
     // Reproducir sonido
     if (configuracionEscaneo.sonidoConfirmacion) {
@@ -1024,11 +1081,34 @@ function extraerDatosCodeCODE128(codigo) {
     // Eliminar cualquier prefijo de ceros si existe
     const codigoLimpio = codigo.replace(/^0+/, '');
 
-    if (codigo.length === 15 && codigo.startsWith('02')) {
-        // Formato báscula real: 022630000287341
-        // Estructura: 02(tipo) + 2630(PLU) + 00028734(precio en centavos) + 1(control)
+    // Manejar múltiples formatos de código
+    if (codigo.length === 16 && codigo.startsWith('02')) {
+        // Formato: 0283490000250506 (16 dígitos)
+        // Estructura: 02(tipo) + 8349(PLU) + 00025050(precio en centavos) + 06(control)
+        const plu = codigo.substring(2, 6);              // Posiciones 2-5: PLU
+        const precioStr = codigo.substring(6, 14);       // Posiciones 6-13: precio en centavos
+        const precioCentavos = parseInt(precioStr);      // Convertir a número
+        const digitoControl = codigo.substring(14, 16);  // Posiciones 14-15: dígito control
 
-        const plu = codigo.substring(2, 6);              // Posiciones 2-5: PLU (2630)
+        // Convertir centavos a pesos
+        const precioPorcion = precioCentavos / 100;
+
+        // Calcular peso temporal para mostrar en el modal (se recalculará con precio real)
+        const pesoTemporal = precioPorcion / precioKiloTemporal;
+
+        console.log(`Datos extraídos - PLU: ${plu}, Precio: $${precioPorcion.toFixed(2)}, Peso temporal: ${pesoTemporal.toFixed(3)}kg, Dígito Control: ${digitoControl}`);
+
+        return {
+            plu: plu,
+            precioPorcion: precioPorcion,
+            pesoTemporal: pesoTemporal,
+            digitoControl: digitoControl
+        };
+    }
+    else if (codigo.length === 15 && codigo.startsWith('02')) {
+        // Formato original: 022630000287341 (15 dígitos)
+        // Estructura: 02(tipo) + 2630(PLU) + 00028734(precio en centavos) + 1(control)
+        const plu = codigo.substring(2, 6);              // Posiciones 2-5: PLU
         const precioStr = codigo.substring(6, 14);       // Posiciones 6-13: precio en centavos
         const precioCentavos = parseInt(precioStr);      // Convertir a número
         const digitoControl = codigo.substring(14, 15);  // Posición 14: dígito control
@@ -1036,22 +1116,20 @@ function extraerDatosCodeCODE128(codigo) {
         // Convertir centavos a pesos
         const precioPorcion = precioCentavos / 100;
 
-        // Para el cálculo del peso, usar un precio por kilo temporal
-        // En la implementación real, este valor vendrá del usuario
-        const precioKiloTemporal = 200; // $200 por kilo
-        const pesoCalculado = precioPorcion / precioKiloTemporal;
+        // Calcular peso temporal para mostrar en el modal (se recalculará con precio real)
+        const pesoTemporal = precioPorcion / precioKiloTemporal;
 
-        console.log(`Datos extraídos - PLU: ${plu}, Precio: $${precioPorcion.toFixed(2)}, Peso: ${pesoCalculado.toFixed(3)}kg`);
+        console.log(`Datos extraídos - PLU: ${plu}, Precio: $${precioPorcion.toFixed(2)}, Peso temporal: ${pesoTemporal.toFixed(3)}kg, Dígito Control: ${digitoControl}`);
 
         return {
             plu: plu,
-            peso: pesoCalculado,
             precioPorcion: precioPorcion,
+            pesoTemporal: pesoTemporal,
             digitoControl: digitoControl
         };
     }
 
-    console.log('Formato de código no reconocido');
+    console.log(`Formato de código no reconocido (longitud: ${codigo.length})`);
     return null;
 }
 

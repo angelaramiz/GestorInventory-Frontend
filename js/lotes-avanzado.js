@@ -316,6 +316,9 @@ function verificarProductoExistente(plu) {
 
 // Función para mostrar el modal de información del producto
 function mostrarModalInformacionProducto(producto, datosExtraidos, productoPrimario, tipo) {
+    // Ocultar animación de procesamiento
+    ocultarAnimacionProcesamiento();
+    
     const modal = document.getElementById('modalInfoProducto');
     const contenido = document.getElementById('contenidoInfoProducto');
     
@@ -512,6 +515,57 @@ function procesarProductoExistente(producto, datosExtraidos, productoExistente) 
     
     // Reanudar escáner
     reanudarEscannerDespuesDeProcesamiento();
+}
+
+// Función para mostrar ventana de confirmación para productos similares
+function mostrarVentanaConfirmacionProducto(producto, datosExtraidos, productoExistente) {
+    // Ocultar animación de procesamiento
+    ocultarAnimacionProcesamiento();
+    
+    // Usar SweetAlert2 para mostrar la confirmación
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '🤔 Producto ya escaneado',
+            html: `
+                <div class="text-left">
+                    <p><strong>Producto:</strong> ${producto.nombre}</p>
+                    <p><strong>PLU:</strong> ${datosExtraidos.plu}</p>
+                    <p><strong>Nuevo peso:</strong> ${(datosExtraidos.precioPorcion / productoExistente.precioKilo).toFixed(3)} kg</p>
+                    <p><strong>Precio por kilo anterior:</strong> $${productoExistente.precioKilo.toFixed(2)}</p>
+                    <p><strong>Nuevo precio porción:</strong> $${datosExtraidos.precioPorcion.toFixed(2)}</p>
+                    <br>
+                    <p>¿Desea agregar este producto con los datos anteriores?</p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, agregar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                procesarProductoExistente(producto, datosExtraidos, productoExistente);
+            } else {
+                // Reanudar escáner sin agregar
+                reanudarEscannerDespuesDeProcesamiento();
+            }
+        });
+    } else {
+        // Fallback si SweetAlert2 no está disponible
+        const confirmacion = confirm(
+            `Producto ya escaneado: ${producto.nombre}\n` +
+            `PLU: ${datosExtraidos.plu}\n` +
+            `Nuevo peso: ${(datosExtraidos.precioPorcion / productoExistente.precioKilo).toFixed(3)} kg\n` +
+            `¿Desea agregarlo con los datos anteriores?`
+        );
+        
+        if (confirmacion) {
+            procesarProductoExistente(producto, datosExtraidos, productoExistente);
+        } else {
+            reanudarEscannerDespuesDeProcesamiento();
+        }
+    }
 }
 
 // Función para actualizar contadores

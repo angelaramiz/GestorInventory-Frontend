@@ -2,7 +2,7 @@
 // Mejora del sistema de lotes con detección automática y agrupación de productos
 
 // Importar configuración de Supabase
-import { supabase } from './db-operations.js';
+import { getSupabase } from './auth.js';
 
 // Variables globales para el escaneo por lotes avanzado
 let scannerLotesAvanzado = null;
@@ -147,6 +147,9 @@ async function cargarDiccionarioSubproductos() {
     try {
         console.log('Cargando diccionario de subproductos desde Supabase...');
 
+        // Obtener instancia de Supabase
+        const supabase = await getSupabase();
+        
         // Consultar productos_subproducto desde Supabase
         const { data, error } = await supabase
             .from('productos_subproducto')
@@ -181,20 +184,12 @@ async function cargarDiccionarioSubproductos() {
     } catch (error) {
         console.error('Error al cargar diccionario de subproductos desde Supabase:', error);
 
-        // En caso de error, usar datos de ejemplo como fallback
-        console.warn('Usando datos de ejemplo como fallback para diccionario');
-        
-
-        // Limpiar diccionario existente
+        // En caso de error, simplemente limpiar el diccionario
+        console.warn('No se pudieron cargar relaciones de subproductos desde el servidor');
         diccionarioSubproductos.clear();
 
-        // Llenar diccionario con datos de ejemplo
-        datosEjemplo.forEach(item => {
-            diccionarioSubproductos.set(item.sub_producto_id, item.primario_product_id);
-        });
-
-        console.log(`Diccionario cargado con datos de ejemplo: ${diccionarioSubproductos.size} relaciones`);
-        mostrarMensaje('Error al cargar diccionario desde servidor, usando datos locales', 'warning');
+        // Mostrar mensaje de advertencia
+        mostrarMensaje('Error al cargar diccionario desde servidor, funcionando sin relaciones', 'warning');
     }
 }
 
@@ -354,6 +349,9 @@ async function buscarProductoPorPLU(plu) {
     try {
         console.log(`Buscando producto con PLU: ${plu}`);
 
+        // Obtener instancia de Supabase
+        const supabase = await getSupabase();
+        
         // Consultar producto en Supabase por código
         const { data, error } = await supabase
             .from('productos')
@@ -395,11 +393,9 @@ async function buscarProductoPorPLU(plu) {
     } catch (error) {
         console.error('Error al buscar producto por PLU:', error);
 
-        // En caso de error de conexión, usar datos de ejemplo como fallback
-        console.warn('Usando datos de ejemplo como fallback');
-        ;
-
-        return productosEjemplo.find(p => p.codigo === plu) || null;
+        // En caso de error de conexión, retornar null
+        console.warn('No se pudo conectar con el servidor para buscar el producto');
+        return null;
     }
 }
 

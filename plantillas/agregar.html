@@ -44,83 +44,166 @@
             Menú
         </button>
 
-        <form id="formAgregarProducto" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="codigo">
-                    Código/PLU:
-                </label>
-                <div class="flex">
+        <!-- Pestañas -->
+        <div class="mb-6 mt-4">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button id="tab-individual" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button active">
+                        Producto Individual
+                    </button>
+                    <button id="tab-tabla" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button">
+                        Agregado por Tabla
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Contenido de Pestañas -->
+        
+        <!-- Pestaña Individual (formulario original) -->
+        <div id="content-individual" class="tab-content">
+            <form id="formAgregarProducto" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="codigo">
+                        Código/PLU:
+                    </label>
+                    <div class="flex">
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            placeholder="Codigo" id="codigoAgregar" type="text" required>
+                        <button type="button" id="escanearBtnAgregar"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
+                            Escanear Código
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="nombre">
+                        Nombre:
+                    </label>
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        placeholder="Codigo" id="codigoAgregar" type="text" required>
-                    <button type="button" id="escanearBtnAgregar"
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
-                        Escanear Código
+                        id="nombre" type="text" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="categoria">
+                        Categoría:
+                    </label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="categoria" type="text" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="marca">
+                        Marca/Proveedor:
+                    </label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="marca" type="text" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="marca">
+                        Unidad:
+                    </label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="unidad" type="text" required>
+                </div>
+                
+                <!-- Campo para producto primario (aparece solo cuando unidad es Kg) -->
+                <div id="producto-primario-container" class="mb-4" style="display: none;">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3">
+                        <div class="flex items-center mb-2">
+                            <svg class="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-yellow-800 font-medium text-sm">Nota importante:</span>
+                        </div>
+                        <p class="text-yellow-700 text-sm">
+                            Si el producto es un subproducto y cuenta con un producto primario, 
+                            ingresa el código del producto primario en el campo de abajo.
+                        </p>
+                    </div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="producto-primario">
+                        Código del Producto Primario (opcional):
+                    </label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="producto-primario" type="text" placeholder="Codigo del Producto Primario">
+                </div>
+                <div class="flex items-center justify-between">
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        type="submit">
+                        Agregar Producto
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Pestaña Tabla (nueva funcionalidad) -->
+        <div id="content-tabla" class="tab-content" style="display: none;">
+            <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                <!-- Sección Producto Primario -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Producto Primario</h3>
+                    
+                    <!-- Campo código producto primario -->
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="codigo-primario">
+                            Código de Producto Primario:
+                        </label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            placeholder="Ingrese código del producto primario" id="codigo-primario" type="text" required>
+                    </div>
+
+                    <!-- Información del producto primario -->
+                    <div id="info-producto-primario" class="grid grid-cols-1 md:grid-cols-2 gap-4" style="display: none;">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
+                            <input id="primario-nombre" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Categoría:</label>
+                            <input id="primario-categoria" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Marca/Proveedor:</label>
+                            <input id="primario-marca" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Unidad:</label>
+                            <input id="primario-unidad" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección Subproductos -->
+                <div class="mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Subproductos</h3>
+                        <button id="agregar-fila-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" style="display: none;">
+                            + Agregar Nueva Fila
+                        </button>
+                    </div>
+
+                    <div id="subproductos-container" class="space-y-4">
+                        <!-- Las filas de subproductos se generarán dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex justify-between items-center pt-6 border-t">
+                    <button id="limpiar-tabla-btn" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                        Limpiar Todo
+                    </button>
+                    <button id="guardar-tabla-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" style="display: none;">
+                        Guardar Tabla de Productos
                     </button>
                 </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="nombre">
-                    Nombre:
-                </label>
-                <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="nombre" type="text" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="categoria">
-                    Categoría:
-                </label>
-                <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="categoria" type="text" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="marca">
-                    Marca/Proveedor:
-                </label>
-                <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="marca" type="text" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="marca">
-                    Unidad:
-                </label>
-                <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="unidad" type="text" required>
-            </div>
-            
-            <!-- Campo para producto primario (aparece solo cuando unidad es Kg) -->
-            <div id="producto-primario-container" class="mb-4" style="display: none;">
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3">
-                    <div class="flex items-center mb-2">
-                        <svg class="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="text-yellow-800 font-medium text-sm">Nota importante:</span>
-                    </div>
-                    <p class="text-yellow-700 text-sm">
-                        Si el producto es un subproducto y cuenta con un producto primario, 
-                        ingresa el código del producto primario en el campo de abajo.
-                    </p>
-                </div>
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="producto-primario">
-                    Código del Producto Primario (opcional):
-                </label>
-                <input
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="producto-primario" type="text" placeholder="Codigo del Producto Primario">
-            </div>
-            <div class="flex items-center justify-between">
-                <button
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                    type="submit">
-                    Agregar Producto
-                </button>
-            </div>
-        </form>
+        </div>
 
         <div id="mensaje" class="mt-4"></div>
 
@@ -131,9 +214,60 @@
     </div>
 
     <script type="module" src="../js/main.js"></script>
+    <script type="module" src="../js/tabla-productos.js"></script>
     <script>
-        // Script para mostrar/ocultar el campo de producto primario
+        // Script para pestañas
         document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            function switchTab(targetTab) {
+                // Remover clase activa de todos los botones
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                    btn.classList.add('border-transparent', 'text-gray-500');
+                });
+                
+                // Ocultar todo el contenido
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                // Activar pestaña seleccionada
+                const activeButton = document.getElementById(`tab-${targetTab}`);
+                activeButton.classList.add('active', 'border-blue-500', 'text-blue-600');
+                activeButton.classList.remove('border-transparent', 'text-gray-500');
+                
+                // Mostrar contenido correspondiente
+                document.getElementById(`content-${targetTab}`).style.display = 'block';
+            }
+            
+            // Event listeners para los botones de pestañas
+            document.getElementById('tab-individual').addEventListener('click', () => switchTab('individual'));
+            document.getElementById('tab-tabla').addEventListener('click', () => switchTab('tabla'));
+            
+            // Inicializar funcionalidad de tabla directamente aquí como backup
+            setTimeout(() => {
+                try {
+                    const limpiarBtn = document.getElementById('limpiar-tabla-btn');
+                    if (limpiarBtn) {
+                        limpiarBtn.addEventListener('click', function() {
+                            console.log('Click en limpiar tabla');
+                            if (confirm('¿Está seguro de que desea limpiar todos los datos?')) {
+                                document.getElementById('codigo-primario').value = '';
+                                document.getElementById('info-producto-primario').style.display = 'none';
+                                document.getElementById('subproductos-container').innerHTML = '';
+                                document.getElementById('agregar-fila-btn').style.display = 'none';
+                                document.getElementById('guardar-tabla-btn').style.display = 'none';
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error en backup de inicialización:', error);
+                }
+            }, 1000);
+            
+            // Script original para mostrar/ocultar el campo de producto primario
             const unidadInput = document.getElementById('unidad');
             const productoPrimarioContainer = document.getElementById('producto-primario-container');
             const form = document.getElementById('formAgregarProducto');
@@ -172,6 +306,34 @@
             }
         });
     </script>
+    <style>
+        .tab-button.active {
+            border-color: #3b82f6;
+            color: #2563eb;
+        }
+        
+        .subproducto-row {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+        }
+        
+        .campo-readonly {
+            background-color: #f3f4f6;
+            cursor: not-allowed;
+        }
+        
+        .producto-existente {
+            background-color: #dcfce7;
+            border-color: #16a34a;
+        }
+        
+        .producto-nuevo {
+            background-color: #fef3c7;
+            border-color: #d97706;
+        }
+    </style>
 </body>
 
 </html>

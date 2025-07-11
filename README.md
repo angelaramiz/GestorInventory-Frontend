@@ -1,145 +1,442 @@
-# GestorInventory
+# 📱 GestorInventory - Sistema de Gestión de Inventario
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/angelaramiz/GestorInventory-Frontend)
+![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Mobile Optimized](https://img.shields.io/badge/mobile-optimized-green.svg)
+![PWA Ready](https://img.shields.io/badge/PWA-ready-purple.svg)
 
-GestorInventory es un sistema completo de gestión de inventario basado en web que permite a empresas y negocios administrar eficientemente sus productos e inventarios. Desarrollado con tecnologías modernas como JavaScript, Supabase para almacenamiento en la nube y capacidades offline mediante IndexedDB.
+**GestorInventory** es un sistema completo de gestión de inventario basado en web, **completamente optimizado para móviles**, que permite a empresas y negocios administrar eficientemente sus productos e inventarios desde cualquier dispositivo. Desarrollado con tecnologías modernas como JavaScript, Supabase para almacenamiento en la nube y capacidades offline mediante IndexedDB.
 
 ![GestorInventory Logo](assets/logo.svg)
 
+---
+
+## 🌟 **Novedades v2.0**
+
+### � **Optimización Móvil Completa**
+- ✅ **Diseño responsivo avanzado** para móviles, tablets y desktop
+- ✅ **Tablas inteligentes** que se convierten automáticamente en tarjetas en móviles
+- ✅ **Formularios optimizados** con teclados específicos y navegación mejorada
+- ✅ **Componentes táctiles** con feedback visual y áreas de toque optimizadas
+- ✅ **Menús adaptativos** con overlays y navegación gestual
+
+### �🚀 **Funcionalidades Avanzadas**
+- ✅ **Sistema de lotes avanzado** con control granular
+- ✅ **Temas oscuro/claro** automáticos
+- ✅ **PWA completa** instalable como aplicación nativa
+- ✅ **Sincronización automática** con resolución de conflictos
+- ✅ **Modo offline completo** con IndexedDB
+
+---
+
 ## 🚀 Características principales
 
-### 📦 Gestión de Productos
-- **Agregar productos**: Registro completo con códigos de barras, nombres, categorías y más.
-- **Búsqueda avanzada**: Consulta productos por código, nombre o categoría con filtros personalizables.
-- **Edición completa**: Actualización rápida de información de productos existentes.
-- **Gestión por áreas**: Organiza tus productos por ubicaciones o departamentos.
-- **Categorización**: Agrupa productos por tipo, marca o cualquier categoría personalizada.
+### 📦 **Gestión de Productos**
+- **➕ Agregar productos**: Registro completo con códigos de barras, nombres, categorías y más
+- **🔍 Búsqueda avanzada**: Consulta productos por código, nombre o categoría con filtros personalizables
+- **✏️ Edición completa**: Actualización rápida de información de productos existentes
+- **📍 Gestión por áreas**: Organiza tus productos por ubicaciones o departamentos
+- **🏷️ Categorización**: Agrupa productos por tipo, marca o cualquier categoría personalizada
+- **📱 Optimizado móvil**: Formularios adaptativos y navegación táctil mejorada
 
-### 📊 Gestión de Inventario
-- **Control multi-lote**: Manejo detallado de diferentes lotes del mismo producto.
-- **Trazabilidad completa**: Seguimiento de:
-  - Cantidad exacta y unidades de medida personalizables.
-  - Fechas de caducidad con alertas configurables.
-  - Números de lote y control de proveedores.
-  - Comentarios y notas específicas por lote.
-- **Historial de movimientos**: Registro completo de entradas, salidas y ajustes de inventario.
-- **Alertas automáticas**: Notificaciones de stock mínimo y productos próximos a caducar.
+### 📊 **Gestión de Inventario Avanzada**
+- **🎯 Control multi-lote**: Manejo detallado de diferentes lotes del mismo producto
+- **📋 Trazabilidad completa**: Seguimiento de:
+  - Cantidad exacta y unidades de medida personalizables
+  - Fechas de caducidad con alertas configurables
+  - Números de lote y control de proveedores
+  - Comentarios y notas específicas por lote
+  - Ubicaciones y movimientos internos
+- **📈 Historial de movimientos**: Registro completo de entradas, salidas y ajustes
+- **🔔 Alertas inteligentes**: Notificaciones de stock mínimo y productos próximos a caducar
+- **📱 Vista móvil**: Tarjetas adaptativas que muestran información prioritaria
 
-### 📤 Importación/Exportación
-- **Carga masiva**: Importa cientos de productos mediante archivos CSV.
-- **Exportación personalizada**: Genera reportes en formato CSV filtrados por diferentes criterios.
-- **Informes en PDF**: Reportes profesionales de inventario con códigos de barras incluidos.
-- **Plantillas inteligentes**: Descarga plantillas preconfiguradas para facilitar la carga de datos.
+### 📤 **Importación/Exportación**
+- **📥 Carga masiva**: Importa cientos de productos mediante archivos CSV
+- **📊 Exportación personalizada**: Genera reportes en CSV filtrados por criterios
+- **📄 Informes en PDF**: Reportes profesionales con códigos de barras incluidos
+- **📋 Plantillas inteligentes**: Descarga plantillas preconfiguradas para facilitar la carga
+- **📱 Responsive**: Interfaz optimizada para gestión desde móviles
 
-### 📱 Escaneo de códigos
-- **Lectura rápida**: Escaneo de códigos de barras para operaciones instantáneas.
-- **Multi-formato**: Compatible con códigos EAN-13, UPC, CODE128 y otros formatos estándar.
-- **Uso de cámara**: Funciona con webcams y cámaras de dispositivos móviles.
-- **Generación de códigos**: Crea e imprime códigos de barras para tus productos.
+### 📱 **Escaneo de Códigos Optimizado**
+- **⚡ Lectura rápida**: Escaneo instantáneo de códigos de barras
+- **🔄 Multi-formato**: Compatible con EAN-13, UPC, CODE128 y otros formatos estándar
+- **📷 Cámara móvil**: Optimizado para cámaras de smartphones y tablets
+- **🏷️ Generación**: Crea e imprime códigos de barras para tus productos
+- **📱 UX móvil**: Modal de escaneo adaptativo con controles táctiles
 
-## 📚 Tutorial de uso
+---
 
-### 🔑 Primeros pasos
+## �️ **Tecnologías y Arquitectura**
 
-1. **Registro e inicio de sesión**:
-   - Accede a `register.html` para crear una nueva cuenta.
-   - Verifica tu correo electrónico mediante el enlace enviado.
-   - Inicia sesión con tus credenciales en `login.html`.
+### 🎨 **Frontend Avanzado**
+- **HTML5 semántico** con estructura modular y plantillas reutilizables
+- **CSS3 moderno** con sistema de temas y componentes móviles
+- **JavaScript ES6+** con arquitectura por módulos y clases
+- **Tailwind CSS** como framework de utilidades responsive
+- **Progressive Web App (PWA)** con service worker y manifest
 
-2. **Configuración inicial**:
-   - Configura las áreas o ubicaciones de tu inventario.
-   - Define las categorías de productos que utilizarás.
-   - Personaliza las unidades de medida según tus necesidades.
+### 📱 **Optimización Móvil**
+- **MobileOptimizer**: Clase JavaScript para detección de dispositivos y optimización automática
+- **TableMobileOptimizer**: Sistema inteligente de conversión tabla-a-tarjeta
+- **Mobile Components**: Biblioteca de componentes específicos para móviles (FAB, cards, navigation)
+- **Touch Optimization**: Feedback táctil, áreas de toque optimizadas y gestos nativos
 
-### 📝 Gestión de productos
+### �️ **Backend y Almacenamiento**
+- **Supabase**: Backend como servicio con autenticación y base de datos PostgreSQL
+- **IndexedDB**: Almacenamiento local para modo offline completo
+- **Service Worker**: Sincronización en background y cache inteligente
+- **Real-time sync**: Sincronización bidireccional con resolución de conflictos
 
-1. **Agregar un nuevo producto**:
-   - Navega a la sección "Agregar productos".
-   - Completa todos los campos requeridos (código, nombre, descripción).
-   - Opcionalmente, escanea el código de barras usando el botón "Escanear".
-   - Asigna categoría, proveedor y otros detalles.
-   - Haz clic en "Guardar" para registrar el producto.
+### 📊 **Gestión de Estado**
+- **Módulos ES6**: Arquitectura modular con separación de responsabilidades
+- **LocalStorage**: Configuraciones de usuario y preferencias de tema
+- **SessionStorage**: Estado temporal y datos de sesión
+- **Event-driven**: Sistema de eventos para comunicación entre módulos
 
-2. **Buscar y consultar productos**:
-   - Accede a "Consulta de productos".
-   - Utiliza los filtros por código, nombre o categoría.
-   - Los resultados se mostrarán en una tabla ordenable.
-   - Haz clic en cualquier producto para ver detalles adicionales.
+---
 
-3. **Editar un producto existente**:
-   - Desde la pantalla de consulta, localiza el producto deseado.
-   - Haz clic en el botón "Editar" junto al producto.
-   - Modifica los campos necesarios.
-   - Guarda los cambios con el botón "Actualizar".
+## 📚 **Guía de Inicio Rápido**
 
-### 📦 Manejo de inventario
+### �🔑 **Primeros Pasos**
 
-1. **Registrar entrada de inventario**:
-   - Ve a la sección "Inventario".
-   - Busca el producto utilizando su código o nombre.
-   - Ingresa la cantidad, unidad de medida y fecha de caducidad.
-   - Especifica número de lote y comentarios si es necesario.
-   - Confirma la entrada con el botón "Registrar".
+1. **🚀 Instalación como PWA**:
+   - Abre el proyecto en tu navegador móvil
+   - Toca "Agregar a pantalla de inicio" en el menú del navegador
+   - Disfruta de la experiencia nativa desde tu dispositivo
 
-2. **Gestionar múltiples lotes**:
-   - Al ingresar producto, especifica un número de lote distinto.
-   - El sistema mantendrá un registro separado para cada lote.
-   - Puedes ver todos los lotes de un producto en la pantalla de detalle.
+2. **👤 Registro e Inicio de Sesión**:
+   - Accede a `register.html` para crear una nueva cuenta
+   - Verifica tu correo electrónico mediante el enlace enviado
+   - Inicia sesión con tus credenciales desde cualquier dispositivo
 
-3. **Consultar existencias**:
-   - En la sección "Consulta", usa el filtro de existencias.
-   - Visualiza productos con stock bajo, agotados o en exceso.
-   - Revisa la fecha de caducidad de cada lote disponible.
+3. **⚙️ Configuración Inicial**:
+   - **Móvil**: Usa el menú hamburguesa → Configuraciones
+   - **Desktop**: Navega a la sección de configuraciones
+   - Define áreas, categorías y unidades de medida
+   - Personaliza tema (claro/oscuro/automático)
 
-### 📊 Reportes e informes
+### 📝 **Gestión de Productos Optimizada**
 
-1. **Generar reporte de inventario**:
-   - Accede a la sección "Reportes".
-   - Selecciona el tipo de reporte (general, por área, por caducidad).
-   - Aplica filtros adicionales según necesites.
-   - Haz clic en "Generar PDF" para crear un informe visual.
-   - Para datos en bruto, usa "Exportar a CSV".
+1. **➕ Agregar Nuevo Producto**:
+   - **Móvil**: Usa el botón FAB (flotante) "+" en la esquina
+   - **Desktop**: Navega a "Agregar productos"
+   - **Formulario inteligente**: Los campos se adaptan al tipo de dispositivo
+   - **Escaneo QR/Barcode**: Toca el ícono de cámara para escanear
+   - **Validación en tiempo real**: Los errores se muestran instantáneamente
 
-2. **Personalizar reportes PDF**:
-   - Elige qué información mostrar (códigos de barras, fechas, comentarios).
-   - Ordena los productos según diferentes criterios.
-   - Decide si fusionar o no los productos con múltiples lotes.
-   - Visualiza el reporte antes de descargarlo.
+2. **🔍 Búsqueda y Consulta**:
+   - **Búsqueda inteligente**: Busca por código, nombre o categoría
+   - **Vista adaptativa**: 
+     - **Móvil**: Tarjetas con información prioritaria
+     - **Desktop**: Tabla completa con todos los detalles
+   - **Filtros avanzados**: Filtra por área, categoría, stock, etc.
+   - **Resultados instantáneos**: Búsqueda con debounce optimizado
 
-3. **Analizar el inventario**:
-   - Utiliza los reportes para identificar productos de baja rotación.
-   - Detecta productos próximos a caducar para tomar acciones preventivas.
-   - Evalúa niveles de stock para optimizar reabastecimiento.
+3. **✏️ Edición Rápida**:
+   - **Móvil**: Toca cualquier tarjeta para editar
+   - **Desktop**: Clic en "Editar" en la tabla
+   - **Formularios adaptativos**: Teclados específicos según el campo
+   - **Guardado automático**: Los cambios se sincronizan automáticamente
 
-### 📤 Importación y exportación
+### 📦 **Gestión de Inventario con Lotes**
 
-1. **Importar productos desde CSV**:
-   - Descarga la plantilla desde la sección "Archivos".
-   - Completa la información siguiendo el formato establecido.
-   - Sube el archivo CSV completo.
-   - Revisa la validación previa y corrige errores si es necesario.
-   - Confirma la importación.
+1. **📋 Control de Lotes Avanzado**:
+   - **Registro detallado**: Cada lote tiene fecha, cantidad, comentarios
+   - **Trazabilidad completa**: Seguimiento desde entrada hasta salida
+   - **Vista móvil optimizada**: Información prioritaria en tarjetas expandibles
 
-2. **Exportar datos**:
-   - Selecciona la información que deseas exportar.
-   - Filtra según tus necesidades específicas.
-   - Descarga el archivo CSV generado.
-   - Abre con Excel u otra herramienta de hojas de cálculo para análisis adicional.
+2. **📊 Registro de Entradas**:
+   - **Formulario paso a paso**: Guía intuitiva para registro
+   - **Escaneo masivo**: Escanea múltiples productos consecutivamente
+   - **Validación inteligente**: Detecta duplicados y errores automáticamente
 
-## 🧰 Estructura del Proyecto
+3. **📈 Inventario en Tiempo Real**:
+   - **Actualización automática**: Cambios reflejados instantáneamente
+   - **Alertas contextuales**: Notificaciones de stock bajo en el momento
+   - **Sincronización multi-dispositivo**: Cambios visibles en todos los dispositivos
+
+### 📱 **Características Móviles Específicas**
+
+1. **🎯 Navegación Táctil**:
+   - **Gestos nativos**: Desliza para acciones rápidas
+   - **Menú hamburguesa**: Navegación principal adaptativa
+   - **Bottom navigation**: Acceso rápido a secciones principales
+
+2. **📸 Escaneo Optimizado**:
+   - **Cámara nativa**: Usa la cámara del dispositivo directamente
+   - **Enfoque automático**: Detección automática de códigos
+   - **Feedback visual**: Confirmación visual al escanear exitosamente
+
+3. **⚡ Rendimiento Móvil**:
+   - **Carga lazy**: Componentes se cargan según necesidad
+   - **Cache inteligente**: Datos frecuentes en cache local
+   - **Modo offline**: Funcionalidad completa sin conexión
+
+---
+
+## 📁 **Estructura del Proyecto**
 
 ```
-├── README.md               # Documentación del proyecto
-├── index.html              # Punto de entrada principal
-├── login.html              # Página de inicio de sesión
-├── register.html           # Página de registro de usuarios
-├── manifest.json           # Configuración PWA
-├── service-worker.js       # Soporte para funcionamiento offline
-├── css/
-│   └── styles.css          # Estilos generales
-├── js/
-│   ├── auth.js             # Autenticación con Supabase
-│   ├── db-operations.js    # Operaciones de base de datos
+GestorInventory-Frontend/
+│
+├── 📄 index.html                 # Página principal
+├── 📄 register.html             # Registro de usuarios
+├── 📄 manifest.json             # Configuración PWA
+├── 📄 service-worker.js         # Service Worker para PWA
+│
+├── 🎨 css/
+│   ├── styles.css               # Estilos principales + responsive
+│   └── mobile-components.css    # Componentes específicos móviles
+│
+├── ⚙️ js/
+│   ├── main.js                  # Lógica principal
+│   ├── auth.js                  # Autenticación y usuarios
+│   ├── mobile-optimizer.js      # Optimización automática móvil
+│   ├── table-mobile-optimizer.js # Conversión tabla-a-tarjeta
+│   ├── theme-manager.js         # Sistema de temas avanzado
+│   ├── db-operations.js         # Operaciones base de datos
+│   ├── product-operations.js    # Gestión de productos
+│   ├── lotes-avanzado.js        # Sistema de lotes completo
+│   ├── scanner.js               # Escaneo QR/códigos de barras
+│   └── configuraciones.js       # Gestión de configuraciones
+│
+├── 🖼️ assets/
+│   ├── favicon.ico              # Favicon del sitio
+│   └── logo.svg                 # Logo vectorial
+│
+├── 📚 librerías/
+│   ├── tailwind.min.css         # Framework CSS responsive
+│   ├── html5-qrcode.min.js      # Biblioteca escaneo QR
+│   ├── JsBarcode.all.min.js     # Generación códigos de barras
+│   ├── jspdf.umd.min.js         # Generación PDFs
+│   └── sweetalert2@11.js        # Alertas y modales elegantes
+│
+├── 🗂️ plantillas/
+│   ├── main.html                # Dashboard principal
+│   ├── agregar.html             # Formulario agregar productos
+│   ├── consulta.html            # Búsqueda y consulta
+│   ├── editar.html              # Edición de productos
+│   ├── inventario.html          # Gestión de inventario
+│   ├── registro-entradas.html   # Registro de entradas
+│   ├── configuraciones.html     # Panel de configuraciones
+│   └── archivos.html            # Importación/exportación
+│
+└── 📖 docs/
+    ├── OPTIMIZACION_MOVIL.md    # Documentación móvil
+    ├── THEME_SYSTEM.md          # Sistema de temas
+    ├── DOCUMENTACION_LOTES_AVANZADO.md
+    └── [más documentación técnica...]
+---
+
+## 🚀 **Instalación y Configuración**
+
+### � **Para Usuarios (Móvil/Desktop)**
+
+1. **💻 Acceso Web Directo**:
+   ```bash
+   # Simplemente abre en tu navegador
+   https://tu-dominio.com/GestorInventory-Frontend
+   ```
+
+2. **📱 Instalación como PWA**:
+   - **Android**: Chrome/Edge → Menú (⋮) → "Agregar a pantalla de inicio"
+   - **iOS**: Safari → Compartir → "Agregar a pantalla de inicio" 
+   - **Desktop**: Chrome → Menú → "Instalar GestorInventory..."
+
+3. **🔧 Servidor Local (Desarrollo)**:
+   ```powershell
+   # Clona el repositorio
+   git clone https://github.com/tu-usuario/GestorInventory-Frontend.git
+   cd GestorInventory-Frontend
+   
+   # Ejecuta el servidor local (Python)
+   python -m http.server 8080
+   
+   # O usa la tarea VS Code incluida
+   # Ctrl+Shift+P → "Tasks: Run Task" → "Servir GestorInventory"
+   ```
+
+### ⚙️ **Configuración de Supabase**
+
+1. **🔗 Configurar Conexión**:
+   ```javascript
+   // En js/token-config.js
+   const SUPABASE_CONFIG = {
+     url: 'https://tu-proyecto.supabase.co',
+     key: 'tu-anon-key-aqui'
+   };
+   ```
+
+2. **🗄️ Base de Datos**:
+   - Crear tablas: `productos`, `inventario`, `areas`, `categorias`
+   - Configurar RLS (Row Level Security)
+   - Activar autenticación por email
+
+3. **🔐 Configuración de Autenticación**:
+   ```sql
+   -- Habilitar autenticación
+   alter table auth.users enable row level security;
+   
+   -- Políticas de acceso
+   create policy "Users can read own data" on productos
+     for select using (auth.uid() = user_id);
+   ```
+
+---
+
+## 📖 **Guía de Desarrollo**
+
+### �️ **Agregar Nuevas Funcionalidades**
+
+1. **📄 Crear Nueva Plantilla**:
+   ```html
+   <!-- plantillas/nueva-funcionalidad.html -->
+   <div class="container mx-auto p-4">
+     <h1 class="text-2xl font-bold mb-4">Nueva Funcionalidad</h1>
+     <!-- Tu contenido aquí -->
+   </div>
+   ```
+
+2. **⚙️ Crear Módulo JavaScript**:
+   ```javascript
+   // js/nueva-funcionalidad.js
+   class NuevaFuncionalidad {
+     constructor() {
+       this.init();
+     }
+     
+     init() {
+       // Inicialización
+       if (window.mobileOptimizer) {
+         window.mobileOptimizer.optimizeComponent(this.container);
+       }
+     }
+   }
+   ```
+
+3. **🎨 Estilos Responsivos**:
+   ```css
+   /* css/styles.css */
+   .nueva-funcionalidad {
+     /* Estilos desktop */
+   }
+   
+   @media (max-width: 640px) {
+     .nueva-funcionalidad {
+       /* Estilos móviles */
+     }
+   }
+   ```
+
+### 📱 **Optimización Móvil Automática**
+
+El sistema incluye optimización automática que se activa en todos los componentes:
+
+```javascript
+// El MobileOptimizer se inicializa automáticamente
+// y optimiza todos los formularios, tablas y componentes
+
+// Para componentes personalizados:
+if (window.mobileOptimizer) {
+  window.mobileOptimizer.optimizeComponent(tuComponente);
+}
+```
+
+---
+
+## 🔧 **Resolución de Problemas**
+
+### 📱 **Problemas Móviles Comunes**
+
+1. **📋 Tablas no se ven bien en móvil**:
+   ```javascript
+   // Se resuelve automáticamente con TableMobileOptimizer
+   // Si necesitas forzar la optimización:
+   window.tableMobileOptimizer?.optimizeTable(tuTabla);
+   ```
+
+2. **⌨️ Teclado virtual cubre formularios**:
+   ```javascript
+   // Optimización automática incluida
+   // Para casos específicos:
+   window.mobileOptimizer?.optimizeFormForMobile(tuFormulario);
+   ```
+
+3. **👆 Elementos muy pequeños para tocar**:
+   ```css
+   /* Automáticamente aplicado, pero puedes personalizar: */
+   .touch-target {
+     min-height: 44px; /* Tamaño mínimo táctil */
+     min-width: 44px;
+   }
+   ```
+
+### � **Problemas de Sincronización**
+
+1. **🔌 Modo Offline**:
+   - Los datos se guardan automáticamente en IndexedDB
+   - Al reconectar, se sincronizan automáticamente
+   - Revisa las notificaciones de sincronización
+
+2. **🔄 Conflictos de Datos**:
+   - El sistema detecta y resuelve conflictos automáticamente
+   - Prioriza cambios más recientes
+   - Notifica al usuario sobre resoluciones
+
+---
+
+## 🤝 **Contribuir al Proyecto**
+
+### 🔄 **Proceso de Contribución**
+
+1. **🍴 Fork del Repositorio**
+2. **🌿 Crear Branch Feature**:
+   ```bash
+   git checkout -b feature/nueva-funcionalidad
+   ```
+3. **💻 Desarrollar con Estándares**:
+   - Mantener compatibilidad móvil
+   - Seguir patrones existentes
+   - Documentar cambios
+
+4. **✅ Testing**:
+   - Probar en móvil y desktop
+   - Verificar modo offline
+   - Validar sincronización
+
+5. **📝 Pull Request**
+
+### 🏗️ **Estándares de Código**
+
+- **📱 Mobile First**: Siempre diseñar primero para móvil
+- **♿ Accesibilidad**: Seguir pautas WCAG
+- **⚡ Performance**: Optimizar carga y respuesta
+- **📖 Documentación**: Comentar funciones complejas
+
+---
+
+## 📜 **Licencia y Créditos**
+
+**GestorInventory** está licenciado bajo [MIT License](LICENSE).
+
+### 🙏 **Agradecimientos**
+
+- **Supabase** - Backend as a Service
+- **Tailwind CSS** - Framework de utilidades CSS
+- **html5-qrcode** - Biblioteca de escaneo QR/códigos de barras
+- **SweetAlert2** - Alertas y modales elegantes
+- **jsPDF** - Generación de documentos PDF
+
+### 📧 **Contacto y Soporte**
+
+- **📧 Email**: soporte@gestorinventory.com
+- **📝 Issues**: [GitHub Issues](https://github.com/tu-usuario/GestorInventory-Frontend/issues)
+- **📖 Wiki**: [Documentación Completa](https://github.com/tu-usuario/GestorInventory-Frontend/wiki)
+
+---
+
+*⭐ Si este proyecto te ha sido útil, ¡considera darle una estrella en GitHub!*
 │   ├── logs.js             # Sistema de mensajes y alertas
 │   ├── main.js             # Lógica principal de la aplicación
 │   ├── product-operations.js # Operaciones relacionadas con productos

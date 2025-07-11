@@ -414,7 +414,6 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
                         </button>
                     </div>
 
@@ -517,6 +516,45 @@
     <script src="../js/table-mobile-optimizer.js"></script>
     <script type="module" src="../js/lotes-avanzado.js"></script>
     <script type="module" src="../js/main.js"></script>
+    <script>
+        // Función para convertir guión a 6 ceros
+        function convertirGuionACeros(valor) {
+            return valor.replace(/-/g, '000000');
+        }
+
+        // Función para aplicar la conversión a un input
+        function aplicarConversionCodigo(input) {
+            if (!input) return;
+            
+            input.addEventListener('input', function(e) {
+                const valorOriginal = e.target.value;
+                const valorConvertido = convertirGuionACeros(valorOriginal);
+                
+                if (valorOriginal !== valorConvertido) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = valorConvertido;
+                    
+                    const diferencia = valorConvertido.length - valorOriginal.length;
+                    const nuevaPosicion = Math.min(cursorPos + diferencia, valorConvertido.length);
+                    e.target.setSelectionRange(nuevaPosicion, nuevaPosicion);
+                }
+            });
+
+            input.addEventListener('blur', function(e) {
+                e.target.value = convertirGuionACeros(e.target.value);
+            });
+        }
+
+        // Aplicar conversión a los campos de código cuando se cargue la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const codigo = document.getElementById('codigo');
+            const codigoProductoInventario = document.getElementById('codigoProductoInventario');
+            
+            aplicarConversionCodigo(codigo);
+            // Note: codigoProductoInventario es readonly, pero aplicamos por si acaso
+            aplicarConversionCodigo(codigoProductoInventario);
+        });
+    </script>
 </body>
 
 </html>

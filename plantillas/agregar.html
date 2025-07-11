@@ -218,6 +218,43 @@
     <script type="module" src="../js/main.js"></script>
     <script type="module" src="../js/tabla-productos.js"></script>
     <script>
+        // Función para convertir guión a 6 ceros
+        function convertirGuionACeros(valor) {
+            // Reemplazar cada guión (-) con 6 ceros (000000)
+            return valor.replace(/-/g, '000000');
+        }
+
+        // Función para aplicar la conversión a un input
+        function aplicarConversionCodigo(input) {
+            if (!input) return;
+            
+            input.addEventListener('input', function(e) {
+                const valorOriginal = e.target.value;
+                const valorConvertido = convertirGuionACeros(valorOriginal);
+                
+                // Solo actualizar si hay diferencia (para evitar bucles infinitos)
+                if (valorOriginal !== valorConvertido) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = valorConvertido;
+                    
+                    // Ajustar posición del cursor
+                    // Si se agregaron caracteres, mover el cursor proporcionalmente
+                    const diferencia = valorConvertido.length - valorOriginal.length;
+                    const nuevaPosicion = Math.min(cursorPos + diferencia, valorConvertido.length);
+                    e.target.setSelectionRange(nuevaPosicion, nuevaPosicion);
+                }
+            });
+
+            // También aplicar en blur para asegurar conversión final
+            input.addEventListener('blur', function(e) {
+                const valorConvertido = convertirGuionACeros(e.target.value);
+                e.target.value = valorConvertido;
+            });
+        }
+
+        // Hacer la función disponible globalmente para tabla-productos.js
+        window.aplicarConversionCodigoAInput = aplicarConversionCodigo;
+
         // Script para pestañas
         document.addEventListener('DOMContentLoaded', function() {
             const tabButtons = document.querySelectorAll('.tab-button');
@@ -247,6 +284,20 @@
             // Event listeners para los botones de pestañas
             document.getElementById('tab-individual').addEventListener('click', () => switchTab('individual'));
             document.getElementById('tab-tabla').addEventListener('click', () => switchTab('tabla'));
+            
+            // Aplicar conversión de guión a ceros en campos de código
+            // Pestaña Individual
+            const codigoIndividual = document.getElementById('codigoAgregar');
+            const productoPrimarioIndividual = document.getElementById('producto-primario');
+            
+            aplicarConversionCodigo(codigoIndividual);
+            aplicarConversionCodigo(productoPrimarioIndividual);
+            
+            // Pestaña Tabla
+            const codigoPrimarioTabla = document.getElementById('codigo-primario');
+            aplicarConversionCodigo(codigoPrimarioTabla);
+            
+            // Para los subproductos en la tabla (se aplicará dinámicamente cuando se creen)
             
             // Inicializar funcionalidad de tabla directamente aquí como backup
             setTimeout(() => {

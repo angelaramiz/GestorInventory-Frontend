@@ -11,6 +11,34 @@ let productoPrimario = null;
 let subproductos = [];
 let contadorFilas = 0;
 
+// Función para convertir guión a 6 ceros
+function convertirGuionACeros(valor) {
+    return valor.replace(/-/g, '000000');
+}
+
+// Función para aplicar la conversión a un input específico
+function aplicarConversionCodigoAInput(input) {
+    if (!input) return;
+    
+    input.addEventListener('input', function(e) {
+        const valorOriginal = e.target.value;
+        const valorConvertido = convertirGuionACeros(valorOriginal);
+        
+        if (valorOriginal !== valorConvertido) {
+            const cursorPos = e.target.selectionStart;
+            e.target.value = valorConvertido;
+            
+            const diferencia = valorConvertido.length - valorOriginal.length;
+            const nuevaPosicion = Math.min(cursorPos + diferencia, valorConvertido.length);
+            e.target.setSelectionRange(nuevaPosicion, nuevaPosicion);
+        }
+    });
+
+    input.addEventListener('blur', function(e) {
+        e.target.value = convertirGuionACeros(e.target.value);
+    });
+}
+
 // Función de inicialización que será llamada después de que se carguen todos los módulos
 function inicializarTablaProductos() {
     console.log('Configurando event listeners para tabla de productos');
@@ -38,6 +66,9 @@ function inicializarTablaProductos() {
 
     // Búsqueda automática cuando el usuario termine de escribir (al quitar el foco)
     if (codigoPrimarioInput) {
+        // Aplicar conversión de guión a ceros al código primario
+        aplicarConversionCodigoAInput(codigoPrimarioInput);
+        
         codigoPrimarioInput.addEventListener('input', function(e) {
             const codigo = e.target.value.trim();
             
@@ -50,9 +81,12 @@ function inicializarTablaProductos() {
         
         // Buscar cuando el usuario quite el foco del input (blur)
         codigoPrimarioInput.addEventListener('blur', function(e) {
-            const codigo = e.target.value.trim();
-            if (codigo && codigo.length >= 2) {
-                console.log('Búsqueda automática para código (blur):', codigo);
+            // Aplicar conversión antes de buscar
+            const valorConvertido = convertirGuionACeros(e.target.value.trim());
+            e.target.value = valorConvertido;
+            
+            if (valorConvertido && valorConvertido.length >= 2) {
+                console.log('Búsqueda automática para código (blur):', valorConvertido);
                 buscarProductoPrimarioAutomatico();
             }
         });
@@ -61,9 +95,12 @@ function inicializarTablaProductos() {
         codigoPrimarioInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                const codigo = e.target.value.trim();
-                if (codigo && codigo.length >= 2) {
-                    console.log('Búsqueda inmediata con Enter:', codigo);
+                // Aplicar conversión antes de buscar
+                const valorConvertido = convertirGuionACeros(e.target.value.trim());
+                e.target.value = valorConvertido;
+                
+                if (valorConvertido && valorConvertido.length >= 2) {
+                    console.log('Búsqueda inmediata con Enter:', valorConvertido);
                     buscarProductoPrimarioAutomatico();
                 }
             }
@@ -182,6 +219,9 @@ function agregarFilaSubproducto() {
     
     eliminarBtn.addEventListener('click', () => eliminarFilaSubproducto(contadorFilas));
     
+    // Aplicar conversión de guión a ceros para este campo de código
+    aplicarConversionCodigoAInput(codigoInput);
+    
     // Búsqueda automática para subproductos cuando quite el foco
     codigoInput.addEventListener('input', function(e) {
         const codigo = e.target.value.trim();
@@ -196,11 +236,13 @@ function agregarFilaSubproducto() {
     
     // Buscar cuando el usuario quite el foco del input (blur)
     codigoInput.addEventListener('blur', function(e) {
-        const codigo = e.target.value.trim();
+        // Aplicar conversión antes de buscar
+        const valorConvertido = convertirGuionACeros(e.target.value.trim());
+        e.target.value = valorConvertido;
         const numeroFila = contadorFilas;
         
-        if (codigo && codigo.length >= 2) {
-            console.log(`Búsqueda automática subproducto ${numeroFila} (blur):`, codigo);
+        if (valorConvertido && valorConvertido.length >= 2) {
+            console.log(`Búsqueda automática subproducto ${numeroFila} (blur):`, valorConvertido);
             buscarSubproductoAutomatico(numeroFila);
         }
     });
@@ -209,10 +251,14 @@ function agregarFilaSubproducto() {
     codigoInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            const codigo = e.target.value.trim();
-            if (codigo && codigo.length >= 2) {
-                console.log(`Búsqueda inmediata subproducto ${contadorFilas} con Enter:`, codigo);
-                buscarSubproductoAutomatico(contadorFilas);
+            // Aplicar conversión antes de buscar
+            const valorConvertido = convertirGuionACeros(e.target.value.trim());
+            e.target.value = valorConvertido;
+            const numeroFila = contadorFilas;
+            
+            if (valorConvertido && valorConvertido.length >= 2) {
+                console.log(`Búsqueda inmediata subproducto ${numeroFila} (Enter):`, valorConvertido);
+                buscarSubproductoAutomatico(numeroFila);
             }
         }
     });
@@ -614,7 +660,11 @@ export {
 console.log('Cargando tabla-productos.js...');
 
 async function buscarProductoPrimarioAutomatico() {
-    const codigoPrimario = document.getElementById('codigo-primario').value.trim();
+    const inputCodigo = document.getElementById('codigo-primario');
+    const codigoPrimario = convertirGuionACeros(inputCodigo.value.trim());
+    
+    // Actualizar el input con el valor convertido
+    inputCodigo.value = codigoPrimario;
     
     if (!codigoPrimario) {
         return;
@@ -709,7 +759,10 @@ function limpiarInformacionProductoPrimario() {
 // Agregar funciones para búsqueda automática y limpieza de información de subproductos
 async function buscarSubproductoAutomatico(numeroFila) {
     const codigoInput = document.getElementById(`subproducto-codigo-${numeroFila}`);
-    const codigo = codigoInput.value.trim();
+    const codigo = convertirGuionACeros(codigoInput.value.trim());
+    
+    // Actualizar el input con el valor convertido
+    codigoInput.value = codigo;
     
     if (!codigo) {
         return;

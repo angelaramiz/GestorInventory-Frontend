@@ -280,6 +280,7 @@ export async function agregarProducto(evento) {
     const categoria = document.getElementById("categoria").value;
     const marca = document.getElementById("marca").value;
     const unidad = document.getElementById("unidad").value;
+    const productoPrimario = document.getElementById("producto-primario")?.value || null;
 
     const producto = { codigo, nombre, categoria, marca, unidad };
 
@@ -304,6 +305,19 @@ export async function agregarProducto(evento) {
         return;
     }
 
+    // Verificar si el producto primario existe (si se proporcionó)
+    if (productoPrimario && productoPrimario.trim() !== '') {
+        const productoPrimarioExiste = await new Promise(resolve => {
+            const req = objectStore.get(productoPrimario);
+            req.onsuccess = () => resolve(!!req.result);
+        });
+
+        if (!productoPrimarioExiste) {
+            mostrarMensaje("Error: El código del producto primario no existe", "error");
+            return;
+        }
+    }
+
     // Aquí asignamos request correctamente
     const request = objectStore.put(productosanitizado);
 
@@ -325,14 +339,37 @@ export async function agregarProducto(evento) {
 
         // Subir el producto a Supabase
         if (navigator.onLine) {
-            const { error } = await supabase
-                .from('productos')
-                .insert({ ...productosanitizado, categoria_id: categoriaId, usuario_id: localStorage.getItem('usuario_id') });
-            if (error) {
-                console.error("Error al sincronizar con Supabase:", error);
-                mostrarMensaje("Error al sincronizar con Supabase", "error");
-            } else {
-                mostrarMensaje("Producto sincronizado exitosamente con Supabase", "success");
+            try {
+                const { error } = await supabase
+                    .from('productos')
+                    .insert({ ...productosanitizado, categoria_id: categoriaId, usuario_id: localStorage.getItem('usuario_id') });
+                
+                if (error) {
+                    console.error("Error al sincronizar con Supabase:", error);
+                    mostrarMensaje("Error al sincronizar con Supabase", "error");
+                } else {
+                    mostrarMensaje("Producto sincronizado exitosamente con Supabase", "success");
+                    
+                    // Si hay un producto primario, crear la relación en producto_subproducto
+                    if (productoPrimario && productoPrimario.trim() !== '') {
+                        const { error: errorRelacion } = await supabase
+                            .from('productos_subproductos')
+                            .insert({
+                                principalproductid: productoPrimario,
+                                subproductid: codigo
+                            });
+                        
+                        if (errorRelacion) {
+                            console.error("Error al crear relación producto-subproducto:", errorRelacion);
+                            mostrarMensaje("Producto agregado pero hubo un error al crear la relación con el producto primario", "warning");
+                        } else {
+                            mostrarMensaje("Relación producto-subproducto creada exitosamente", "success");
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error en la operación de Supabase:", error);
+                mostrarMensaje("Error al conectar con Supabase", "error");
             }
         } else {
             mostrarMensaje("Producto guardado localmente. Se sincronizará cuando haya conexión.", "info");

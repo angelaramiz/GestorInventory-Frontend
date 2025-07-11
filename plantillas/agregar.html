@@ -91,6 +91,28 @@
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     id="unidad" type="text" required>
             </div>
+            
+            <!-- Campo para producto primario (aparece solo cuando unidad es Kg) -->
+            <div id="producto-primario-container" class="mb-4" style="display: none;">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3">
+                    <div class="flex items-center mb-2">
+                        <svg class="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-yellow-800 font-medium text-sm">Nota importante:</span>
+                    </div>
+                    <p class="text-yellow-700 text-sm">
+                        Si el producto es un subproducto y cuenta con un producto primario, 
+                        ingresa el código del producto primario en el campo de abajo.
+                    </p>
+                </div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="producto-primario">
+                    Código del Producto Primario (opcional):
+                </label>
+                <input
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="producto-primario" type="text" placeholder="Codigo del Producto Primario">
+            </div>
             <div class="flex items-center justify-between">
                 <button
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -109,6 +131,47 @@
     </div>
 
     <script type="module" src="../js/main.js"></script>
+    <script>
+        // Script para mostrar/ocultar el campo de producto primario
+        document.addEventListener('DOMContentLoaded', function() {
+            const unidadInput = document.getElementById('unidad');
+            const productoPrimarioContainer = document.getElementById('producto-primario-container');
+            const form = document.getElementById('formAgregarProducto');
+            
+            function toggleProductoPrimario() {
+                if (unidadInput && productoPrimarioContainer) {
+                    const unidad = unidadInput.value.toLowerCase().trim();
+                    if (unidad === 'kg') {
+                        productoPrimarioContainer.style.display = 'block';
+                    } else {
+                        productoPrimarioContainer.style.display = 'none';
+                        // Limpiar el campo si se oculta
+                        const productoPrimarioInput = document.getElementById('producto-primario');
+                        if (productoPrimarioInput) {
+                            productoPrimarioInput.value = '';
+                        }
+                    }
+                }
+            }
+            
+            // Agregar event listener al campo unidad
+            if (unidadInput) {
+                unidadInput.addEventListener('input', toggleProductoPrimario);
+                unidadInput.addEventListener('change', toggleProductoPrimario);
+            }
+            
+            // Ocultar el campo cuando se resetee el formulario
+            if (form) {
+                form.addEventListener('reset', function() {
+                    setTimeout(() => {
+                        if (productoPrimarioContainer) {
+                            productoPrimarioContainer.style.display = 'none';
+                        }
+                    }, 10); // Pequeño delay para asegurar que el reset se complete
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>

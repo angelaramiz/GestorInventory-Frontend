@@ -12,14 +12,14 @@
     
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
-    <link href="../librerÃ­as/tailwind.min.css" rel="stylesheet">
-    <script src="../librerÃ­as/sweetalert2@11.js"></script>
-    <script src="../librerÃ­as/jspdf.umd.min.js"></script>
-    <script src="../librerÃ­as/JsBarcode.all.min.js"></script>
+    <link href="../librerías/tailwind.min.css" rel="stylesheet">
+    <script src="../librerías/sweetalert2@11.js"></script>
+    <script src="../librerías/jspdf.umd.min.js"></script>
+    <script src="../librerías/JsBarcode.all.min.js"></script>
     <script src="../js/theme-manager.js"></script>
     <script src="../js/theme-toggle.js"></script>
 
-    <!-- Agregar Supabase desde CDN (necesario para el mÃ³dulo) -->
+    <!-- Agregar Supabase desde CDN (necesario para el módulo) -->
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         window.supabaseCreateClient = createClient;
@@ -34,11 +34,11 @@
     <div id="sideMenu"
         class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
         <div class="p-4 border-b">
-            <h2 class="text-xl font-bold">MenÃº de NavegaciÃ³n</h2>
+            <h2 class="text-xl font-bold">Menú de Navegación</h2>
             <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
         </div>
         <ul id="menuRoutes" class="p-4 space-y-2">
-            <!-- Las rutas se generarÃ¡n dinÃ¡micamente -->
+            <!-- Las rutas se generarán dinámicamente -->
         </ul>
     </div>
 
@@ -47,7 +47,7 @@
             <h1 class="text-xl font-bold">GestorInventory</h1>
             <a href="./main.html" class="hover:underline">Regresar</a>
             <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">
-                MenÃº
+                Menú
             </button>
         </div>
     </nav>
@@ -57,12 +57,12 @@
 
         <div class="mb-6 bg-white p-4 rounded shadow">
             <div class="mb-4">
-                <label class="block font-semibold mb-2">Selecciona una o varias Ã¡reas:</label>
+                <label class="block font-semibold mb-2">Selecciona una o varias áreas:</label>
                 <div id="areasContainer" class="grid grid-cols-2 md:grid-cols-3 gap-2 border rounded p-3">
-                    <!-- Las Ã¡reas se cargarÃ¡n dinÃ¡micamente como checkboxes -->
+                    <!-- Las áreas se cargarán dinámicamente como checkboxes -->
                     <div class="flex items-center">
                         <input type="checkbox" id="area-todas" value="todas" class="areaCheckbox mr-2" checked>
-                        <label for="area-todas">Todas las Ã¡reas</label>
+                        <label for="area-todas">Todas las áreas</label>
                     </div>
                 </div>
                 <div class="mt-2 text-right">
@@ -82,7 +82,7 @@
             <div id="productosList" class="mt-4">
                 <h2 class="text-xl font-semibold mb-2">Lista de productos:</h2>
                 <ul id="productosContainer" class="list-decimal pl-6 space-y-1">
-                    <!-- Los productos se cargarÃ¡n dinÃ¡micamente -->
+                    <!-- Los productos se cargarán dinámicamente -->
                 </ul>
             </div>
         </div>
@@ -94,11 +94,11 @@
             </button>
         </div>
 
-        <!-- Contenedor invisible para generar cÃ³digos de barras -->
+        <!-- Contenedor invisible para generar códigos de barras -->
         <div id="barcodeContainer" class="hidden"></div>
     </div>
 
-    <!-- Cargar nuestro script principal despuÃ©s de asegurarnos que las dependencias estÃ©n cargadas -->
+    <!-- Cargar nuestro script principal después de asegurarnos que las dependencias estén cargadas -->
     <script src="../js/mobile-optimizer.js"></script>
     <script type="module" src="../js/rep.js"></script>
 </body>

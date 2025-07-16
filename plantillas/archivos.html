@@ -5,15 +5,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GestiÃ³n de Archivos - Sistema de GestiÃ³n de Productos</title>    
+    <title>Gestión de Archivos - Sistema de Gestión de Productos</title>    
     <!-- Favicon y iconos -->
     <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/logo.svg">
     
-    <link rel="stylesheet" href="../librerÃ­as/tailwind.min.css" />
-    <script src="../librerÃ­as/sweetalert2@11.js"></script>
-    <script src="../librerÃ­as/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="../librerías/tailwind.min.css" />
+    <script src="../librerías/sweetalert2@11.js"></script>
+    <script src="../librerías/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../css/styles.css" />
     <script src="../js/theme-manager.js"></script>
     <script src="../js/theme-toggle.js"></script>
@@ -21,28 +21,28 @@
 
 <body class="bg-gray-100">
     <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
-        <h1 class="text-3xl font-bold">GestiÃ³n de Archivos</h1>
+        <h1 class="text-3xl font-bold">Gestión de Archivos</h1>
     </header>
 
     <div id="sideMenu"
         class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
         <div class="p-4 border-b">
-            <h2 class="text-xl font-bold">MenÃº de NavegaciÃ³n</h2>
+            <h2 class="text-xl font-bold">Menú de Navegación</h2>
             <button id="closeMenu" class="text-red-500 hover:underline mt-2">
                 Cerrar
             </button>
         </div>
         <ul id="menuRoutes" class="p-4 space-y-2">
-            <!-- Las rutas se generarÃ¡n dinÃ¡micamente -->
+            <!-- Las rutas se generarán dinámicamente -->
         </ul>
     </div>
 
     <div id="archivos" class="container mx-auto mt-8 p-4">
-        <h1 class="text-3xl font-bold mb-6">GestiÃ³n de Archivos</h1>
+        <h1 class="text-3xl font-bold mb-6">Gestión de Archivos</h1>
 
         <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">â† Regresar</a>
         <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">
-            MenÃº
+            Menú
         </button>
 
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
@@ -75,9 +75,9 @@
             <table class="table-auto w-full bg-white shadow-md rounded">
                 <thead>
                     <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                        <th class="py-3 px-6 text-left">CÃ³digo</th>
+                        <th class="py-3 px-6 text-left">Código</th>
                         <th class="py-3 px-6 text-left">Nombre</th>
-                        <th class="py-3 px-6 text-left">CategorÃ­a</th>
+                        <th class="py-3 px-6 text-left">Categoría</th>
                         <th class="py-3 px-6 text-left">Marca</th>
                         <th class="py-3 px-6 text-left">Unidad</th>
                     </tr>

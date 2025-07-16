@@ -10,9 +10,9 @@
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/logo.svg">
     
-    <link href="../librerÃ­as/tailwind.min.css" rel="stylesheet">
-    <script src="../librerÃ­as/sweetalert2@11.js"></script>
-    <script src="../librerÃ­as/jspdf.umd.min.js"></script>
+    <link href="../librerías/tailwind.min.css" rel="stylesheet">
+    <script src="../librerías/sweetalert2@11.js"></script>
+    <script src="../librerías/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
     <script src="../js/theme-manager.js"></script>
@@ -41,11 +41,11 @@
     <div id="sideMenu"
         class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform z-50">
         <div class="p-4 border-b">
-            <h2 class="text-xl font-bold">MenÃº de NavegaciÃ³n</h2>
+            <h2 class="text-xl font-bold">Menú de Navegación</h2>
             <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
         </div>
         <ul id="menuRoutes" class="p-4 space-y-2">
-            <!-- Las rutas se generarÃ¡n dinÃ¡micamente -->
+            <!-- Las rutas se generarán dinámicamente -->
         </ul>
     </div>
     <div class="container mx-auto mt-8 p-4">
@@ -54,7 +54,7 @@
                 <h1 class="text-4xl font-bold text-gray-800 flex items-center">
                     ðŸ“¦ Registro de Entradas
                     <span class="ml-3 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        Sistema de GestiÃ³n
+                        Sistema de Gestión
                     </span>
                 </h1>
             </div>
@@ -62,14 +62,14 @@
                 <a href="./main.html"
                     class="text-green-600 hover:text-green-800 hover:underline font-medium flex items-center space-x-2 transition-colors">
                     <span>â†</span>
-                    <span>Regresar al MenÃº Principal</span>
+                    <span>Regresar al Menú Principal</span>
                 </a>
                 <button id="menuToggle"
                     class="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 border-2 border-green-600 font-semibold transition-all hover:shadow-md">
-                    ðŸ“‹ MenÃº de NavegaciÃ³n
+                    ðŸ“‹ Menú de Navegación
                 </button>
             </div>
-        </div> <!-- SecciÃ³n de bÃºsqueda de productos -->
+        </div> <!-- Sección de búsqueda de productos -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover">
             <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
                 ðŸ” Buscar Producto
@@ -82,12 +82,12 @@
             <div class="grid md:grid-cols-3 gap-6 mb-6">
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ·ï¸ Buscar por CÃ³digo:
+                        ðŸ·ï¸ Buscar por Código:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaCodigo"
                             class="flex-1 border-0 p-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                            placeholder="Ingrese cÃ³digo del producto">
+                            placeholder="Ingrese código del producto">
                         <button id="buscarPorCodigo"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
                             <span id="btnCodigoText">ðŸ” Buscar</span>
@@ -130,15 +130,15 @@
                 <button id="escanearBtn"
                     class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
                     <span>ðŸ“·</span>
-                    <span>Escanear CÃ³digo de Barras</span>
+                    <span>Escanear Código de Barras</span>
                 </button>
             </div>
 
-            <!-- Mensaje de bÃºsqueda reciente -->
+            <!-- Mensaje de búsqueda reciente -->
             <div id="busquedaReciente" class="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded"
                 style="display: none;">
                 <p class="text-sm text-blue-700">
-                    <strong>BÃºsqueda reciente:</strong> <span id="textoUltimaBusqueda"></span>
+                    <strong>Búsqueda reciente:</strong> <span id="textoUltimaBusqueda"></span>
                 </p>
             </div>
         </div> <!-- Formulario de datos del producto y entrada -->
@@ -151,7 +151,7 @@
                     <div
                         class="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin">
                     </div>
-                    <span class="ml-2">Cargando informaciÃ³n...</span>
+                    <span class="ml-2">Cargando información...</span>
                 </div>
                 <div class="ml-auto">
                     <span class="text-sm text-gray-500 bg-green-100 px-3 py-1 rounded-full">
@@ -166,7 +166,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="codigoProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ·ï¸ <span class="ml-2">CÃ³digo del Producto:</span>
+                            ðŸ·ï¸ <span class="ml-2">Código del Producto:</span>
                         </label>
                         <input type="text" id="codigoProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white font-mono text-lg rounded-lg shadow-sm"
@@ -197,7 +197,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="categoriaProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ“‚ <span class="ml-2">CategorÃ­a:</span>
+                            ðŸ“‚ <span class="ml-2">Categoría:</span>
                         </label>
                         <input type="text" id="categoriaProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
@@ -212,7 +212,7 @@
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
                     </div>
 
-                    <!-- InformaciÃ³n adicional del stock actual -->
+                    <!-- Información adicional del stock actual -->
                     <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                         <h4 class="text-sm font-semibold text-blue-700 mb-2">ðŸ“Š Stock Actual</h4>
                         <div class="text-2xl font-bold text-blue-600" id="stockActual">--</div>
@@ -256,17 +256,17 @@
                         <input type="date" id="fechaEntrada"
                             class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg"
                             required>
-                        <div class="text-xs text-gray-500 mt-1">Fecha en que se recibiÃ³ el producto</div>
+                        <div class="text-xs text-gray-500 mt-1">Fecha en que se recibió el producto</div>
                     </div>
 
                     <div class="transform transition-all hover:scale-105">
                         <label for="loteEntrada" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ·ï¸ <span class="ml-2">NÃºmero de Lote:</span>
+                            ðŸ·ï¸ <span class="ml-2">Número de Lote:</span>
                         </label>
                         <input type="text" id="loteEntrada"
                             class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
                             placeholder="Opcional">
-                        <div class="text-xs text-gray-500 mt-1">NÃºmero de lote del proveedor</div>
+                        <div class="text-xs text-gray-500 mt-1">Número de lote del proveedor</div>
                     </div>
                 </div>
 
@@ -278,7 +278,7 @@
                     <textarea id="comentariosEntrada"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
                         rows="4"
-                        placeholder="InformaciÃ³n adicional: estado del producto, observaciones del proveedor, condiciones especiales..."></textarea>
+                        placeholder="Información adicional: estado del producto, observaciones del proveedor, condiciones especiales..."></textarea>
                 </div>
 
                 <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
@@ -315,11 +315,11 @@
             <div class="grid md:grid-cols-4 gap-6 mb-6">
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ·ï¸ <span class="ml-2">Filtrar por CÃ³digo:</span>
+                        ðŸ·ï¸ <span class="ml-2">Filtrar por Código:</span>
                     </label>
                     <input type="text" id="filtroCodigo"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
-                        placeholder="CÃ³digo del producto...">
+                        placeholder="Código del producto...">
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
@@ -392,13 +392,13 @@
                     <button id="autoRefresh"
                         class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
                         <span>âš¡</span>
-                        <span>Auto-actualizaciÃ³n: OFF</span>
+                        <span>Auto-actualización: OFF</span>
                     </button>
                 </div>
 
                 <div class="flex items-center space-x-3 text-sm text-gray-600">
                     <div class="bg-gray-100 px-3 py-2 rounded-lg">
-                        <span class="font-semibold">Ãšltima sincronizaciÃ³n:</span>
+                        <span class="font-semibold">Última sincronización:</span>
                         <span id="ultimaSync">--:--</span>
                     </div>
                     <div class="bg-gray-100 px-3 py-2 rounded-lg">
@@ -451,16 +451,16 @@
                 </div>
             </div>
 
-            <!-- Barra de bÃºsqueda rÃ¡pida -->
+            <!-- Barra de búsqueda rápida -->
             <div class="mb-4 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                     <input type="text" id="busquedaRapida"
                         class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        placeholder="ðŸ” BÃºsqueda rÃ¡pida en la tabla...">
+                        placeholder="ðŸ” Búsqueda rápida en la tabla...">
                     <select id="ordenarPor"
                         class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500">
-                        <option value="fecha-desc">MÃ¡s reciente primero</option>
-                        <option value="fecha-asc">MÃ¡s antiguo primero</option>
+                        <option value="fecha-desc">Más reciente primero</option>
+                        <option value="fecha-asc">Más antiguo primero</option>
                         <option value="cantidad-desc">Mayor cantidad primero</option>
                         <option value="cantidad-asc">Menor cantidad primero</option>
                         <option value="nombre-asc">Nombre A-Z</option>
@@ -479,7 +479,7 @@
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('codigo')">
                                 <div class="flex items-center space-x-1">
-                                    <span>ðŸ·ï¸ CÃ³digo</span>
+                                    <span>ðŸ·ï¸ Código</span>
                                     <span class="sort-indicator">â†•ï¸</span>
                                 </div>
                             </th>
@@ -500,7 +500,7 @@
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('categoria')">
                                 <div class="flex items-center space-x-1">
-                                    <span>ðŸ“‚ CategorÃ­a</span>
+                                    <span>ðŸ“‚ Categoría</span>
                                     <span class="sort-indicator">â†•ï¸</span>
                                 </div>
                             </th>
@@ -535,13 +535,13 @@
                         </tr>
                     </thead>
                     <tbody id="tablaEntradasBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Las entradas se cargarÃ¡n dinÃ¡micamente aquÃ­ -->
+                        <!-- Las entradas se cargarán dinámicamente aquí -->
                         <tr class="text-center text-gray-500 bg-gray-50">
                             <td colspan="9" class="px-6 py-8">
                                 <div class="flex flex-col items-center space-y-3">
                                     <div class="text-4xl">ðŸ“¦</div>
                                     <div class="text-lg font-medium">No hay entradas registradas</div>
-                                    <div class="text-sm">Las entradas aparecerÃ¡n aquÃ­ cuando se registren productos
+                                    <div class="text-sm">Las entradas aparecerán aquí cuando se registren productos
                                     </div>
                                 </div>
                             </td>
@@ -550,7 +550,7 @@
                 </table>
             </div>
 
-            <!-- PaginaciÃ³n -->
+            <!-- Paginación -->
             <div class="mt-6 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     <span class="text-sm text-gray-600">Mostrar:</span>
@@ -560,10 +560,10 @@
                         <option value="50">50</option>
                         <option value="100">100</option>
                     </select>
-                    <span class="text-sm text-gray-600">registros por pÃ¡gina</span>
+                    <span class="text-sm text-gray-600">registros por página</span>
                 </div>
                 <div id="paginacion" class="flex items-center space-x-2">
-                    <!-- Los controles de paginaciÃ³n se generarÃ¡n dinÃ¡micamente -->
+                    <!-- Los controles de paginación se generarán dinámicamente -->
                 </div>
             </div>
         </div> <!-- Scanner container -->
@@ -574,7 +574,7 @@
                 class="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl border-4 border-green-500 transform transition-all">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold text-gray-800 flex items-center">
-                        ðŸ“· <span class="ml-2">EscÃ¡ner de CÃ³digo de Barras</span>
+                        ðŸ“· <span class="ml-2">Escáner de Código de Barras</span>
                     </h3>
                     <button id="cerrarEscaner"
                         class="text-red-500 hover:text-red-700 text-2xl font-bold transition-colors transform hover:scale-110">
@@ -584,8 +584,8 @@
 
                 <div class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
                     <p class="text-sm text-blue-700">
-                        <strong>Instrucciones:</strong> Coloque el cÃ³digo de barras dentro del marco verde.
-                        El escÃ¡ner detectarÃ¡ automÃ¡ticamente el cÃ³digo.
+                        <strong>Instrucciones:</strong> Coloque el código de barras dentro del marco verde.
+                        El escáner detectará automáticamente el código.
                     </p>
                 </div>
 
@@ -596,21 +596,21 @@
                     <button id="detenerEscaner"
                         class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 w-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
                         <span>ðŸ›‘</span>
-                        <span>Detener EscÃ¡ner</span>
+                        <span>Detener Escáner</span>
                     </button>
                 </div>
 
-                <!-- Estado del escÃ¡ner -->
+                <!-- Estado del escáner -->
                 <div id="estadoEscaner" class="mt-4 text-center text-sm text-gray-600">
                     <div class="flex items-center justify-center space-x-2">
                         <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span>EscÃ¡ner activo - Listo para escanear</span>
+                        <span>Escáner activo - Listo para escanear</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="../librerÃ­as/html5-qrcode.min.js"></script>
+    <script src="../librerías/html5-qrcode.min.js"></script>
     <script src="../js/mobile-optimizer.js"></script>
     <script src="../js/table-mobile-optimizer.js"></script>
     <script src="../js/extension-conflict-detector.js"></script>
@@ -619,16 +619,16 @@
     <script type="module">
         import { inicializarRegistroEntradas } from '../js/registro-entradas-operations.js';
         import { inicializarDB } from '../js/db-operations.js';
-        import { toggleEscaner } from '../js/scanner.js';        // Inicializar cuando el DOM estÃ© cargado
+        import { toggleEscaner } from '../js/scanner.js';        // Inicializar cuando el DOM esté cargado
         document.addEventListener('DOMContentLoaded', async function () {
             try {
                 // Inicializar base de datos principal
                 await inicializarDB();
 
-                // Inicializar pÃ¡gina de registro de entradas
+                // Inicializar página de registro de entradas
                 await inicializarRegistroEntradas();
 
-                // Configurar escÃ¡ner
+                // Configurar escáner
                 const escanearBtn = document.getElementById('escanearBtn');
                 if (escanearBtn) {
                     escanearBtn.addEventListener('click', () => {
@@ -651,26 +651,26 @@
                     });
                 }
 
-                // Inicializar funcionalidades dinÃ¡micas
+                // Inicializar funcionalidades dinámicas
                 initializeDynamicFeatures();
 
-                console.log('PÃ¡gina de registro de entradas inicializada correctamente');
+                console.log('Página de registro de entradas inicializada correctamente');
 
             } catch (error) {
-                console.error('Error al inicializar pÃ¡gina de registro de entradas:', error);
+                console.error('Error al inicializar página de registro de entradas:', error);
             }
-        });        // Funcionalidades dinÃ¡micas
+        });        // Funcionalidades dinámicas
         function initializeDynamicFeatures() {
             // Reloj en tiempo real
             updateClock();
             setInterval(updateClock, 1000);
 
-            // Estado de conexiÃ³n
+            // Estado de conexión
             updateConnectionStatus();
             window.addEventListener('online', updateConnectionStatus);
             window.addEventListener('offline', updateConnectionStatus);
 
-            // Auto-actualizaciÃ³n
+            // Auto-actualización
             setupAutoRefresh();
 
             // Efectos de carga
@@ -679,13 +679,13 @@
             // Animaciones de entrada
             setupEntranceAnimations();
 
-            // Notificaciones dinÃ¡micas
+            // Notificaciones dinámicas
             setupDynamicNotifications();
 
             // Configurar fecha actual
             setupCurrentDate();
 
-            // BÃºsqueda rÃ¡pida en tabla
+            // Búsqueda rápida en tabla
             setupQuickSearch();
 
             // Autocompletado
@@ -732,11 +732,11 @@
                 const isOnline = navigator.onLine;
                 const status = isOnline
                     ? '<span class="status-indicator status-success"></span>Conectado'
-                    : '<span class="status-indicator status-error"></span>Sin conexiÃ³n';
+                    : '<span class="status-indicator status-error"></span>Sin conexión';
 
                 if (statusElement) statusElement.innerHTML = status;
                 if (estadoConexion) {
-                    estadoConexion.textContent = isOnline ? 'Conectado' : 'Sin conexiÃ³n';
+                    estadoConexion.textContent = isOnline ? 'Conectado' : 'Sin conexión';
                     estadoConexion.className = isOnline ? 'text-green-600' : 'text-red-600';
                 }
 
@@ -789,13 +789,13 @@
         }
 
         function setupAutoComplete() {
-            // Autocompletado para campos de bÃºsqueda
+            // Autocompletado para campos de búsqueda
             const campos = ['busquedaCodigo', 'busquedaNombre', 'busquedaMarca'];
             campos.forEach(campoId => {
                 const campo = document.getElementById(campoId);
                 if (campo) {
                     campo.addEventListener('input', debounce((e) => {
-                        // AquÃ­ se implementarÃ­a la lÃ³gica de autocompletado
+                        // Aquí se implementaría la lógica de autocompletado
                         showAutoCompleteHint(campo, e.target.value);
                     }, 300));
                 }
@@ -805,7 +805,7 @@
         function showAutoCompleteHint(element, value) {
             if (value.length < 2) return;
 
-            // Simular sugerencias (en producciÃ³n vendrÃ­a de la base de datos)
+            // Simular sugerencias (en producción vendría de la base de datos)
             const hints = ['Producto A', 'Producto B', 'Marca X', 'Marca Y'];
             const matchingHints = hints.filter(hint =>
                 hint.toLowerCase().includes(value.toLowerCase())
@@ -875,18 +875,18 @@
                 });
             }
 
-            // ValidaciÃ³n de fecha
+            // Validación de fecha
             const fechaInput = document.getElementById('fechaEntrada');
             if (fechaInput) {
                 fechaInput.addEventListener('change', (e) => {
                     const selectedDate = new Date(e.target.value);
                     const today = new Date();
                     const maxDate = new Date();
-                    maxDate.setDate(today.getDate() + 30); // MÃ¡ximo 30 dÃ­as en el futuro
+                    maxDate.setDate(today.getDate() + 30); // Máximo 30 días en el futuro
 
                     if (selectedDate > maxDate) {
                         e.target.classList.add('border-yellow-500');
-                        showToast('âš ï¸ La fecha seleccionada estÃ¡ muy lejos en el futuro', 'warning');
+                        showToast('âš ï¸ La fecha seleccionada está muy lejos en el futuro', 'warning');
                     } else {
                         e.target.classList.remove('border-yellow-500');
                         updateEntryPreview();
@@ -917,7 +917,7 @@
             }
         }
 
-        // FunciÃ³n auxiliar para debounce
+        // Función auxiliar para debounce
         function debounce(func, wait) {
             let timeout;
             return function executedFunction(...args) {
@@ -930,9 +930,9 @@
             };
         }
 
-        // FunciÃ³n para mostrar mensajes toast
+        // Función para mostrar mensajes toast
         function showToast(message, type = 'info') {
-            // ImplementaciÃ³n simple de toast
+            // Implementación simple de toast
             const toast = document.createElement('div');
             toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500' :
                     type === 'warning' ? 'bg-yellow-500' :
@@ -947,10 +947,10 @@
             }, 3000);
         }
 
-        // FunciÃ³n para ordenar tabla
+        // Función para ordenar tabla
         function sortTable(column) {
             console.log(`Ordenando por: ${column}`);
-            // AquÃ­ se implementarÃ­a la lÃ³gica de ordenamiento
+            // Aquí se implementaría la lógica de ordenamiento
         } function setupAutoRefresh() {
             let autoRefreshEnabled = false;
             let autoRefreshInterval;
@@ -961,7 +961,7 @@
                     autoRefreshEnabled = !autoRefreshEnabled;
 
                     if (autoRefreshEnabled) {
-                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualizaciÃ³n: ON</span>';
+                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualización: ON</span>';
                         autoRefreshBtn.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-indigo-600', 'hover:from-indigo-600', 'hover:to-indigo-700');
                         autoRefreshBtn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
 
@@ -970,16 +970,16 @@
                             updateLastSyncTime();
                         }, 30000); // Cada 30 segundos
 
-                        showToast('âœ… Auto-actualizaciÃ³n activada', 'success');
+                        showToast('âœ… Auto-actualización activada', 'success');
                     } else {
-                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualizaciÃ³n: OFF</span>';
+                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualización: OFF</span>';
                         autoRefreshBtn.classList.remove('bg-gradient-to-r', 'from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
                         autoRefreshBtn.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-indigo-600', 'hover:from-indigo-600', 'hover:to-indigo-700');
 
                         if (autoRefreshInterval) {
                             clearInterval(autoRefreshInterval);
                         }
-                        showToast('â¸ï¸ Auto-actualizaciÃ³n desactivada', 'info');
+                        showToast('â¸ï¸ Auto-actualización desactivada', 'info');
                     }
                 });
             }
@@ -997,7 +997,7 @@
         }
 
         function setupLoadingEffects() {
-            // Interceptar clicks en botones de bÃºsqueda
+            // Interceptar clicks en botones de búsqueda
             ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca'].forEach(btnId => {
                 const btn = document.getElementById(btnId);
                 if (btn) {
@@ -1005,7 +1005,7 @@
                         const textId = btnId.replace('buscar', 'btn') + 'Text';
                         showButtonLoading(btn, textId, 'ðŸ” Buscando...');
 
-                        // Simular bÃºsqueda exitosa
+                        // Simular búsqueda exitosa
                         setTimeout(() => {
                             hideButtonLoading(btn, textId, 'ðŸ” Buscar');
                             updateSearchHistory(btnId);
@@ -1028,7 +1028,7 @@
                 });
             }
 
-            // Interceptar sincronizaciÃ³n
+            // Interceptar sincronización
             const sincBtn = document.getElementById('sincronizarEntradas');
             if (sincBtn) {
                 sincBtn.addEventListener('click', () => {
@@ -1036,13 +1036,13 @@
 
                     setTimeout(() => {
                         hideButtonLoading(sincBtn, 'btnSincText', 'ðŸ”„ Sincronizar con Servidor');
-                        showToast('âœ… SincronizaciÃ³n completada', 'success');
+                        showToast('âœ… Sincronización completada', 'success');
                         updateLastSyncTime();
                     }, 4000);
                 });
             }
 
-            // Interceptar actualizaciÃ³n de tabla
+            // Interceptar actualización de tabla
             const refreshBtn = document.getElementById('refreshTable');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', () => {
@@ -1064,9 +1064,9 @@
 
             if (busquedaReciente && textoUltimaBusqueda) {
                 const tipoTexto = {
-                    'buscarPorCodigo': 'BÃºsqueda por cÃ³digo',
-                    'buscarPorNombre': 'BÃºsqueda por nombre',
-                    'buscarPorMarca': 'BÃºsqueda por marca'
+                    'buscarPorCodigo': 'Búsqueda por código',
+                    'buscarPorNombre': 'Búsqueda por nombre',
+                    'buscarPorMarca': 'Búsqueda por marca'
                 };
 
                 const now = new Date().toLocaleTimeString('es-ES', {
@@ -1077,7 +1077,7 @@
                 textoUltimaBusqueda.textContent = `${tipoTexto[searchType]} a las ${now}`;
                 busquedaReciente.style.display = 'block';
 
-                // Ocultar despuÃ©s de 10 segundos
+                // Ocultar después de 10 segundos
                 setTimeout(() => {
                     busquedaReciente.style.display = 'none';
                 }, 10000);
@@ -1093,7 +1093,7 @@
                 const newCount = currentCount + 1;
                 contador.textContent = `Total: ${newCount} entradas registradas`;
 
-                // AnimaciÃ³n del contador
+                // Animación del contador
                 contador.classList.add('animate-pulse');
                 setTimeout(() => {
                     contador.classList.remove('animate-pulse');
@@ -1139,7 +1139,7 @@
                     if (entry.isIntersecting) {
                         entry.target.classList.add('animate-fade-in-up');
 
-                        // AÃ±adir un pequeÃ±o retraso para elementos consecutivos
+                        // Añadir un pequeño retraso para elementos consecutivos
                         const siblings = Array.from(entry.target.parentElement.children);
                         const index = siblings.indexOf(entry.target);
                         entry.target.style.animationDelay = `${index * 0.1}s`;
@@ -1170,7 +1170,7 @@
                 });
             });
 
-            // AnimaciÃ³n de aparecer para modales
+            // Animación de aparecer para modales
             const scanner = document.getElementById('scanner-container');
             if (scanner) {
                 const originalDisplay = scanner.style.display;
@@ -1216,14 +1216,14 @@
                             const codigoProducto = document.getElementById('codigoProducto');
 
                             if (productForm && codigoProducto && codigoProducto.value) {
-                                // Mostrar formulario con animaciÃ³n
+                                // Mostrar formulario con animación
                                 productForm.style.display = 'block';
                                 productForm.scrollIntoView({
                                     behavior: 'smooth',
                                     block: 'center'
                                 });
 
-                                // AnimaciÃ³n de apariciÃ³n
+                                // Animación de aparición
                                 productForm.style.opacity = '0';
                                 productForm.style.transform = 'translateY(30px)';
 
@@ -1259,7 +1259,7 @@
                     e.target.style.transform = 'scale(1.02)';
                     e.target.style.transition = 'transform 0.2s ease';
 
-                    // AÃ±adir indicador de foco
+                    // Añadir indicador de foco
                     const label = e.target.previousElementSibling;
                     if (label && label.tagName === 'LABEL') {
                         label.style.color = '#10B981';
@@ -1279,7 +1279,7 @@
                     }
                 });
 
-                // ValidaciÃ³n visual en tiempo real
+                // Validación visual en tiempo real
                 if (input.type === 'number') {
                     input.addEventListener('input', (e) => {
                         const value = parseFloat(e.target.value);
@@ -1311,7 +1311,7 @@
                 const stock = Math.floor(Math.random() * 500) + 10;
                 stockActual.textContent = stock;
 
-                // AnimaciÃ³n del contador
+                // Animación del contador
                 stockActual.style.transform = 'scale(1.2)';
                 stockActual.style.transition = 'transform 0.3s ease';
 
@@ -1376,14 +1376,14 @@
         }
 
         function setupSystemStatusNotifications() {
-            // Notificaciones periÃ³dicas de estado
+            // Notificaciones periódicas de estado
             setInterval(() => {
                 if (Math.random() < 0.1) { // 10% de probabilidad cada minuto
                     const messages = [
                         'âœ… Sistema funcionando correctamente',
                         'ðŸ“Š Base de datos sincronizada',
-                        'ðŸ”„ Datos actualizados automÃ¡ticamente',
-                        'ðŸ“ˆ Rendimiento Ã³ptimo del sistema'
+                        'ðŸ”„ Datos actualizados automáticamente',
+                        'ðŸ“ˆ Rendimiento óptimo del sistema'
                     ];
 
                     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
@@ -1422,7 +1422,7 @@
                 row.removeEventListener('mouseenter', handleRowHover);
                 row.removeEventListener('mouseleave', handleRowLeave);
 
-                // AÃ±adir nuevos eventos
+                // Añadir nuevos eventos
                 row.addEventListener('mouseenter', handleRowHover);
                 row.addEventListener('mouseleave', handleRowLeave);
             });
@@ -1449,18 +1449,18 @@
             }, 1000);
         });
 
-        // CaracterÃ­sticas adicionales
+        // Características adicionales
         function initializeAdditionalFeatures() {
             // Configurar filtros de fecha inteligentes
             setupIntelligentDateFilters();
 
-            // Configurar exportaciÃ³n mejorada
+            // Configurar exportación mejorada
             setupEnhancedExport();
 
             // Configurar modo expandido de tabla
             setupTableExpandMode();
 
-            // Configurar estadÃ­sticas en tiempo real
+            // Configurar estadísticas en tiempo real
             setupRealTimeStats();
         }
 
@@ -1490,7 +1490,7 @@
             const exportBtn = document.getElementById('exportVisible');
             if (exportBtn) {
                 exportBtn.addEventListener('click', () => {
-                    showToast('ðŸ“¥ Preparando exportaciÃ³n...', 'info');
+                    showToast('ðŸ“¥ Preparando exportación...', 'info');
 
                     setTimeout(() => {
                         showToast('âœ… Datos exportados exitosamente', 'success');
@@ -1516,24 +1516,24 @@
                         tableContainer.classList.remove('fixed', 'inset-4', 'z-40', 'overflow-auto');
                         expandBtn.innerHTML = '<span>â›¶</span><span class="hidden md:inline">Expandir</span>';
                         isExpanded = false;
-                        showToast('â›¶ Tabla contraÃ­da', 'info');
+                        showToast('â›¶ Tabla contraída', 'info');
                     }
                 });
             }
         }
 
         function setupRealTimeStats() {
-            // Actualizar estadÃ­sticas cada 30 segundos
+            // Actualizar estadísticas cada 30 segundos
             setInterval(() => {
                 updateSystemStats();
             }, 30000);
 
-            // ActualizaciÃ³n inicial
+            // Actualización inicial
             updateSystemStats();
         }
 
         function updateSystemStats() {
-            // Simular actualizaciÃ³n de estadÃ­sticas
+            // Simular actualización de estadísticas
             const totalEntradas = document.getElementById('totalEntradas');
             if (totalEntradas) {
                 const currentCount = parseInt(totalEntradas.textContent || 0);
@@ -1653,10 +1653,10 @@
             </style>
         `;
 
-        // AÃ±adir estilos al head
+        // Añadir estilos al head
         document.head.insertAdjacentHTML('beforeend', additionalStyles);
 
-        // Llamar despuÃ©s de cargar datos en la tabla
+        // Llamar después de cargar datos en la tabla
         window.addEventListener('load', () => {
             setTimeout(addTableRowEffects, 1000);
         });

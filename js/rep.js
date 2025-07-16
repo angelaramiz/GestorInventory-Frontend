@@ -209,25 +209,33 @@ function mostrarOpcionesReporte() {
             <div class="text-left">
                 <div class="mb-3">
                     <p class="text-sm text-gray-600 mb-2">
-                        📋 <strong>El reporte se organizará automáticamente por:</strong><br>
-                        • Áreas en orden alfabético<br>
+                        📋 <strong>El reporte incluirá automáticamente:</strong><br>
+                        • Fechas de caducidad • Comentarios • Códigos de barras • Área<br>
                         • Productos ordenados por fecha de caducidad (más próximas primero)<br>
                         • Agrupados por estado de caducidad con colores distintivos
                     </p>
                 </div>
                 <div class="mb-3">
-                    <label class="block mb-1">Incluir en el reporte:</label>
+                    <label class="block mb-1 font-semibold">Filtrar por agrupaciones de fechas de caducidad:</label>
+                    <p class="text-xs text-gray-500 mb-2">
+                        <strong>Ejemplo:</strong> Si solo necesitas un reporte de productos que vencen en los próximos 7 días, 
+                        desmarca "Todas las agrupaciones" y selecciona solo "Vencen en los próximos 7 días"
+                    </p>
                     <div class="flex flex-col space-y-1">
-                        <label><input type="checkbox" id="incluirCaducidad" checked> Fechas de caducidad</label>
-                        <label><input type="checkbox" id="incluirComentarios" checked> Comentarios</label>
-                        <label><input type="checkbox" id="incluirCodigo" checked> Códigos de barras</label>
-                        <label><input type="checkbox" id="incluirArea" checked> Área</label>
+                        <label><input type="checkbox" id="incluirTodasAgrupaciones" checked> 📊 Todas las agrupaciones</label>
+                        <div id="agrupacionesEspecificas" class="ml-4 space-y-1" style="display: none;">
+                            <label><input type="checkbox" id="incluirVencidos" class="agrupacion-checkbox"> 🚨 Productos vencidos</label>
+                            <label><input type="checkbox" id="incluirProximaSemana" class="agrupacion-checkbox"> ⚠️ Vencen en los próximos 7 días</label>
+                            <label><input type="checkbox" id="incluirMismoMes" class="agrupacion-checkbox"> 📅 Vencen en el mismo mes</label>
+                            <label><input type="checkbox" id="incluirSiguienteMes" class="agrupacion-checkbox"> 📆 Vencen el siguiente mes</label>
+                            <label><input type="checkbox" id="incluirOtros" class="agrupacion-checkbox"> 📋 Otros (fechas lejanas o sin fecha)</label>
+                        </div>
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="block mb-1">Opciones adicionales:</label>
                     <div class="flex flex-col space-y-1">
-                        <label><input type="checkbox" id="fusionarLotes" checked> Fusionar productos idénticos (combinar lotes)</label>
+                        <label><input type="checkbox" id="fusionarLotes" checked> 🔗 Fusionar productos idénticos (combinar lotes)</label>
                     </div>
                 </div>
             </div>
@@ -235,13 +243,53 @@ function mostrarOpcionesReporte() {
         showCancelButton: true,
         confirmButtonText: 'Generar',
         cancelButtonText: 'Cancelar',
+        didOpen: () => {
+            // Event listeners para manejar la selección de agrupaciones
+            const todasAgrupaciones = document.getElementById('incluirTodasAgrupaciones');
+            const agrupacionesDiv = document.getElementById('agrupacionesEspecificas');
+            const agrupacionesCheckboxes = document.querySelectorAll('.agrupacion-checkbox');
+
+            todasAgrupaciones.addEventListener('change', function() {
+                if (this.checked) {
+                    agrupacionesDiv.style.display = 'none';
+                    agrupacionesCheckboxes.forEach(cb => cb.checked = false);
+                } else {
+                    agrupacionesDiv.style.display = 'block';
+                }
+            });
+
+            agrupacionesCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        todasAgrupaciones.checked = false;
+                    }
+                    
+                    // Si no hay ninguna agrupación específica seleccionada, volver a "Todas"
+                    const haySeleccionadas = Array.from(agrupacionesCheckboxes).some(cb => cb.checked);
+                    if (!haySeleccionadas) {
+                        todasAgrupaciones.checked = true;
+                        agrupacionesDiv.style.display = 'none';
+                    }
+                });
+            });
+        },
         preConfirm: () => {
+            const todasAgrupaciones = document.getElementById('incluirTodasAgrupaciones').checked;
+            
             return {
-                incluirCaducidad: document.getElementById('incluirCaducidad').checked,
-                incluirComentarios: document.getElementById('incluirComentarios').checked,
-                incluirCodigo: document.getElementById('incluirCodigo').checked,
-                incluirArea: document.getElementById('incluirArea').checked,
-                fusionarLotes: document.getElementById('fusionarLotes').checked
+                incluirCaducidad: true, // Siempre incluido
+                incluirComentarios: true, // Siempre incluido
+                incluirCodigo: true, // Siempre incluido
+                incluirArea: true, // Siempre incluido
+                fusionarLotes: document.getElementById('fusionarLotes').checked,
+                filtrarAgrupaciones: !todasAgrupaciones,
+                agrupacionesSeleccionadas: todasAgrupaciones ? [] : {
+                    vencidos: document.getElementById('incluirVencidos').checked,
+                    proximosSemana: document.getElementById('incluirProximaSemana').checked,
+                    mismoMes: document.getElementById('incluirMismoMes').checked,
+                    siguienteMes: document.getElementById('incluirSiguienteMes').checked,
+                    otros: document.getElementById('incluirOtros').checked
+                }
             };
         }
     }).then((result) => {
@@ -420,6 +468,7 @@ async function generarReportePDF(opciones) {
         const cardHeight = 45;
 
         let y = margin; // Posición Y actual en la página
+        let contenidoProcesado = false; // Para verificar si se procesó algún contenido
 
         // Procesar cada área ordenada alfabéticamente
         const areasOrdenadas = Object.keys(productosPorArea).sort((a, b) => {
@@ -433,7 +482,38 @@ async function generarReportePDF(opciones) {
             const area = todasLasAreas.find(a => a.id === areaId);
             const areaNombre = area ? area.nombre : 'Área desconocida';
 
-            if (areaIndex > 0) {
+            // Categorizar productos por estado de caducidad
+            const categorias = categorizarProductosPorCaducidad(productosPorArea[areaId]);
+
+            // Aplicar filtro de agrupaciones si está habilitado
+            let categoriasAfiltrar = ['vencidos', 'proximosSemana', 'mismoMes', 'siguienteMes', 'otros'];
+            
+            if (opciones.filtrarAgrupaciones && opciones.agrupacionesSeleccionadas) {
+                // Mantener el orden original de las categorías, pero filtrar las seleccionadas
+                categoriasAfiltrar = categoriasAfiltrar.filter(categoria => {
+                    switch(categoria) {
+                        case 'vencidos': return opciones.agrupacionesSeleccionadas.vencidos;
+                        case 'proximosSemana': return opciones.agrupacionesSeleccionadas.proximosSemana;
+                        case 'mismoMes': return opciones.agrupacionesSeleccionadas.mismoMes;
+                        case 'siguienteMes': return opciones.agrupacionesSeleccionadas.siguienteMes;
+                        case 'otros': return opciones.agrupacionesSeleccionadas.otros;
+                        default: return false;
+                    }
+                });
+            }
+
+            // Verificar si hay productos en las categorías seleccionadas
+            const hayProductosEnCategoriasSeleccionadas = categoriasAfiltrar.some(categoria => 
+                categorias[categoria] && categorias[categoria].length > 0
+            );
+
+            // Si no hay productos en las categorías seleccionadas para esta área, continuar con la siguiente
+            if (!hayProductosEnCategoriasSeleccionadas) {
+                continue;
+            }
+
+            // Si llegamos aquí, significa que esta área tiene productos para mostrar
+            if (contenidoProcesado) {
                 doc.addPage();
                 y = margin;
             }
@@ -444,21 +524,40 @@ async function generarReportePDF(opciones) {
             doc.text(`Productos de inventario de área: "${areaNombre}"`, margin, y);
             y += 15;
 
-            // Categorizar productos por estado de caducidad
-            const categorias = categorizarProductosPorCaducidad(productosPorArea[areaId]);
+            contenidoProcesado = true;
 
-            // Procesar cada categoría
-            const ordenCategorias = ['vencidos', 'proximosSemana', 'mismoMes', 'siguienteMes', 'otros'];
-
-            for (const categoria of ordenCategorias) {
-                if (categorias[categoria].length === 0) continue;
+            // Procesar cada categoría seleccionada
+            for (const categoria of categoriasAfiltrar) {
+                if (!categorias[categoria] || categorias[categoria].length === 0) continue;
 
                 y = procesarCategoriaEnPDF(doc, categorias[categoria], categoria, y, margin, cardWidth, cardHeight, pageHeight, opciones);
             }
         }
 
+        // Verificar si se procesó algún contenido
+        if (!contenidoProcesado) {
+            Swal.fire('Advertencia', 'No hay productos en las agrupaciones de fechas seleccionadas para generar el reporte.', 'warning');
+            return;
+        }
+
+        // Generar nombre descriptivo del archivo
         const fechaActual = new Date().toISOString().slice(0, 10);
-        doc.save(`reporte_preconteo_${fechaActual}.pdf`);
+        let nombreArchivo = `reporte_preconteo_${fechaActual}`;
+        
+        if (opciones.filtrarAgrupaciones && opciones.agrupacionesSeleccionadas) {
+            const agrupacionesActivas = [];
+            if (opciones.agrupacionesSeleccionadas.vencidos) agrupacionesActivas.push('vencidos');
+            if (opciones.agrupacionesSeleccionadas.proximosSemana) agrupacionesActivas.push('proximos7dias');
+            if (opciones.agrupacionesSeleccionadas.mismoMes) agrupacionesActivas.push('mismo_mes');
+            if (opciones.agrupacionesSeleccionadas.siguienteMes) agrupacionesActivas.push('siguiente_mes');
+            if (opciones.agrupacionesSeleccionadas.otros) agrupacionesActivas.push('otros');
+            
+            if (agrupacionesActivas.length > 0) {
+                nombreArchivo += `_filtrado_${agrupacionesActivas.join('_')}`;
+            }
+        }
+        
+        doc.save(`${nombreArchivo}.pdf`);
         Swal.fire('¡Éxito!', 'Reporte de preconteo generado correctamente.', 'success');
     } catch (error) {
         console.error('Error al generar el reporte:', error);

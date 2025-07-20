@@ -55,6 +55,9 @@
                     <button id="tab-tabla" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button">
                         Agregado por Tabla
                     </button>
+                    <button id="tab-csv" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button">
+                        Carga por CSV
+                    </button>
                 </nav>
             </div>
         </div>
@@ -206,6 +209,29 @@
             </div>
         </div>
 
+
+        <!-- Pestaña CSV -->
+        <div id="content-csv" class="tab-content" style="display: none;">
+            <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Carga Masiva por CSV</h3>
+                <form id="csv-upload-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="csvFile">Selecciona archivo CSV:</label>
+                        <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-gray-700 border border-gray-300 rounded py-2 px-3" required />
+                    </div>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Cargar y Previsualizar</button>
+                </form>
+                <div id="csv-preview" class="mt-6" style="display:none;">
+                    <h4 class="text-lg font-semibold mb-2">Vista previa de datos</h4>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200" id="csv-table"></table>
+                    </div>
+                    <button id="csv-upload-confirm" class="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Subir al sistema</button>
+                </div>
+                <div id="csv-error" class="mt-4 text-red-600 font-semibold"></div>
+            </div>
+        </div>
+
         <div id="mensaje" class="mt-4"></div>
 
         <div id="scanner-container-agregar" class="mt-4" style="display: none;">
@@ -284,6 +310,92 @@
             // Event listeners para los botones de pestañas
             document.getElementById('tab-individual').addEventListener('click', () => switchTab('individual'));
             document.getElementById('tab-tabla').addEventListener('click', () => switchTab('tabla'));
+            document.getElementById('tab-csv').addEventListener('click', () => switchTab('csv'));
+            // CSV: Lógica de carga y validación
+            const csvForm = document.getElementById('csv-upload-form');
+            const csvFileInput = document.getElementById('csvFile');
+            const csvPreview = document.getElementById('csv-preview');
+            const csvTable = document.getElementById('csv-table');
+            const csvError = document.getElementById('csv-error');
+            const csvUploadConfirm = document.getElementById('csv-upload-confirm');
+            let csvData = [];
+
+            function parseCSV(text) {
+                const lines = text.trim().split(/\r?\n/);
+                const headers = lines[0].split(',').map(h => h.trim());
+                const rows = lines.slice(1).map(line => {
+                    // Soporta campos con comas entre comillas
+                    const regex = /(?:"([^"]*)")|([^,]+)/g;
+                    let match, arr = [];
+                    let i = 0;
+                    while ((match = regex.exec(line)) !== null) {
+                        arr.push(match[1] !== undefined ? match[1] : match[2]);
+                        i++;
+                    }
+                    // Si no hay comillas, fallback split normal
+                    if (arr.length === 0) arr = line.split(',');
+                    return arr.map(x => x ? x.trim() : '');
+                });
+                return { headers, rows };
+            }
+
+            function validateHeaders(headers) {
+                const required = ['Codigo','Nombre','Categoria','Marca','Unidad'];
+                return required.every(h => headers.includes(h));
+            }
+
+            csvForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                csvError.textContent = '';
+                csvPreview.style.display = 'none';
+                csvTable.innerHTML = '';
+                csvData = [];
+                const file = csvFileInput.files[0];
+                if (!file) {
+                    csvError.textContent = 'Selecciona un archivo CSV.';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const text = evt.target.result;
+                    const { headers, rows } = parseCSV(text);
+                    if (!validateHeaders(headers)) {
+                        csvError.textContent = 'El archivo debe contener los campos: Codigo, Nombre, Categoria, Marca y Unidad.';
+                        return;
+                    }
+                    // Mostrar tabla
+                    let html = '<thead><tr>' + headers.map(h => `<th class="px-2 py-1 border">${h}</th>`).join('') + '</tr></thead><tbody>';
+                    rows.forEach(row => {
+                        html += '<tr>' + row.map(cell => `<td class="px-2 py-1 border">${cell}</td>`).join('') + '</tr>';
+                    });
+                    html += '</tbody>';
+                    csvTable.innerHTML = html;
+                    csvPreview.style.display = 'block';
+                    csvData = rows.map(row => {
+                        let obj = {};
+                        headers.forEach((h, i) => obj[h] = row[i]);
+                        return obj;
+                    });
+                };
+                reader.readAsText(file);
+            });
+
+            csvUploadConfirm.addEventListener('click', function() {
+                if (!csvData.length) {
+                    csvError.textContent = 'No hay datos para subir.';
+                    return;
+                }
+                // Aquí va la lógica para subir a Supabase
+                // Por ejemplo: subirCSVDataASupabase(csvData)
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Carga exitosa',
+                    text: 'Los productos han sido cargados (simulado, conecta tu lógica Supabase aquí).'
+                });
+                csvPreview.style.display = 'none';
+                csvTable.innerHTML = '';
+                csvData = [];
+            });
             
             // Aplicar conversión de guión a ceros en campos de código
             // Pestaña Individual

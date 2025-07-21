@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión de Productos</title>
-    
+
     <!-- Favicon y iconos -->
     <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/logo.svg">
-    
+
     <link rel="stylesheet" href="../librerías/tailwind.min.css">
     <script src="../librerías/sweetalert2@11.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
@@ -24,10 +24,11 @@
         <h1 class="text-3xl font-bold dark-theme-title">Sistema de Gestión de Productos</h1>
         <div class="flex items-center space-x-4">
             <!-- Botón de alternar tema -->
-            <button id="themeToggleBtn" class="p-2 rounded-lg bg-blue-700 hover:bg-blue-800 transition-colors" title="Alternar tema">
+            <button id="themeToggleBtn" class="p-2 rounded-lg bg-blue-700 hover:bg-blue-800 transition-colors"
+                title="Alternar tema">
                 <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
                     </path>
                 </svg>
             </button>
@@ -56,62 +57,65 @@
                 <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Consulta de Producto</h2>
                 <p class="mb-4 dark-theme-card-text">Busca productos en la base de datos por diferentes criterios.</p>
                 <a id="consultaLink" href="./consulta.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Consulta Producto</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Consulta
+                    Producto</a>
             </div>
 
             <div id="editar" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
                 <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Editar Producto</h2>
-                <p class="mb-4 dark-theme-card-text">Edita los atributos de los productos existentes en la base de datos.</p>
+                <p class="mb-4 dark-theme-card-text">Edita los atributos de los productos existentes en la base de
+                    datos.</p>
                 <a id="editarLink" href="./editar.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Editar Producto</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Editar
+                    Producto</a>
             </div>
 
             <div id="inventario" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
                 <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Inventario</h2>
                 <p class="mb-4 dark-theme-card-text">Gestiona el inventario de productos con datos adicionales.</p>
                 <a id="inventarioLink" href="./inventario.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Inventario</a>
-            </div>
-
-            <div id="registro-entradas" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
-                <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Registro de Entradas</h2>
-                <p class="mb-4 dark-theme-card-text">Registra las entradas de productos recibidos en el almacén.</p>
-                <a id="registroEntradasLink" href=""
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Registro de Entradas</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a
+                    Inventario</a>
             </div>
 
             <div id="reporte" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
                 <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Reporte para Inventario</h2>
                 <p class="mb-4 dark-theme-card-text">Genera reportes detallados del inventario de productos.</p>
                 <a id="reporteLink" href="./report.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Reporte para Inventario</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Reporte
+                    para Inventario</a>
             </div>
 
             <div id="agregar" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
                 <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Agregar Productos</h2>
                 <p class="mb-4 dark-theme-card-text">Escanea y agrega nuevos productos a la base de datos.</p>
                 <a id="agregarLink" href="./agregar.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Agregar Productos</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Agregar
+                    Productos</a>
             </div>
 
             <div id="archivos" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
                 <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Administración de Archivos</h2>
                 <p class="mb-4 dark-theme-card-text">Sube o descarga archivos CSV para la base de datos.</p>
                 <a id="archivosLink" href="./archivos.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Archivos</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a
+                    Archivos</a>
             </div>
 
             <div id="configuraciones" class="bg-white p-6 rounded-lg shadow-md dark-theme-card">
                 <h2 class="text-2xl font-semibold mb-4 dark-theme-card-title">Configuraciones</h2>
-                <p class="mb-4 dark-theme-card-text">Gestiona las configuraciones del sistema, perfil de usuario y preferencias.</p>
+                <p class="mb-4 dark-theme-card-text">Gestiona las configuraciones del sistema, perfil de usuario y
+                    preferencias.</p>
                 <a id="configuracionesLink" href="./configuraciones.html"
-                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a Configuraciones</a>
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 dark-theme-button">Ir a
+                    Configuraciones</a>
             </div>
         </section>
     </main>
 
     <footer class="bg-blue-600 text-white p-4 mt-8 dark-theme-footer">
-        <p class="text-center dark-theme-footer-text">&copy; 2024 Sistema de Gestión de Productos. Todos los derechos reservados.</p>
+        <p class="text-center dark-theme-footer-text">&copy; 2024 Sistema de Gestión de Productos. Todos los derechos
+            reservados.</p>
     </footer>
 
     <script src="../js/mobile-optimizer.js"></script>

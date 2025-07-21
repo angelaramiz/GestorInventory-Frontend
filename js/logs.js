@@ -23,10 +23,10 @@ export function mostrarResultadoCarga(successCount, errorCount) {
     const mensaje = `Carga completada. ${successCount} productos agregados/actualizados. ${errorCount} errores.`;
     const icon = errorCount > 0 ? "warning" : "success";
     const totalOperaciones = successCount + errorCount;
-
+    let porcentajeExito = 0;
     let progressBarHTML = "";
     if (totalOperaciones > 0) {
-        const porcentajeExito = Math.round((successCount / totalOperaciones) * 100);
+        porcentajeExito = Math.round((successCount / totalOperaciones) * 100);
         progressBarHTML = `
             <div class="progress-bar-container">
                 <div class="progress-bar" style="width: 0%;"></div>
@@ -43,7 +43,7 @@ export function mostrarResultadoCarga(successCount, errorCount) {
         timer: 2000,
         showConfirmButton: false,
         didOpen: () => {
-            if (progressBarHTML) {
+            if (progressBarHTML && totalOperaciones > 0) {
                 const progressBarElement = document.querySelector(".progress-bar");
                 if (progressBarElement) {
                     progressBarElement.style.transition = "width 2s ease-in-out";

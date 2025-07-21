@@ -5,8 +5,23 @@ import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProduc
 import { toggleEscaner, detenerEscaner } from './scanner.js';
 import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente, configurarInterceptorSupabase } from './auth.js';
 
+
 // Variable para almacenar el ID del intervalo de verificación de token
 let tokenCheckInterval;
+
+
+// Definir window.getSupabase usando la función de auth.js si no existe
+import('./auth.js').then(mod => {
+    if (!window.getSupabase) {
+        window.getSupabase = mod.getSupabase;
+    }
+}).catch(() => {});
+
+// Importar y exponer funciones de relaciones de productos para reutilización global
+import('../js/relaciones-productos.js').then(mod => {
+    window.obtenerRelacionesProductosSupabase = mod.obtenerRelacionesProductosSupabase;
+    window.buscarRelacionProducto = mod.buscarRelacionProducto;
+}).catch(() => {});
 
 // Función para gestionar el menú lateral
 function inicializarMenu() {

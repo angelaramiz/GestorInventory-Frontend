@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agregar Nuevo Producto - Sistema de Gestión de Productos</title>
-    
+
     <!-- Favicon y iconos -->
     <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/logo.svg">
-    
+
     <link rel="stylesheet" href="../librerías/tailwind.min.css">
     <script src="../librerías/html5-qrcode.min.js"></script>
     <script src="../librerías/sweetalert2@11.js"></script>
@@ -49,13 +49,16 @@
         <div class="mb-6 mt-4">
             <div class="border-b border-gray-200">
                 <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button id="tab-individual" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button active">
+                    <button id="tab-individual"
+                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button active">
                         Producto Individual
                     </button>
-                    <button id="tab-tabla" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button">
+                    <button id="tab-tabla"
+                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button">
                         Agregado por Tabla
                     </button>
-                    <button id="tab-csv" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button">
+                    <button id="tab-csv"
+                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button">
                         Carga por CSV
                     </button>
                 </nav>
@@ -63,7 +66,7 @@
         </div>
 
         <!-- Contenido de Pestañas -->
-        
+
         <!-- Pestaña Individual (formulario original) -->
         <div id="content-individual" class="tab-content">
             <form id="formAgregarProducto" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
@@ -113,18 +116,20 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         id="unidad" type="text" required>
                 </div>
-                
+
                 <!-- Campo para producto primario (aparece solo cuando unidad es Kg) -->
                 <div id="producto-primario-container" class="mb-4" style="display: none;">
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3">
                         <div class="flex items-center mb-2">
                             <svg class="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                <path fill-rule="evenodd"
+                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"></path>
                             </svg>
                             <span class="text-yellow-800 font-medium text-sm">Nota importante:</span>
                         </div>
                         <p class="text-yellow-700 text-sm">
-                            Si el producto es un subproducto y cuenta con un producto primario, 
+                            Si el producto es un subproducto y cuenta con un producto primario,
                             ingresa el código del producto primario en el campo de abajo.
                         </p>
                     </div>
@@ -151,7 +156,7 @@
                 <!-- Sección Producto Primario -->
                 <div class="mb-8">
                     <h3 class="text-xl font-bold mb-4 text-gray-800">Producto Primario</h3>
-                    
+
                     <!-- Campo código producto primario -->
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="codigo-primario">
@@ -159,26 +164,36 @@
                         </label>
                         <input
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            placeholder="Ingrese código del producto primario" id="codigo-primario" type="text" required>
+                            placeholder="Ingrese código del producto primario" id="codigo-primario" type="text"
+                            required>
                     </div>
 
                     <!-- Información del producto primario -->
-                    <div id="info-producto-primario" class="grid grid-cols-1 md:grid-cols-2 gap-4" style="display: none;">
+                    <div id="info-producto-primario" class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                        style="display: none;">
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
-                            <input id="primario-nombre" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" required>
+                            <input id="primario-nombre"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" required>
                         </div>
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Categoría:</label>
-                            <input id="primario-categoria" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" required>
+                            <input id="primario-categoria"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" required>
                         </div>
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Marca/Proveedor:</label>
-                            <input id="primario-marca" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" required>
+                            <input id="primario-marca"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" required>
                         </div>
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Unidad:</label>
-                            <input id="primario-unidad" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" required>
+                            <input id="primario-unidad"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" required>
                         </div>
                     </div>
                 </div>
@@ -187,7 +202,9 @@
                 <div class="mb-8">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-bold text-gray-800">Subproductos</h3>
-                        <button id="agregar-fila-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" style="display: none;">
+                        <button id="agregar-fila-btn"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            style="display: none;">
                             + Agregar Nueva Fila
                         </button>
                     </div>
@@ -199,10 +216,13 @@
 
                 <!-- Botones de acción -->
                 <div class="flex justify-between items-center pt-6 border-t">
-                    <button id="limpiar-tabla-btn" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    <button id="limpiar-tabla-btn"
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                         Limpiar Todo
                     </button>
-                    <button id="guardar-tabla-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" style="display: none;">
+                    <button id="guardar-tabla-btn"
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                        style="display: none;">
                         Guardar Tabla de Productos
                     </button>
                 </div>
@@ -216,17 +236,24 @@
                 <h3 class="text-xl font-bold mb-4 text-gray-800">Carga Masiva por CSV</h3>
                 <form id="csv-upload-form">
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="csvFile">Selecciona archivo CSV:</label>
-                        <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-gray-700 border border-gray-300 rounded py-2 px-3" required />
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="csvFile">Selecciona archivo
+                            CSV:</label>
+                        <input type="file" id="csvFile" accept=".csv"
+                            class="block w-full text-sm text-gray-700 border border-gray-300 rounded py-2 px-3"
+                            required />
                     </div>
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Cargar y Previsualizar</button>
+                    <button type="submit"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Cargar y
+                        Previsualizar</button>
                 </form>
                 <div id="csv-preview" class="mt-6" style="display:none;">
                     <h4 class="text-lg font-semibold mb-2">Vista previa de datos</h4>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200" id="csv-table"></table>
                     </div>
-                    <button id="csv-upload-confirm" class="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Subir al sistema</button>
+                    <button id="csv-upload-confirm"
+                        class="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Subir al
+                        sistema</button>
                 </div>
                 <div id="csv-error" class="mt-4 text-red-600 font-semibold"></div>
             </div>
@@ -253,16 +280,16 @@
         // Función para aplicar la conversión a un input
         function aplicarConversionCodigo(input) {
             if (!input) return;
-            
-            input.addEventListener('input', function(e) {
+
+            input.addEventListener('input', function (e) {
                 const valorOriginal = e.target.value;
                 const valorConvertido = convertirGuionACeros(valorOriginal);
-                
+
                 // Solo actualizar si hay diferencia (para evitar bucles infinitos)
                 if (valorOriginal !== valorConvertido) {
                     const cursorPos = e.target.selectionStart;
                     e.target.value = valorConvertido;
-                    
+
                     // Ajustar posición del cursor
                     // Si se agregaron caracteres, mover el cursor proporcionalmente
                     const diferencia = valorConvertido.length - valorOriginal.length;
@@ -272,7 +299,7 @@
             });
 
             // También aplicar en blur para asegurar conversión final
-            input.addEventListener('blur', function(e) {
+            input.addEventListener('blur', function (e) {
                 const valorConvertido = convertirGuionACeros(e.target.value);
                 e.target.value = valorConvertido;
             });
@@ -282,31 +309,31 @@
         window.aplicarConversionCodigoAInput = aplicarConversionCodigo;
 
         // Script para pestañas
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const tabButtons = document.querySelectorAll('.tab-button');
             const tabContents = document.querySelectorAll('.tab-content');
-            
+
             function switchTab(targetTab) {
                 // Remover clase activa de todos los botones
                 tabButtons.forEach(btn => {
                     btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
                     btn.classList.add('border-transparent', 'text-gray-500');
                 });
-                
+
                 // Ocultar todo el contenido
                 tabContents.forEach(content => {
                     content.style.display = 'none';
                 });
-                
+
                 // Activar pestaña seleccionada
                 const activeButton = document.getElementById(`tab-${targetTab}`);
                 activeButton.classList.add('active', 'border-blue-500', 'text-blue-600');
                 activeButton.classList.remove('border-transparent', 'text-gray-500');
-                
+
                 // Mostrar contenido correspondiente
                 document.getElementById(`content-${targetTab}`).style.display = 'block';
             }
-            
+
             // Event listeners para los botones de pestañas
             document.getElementById('tab-individual').addEventListener('click', () => switchTab('individual'));
             document.getElementById('tab-tabla').addEventListener('click', () => switchTab('tabla'));
@@ -340,11 +367,11 @@
             }
 
             function validateHeaders(headers) {
-                const required = ['Codigo','Nombre','Categoria','Marca','Unidad'];
+                const required = ['Codigo', 'Nombre', 'Categoria', 'Marca', 'Unidad'];
                 return required.every(h => headers.includes(h));
             }
 
-            csvForm.addEventListener('submit', function(e) {
+            csvForm.addEventListener('submit', function (e) {
                 e.preventDefault();
                 csvError.textContent = '';
                 csvPreview.style.display = 'none';
@@ -356,7 +383,7 @@
                     return;
                 }
                 const reader = new FileReader();
-                reader.onload = function(evt) {
+                reader.onload = function (evt) {
                     const text = evt.target.result;
                     const { headers, rows } = parseCSV(text);
                     if (!validateHeaders(headers)) {
@@ -380,43 +407,83 @@
                 reader.readAsText(file);
             });
 
-            csvUploadConfirm.addEventListener('click', function() {
+            csvUploadConfirm.addEventListener('click', function () {
                 if (!csvData.length) {
                     csvError.textContent = 'No hay datos para subir.';
                     return;
                 }
-                // Aquí va la lógica para subir a Supabase
-                // Por ejemplo: subirCSVDataASupabase(csvData)
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Carga exitosa',
-                    text: 'Los productos han sido cargados (simulado, conecta tu lógica Supabase aquí).'
-                });
-                csvPreview.style.display = 'none';
-                csvTable.innerHTML = '';
-                csvData = [];
+                // Lógica real para subir a Supabase, omitiendo los que ya existen y agregando usuario_id
+                (async () => {
+                    try {
+                        if (!window.getSupabase) throw new Error('No se encontró getSupabase.');
+                        const supabase = await window.getSupabase();
+                        // Obtener usuario_id y categoria_id de localStorage
+                        const userId = localStorage.getItem('usuario_id');
+                        const categoriaId = localStorage.getItem('categoria_id');
+                        if (!userId) throw new Error('No se pudo obtener el usuario autenticado.');
+                        if (!categoriaId) throw new Error('No se pudo obtener la categoría del usuario.');
+                        // 1. Obtener todos los códigos existentes en Supabase
+                        const { data: existentes, error: errorExist } = await supabase.from('productos').select('codigo');
+                        if (errorExist) throw errorExist;
+                        const codigosExistentes = new Set((existentes || []).map(p => p.codigo));
+                        // 2. Filtrar productos nuevos
+                        const nuevos = csvData.filter(prod => !codigosExistentes.has(prod.Codigo));
+                        let omitidos = csvData.length - nuevos.length;
+                        // 3. Insertar los nuevos
+                        let insertados = 0;
+                        if (nuevos.length > 0) {
+                            // Mapear campos a los nombres de la tabla e incluir usuario_id y categoria_id
+                            const productosInsertar = nuevos.map(prod => ({
+                                codigo: prod.Codigo,
+                                nombre: prod.Nombre,
+                                categoria: prod.Categoria,
+                                marca: prod.Marca,
+                                unidad: prod.Unidad,
+                                usuario_id: userId,
+                                categoria_id: categoriaId
+                            }));
+                            const { error: errorInsert } = await supabase.from('productos').insert(productosInsertar);
+                            if (errorInsert) throw errorInsert;
+                            insertados = productosInsertar.length;
+                        }
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Carga completada',
+                            html: `<b>${insertados}</b> productos agregados.<br><b>${omitidos}</b> productos ya existían y fueron omitidos.`
+                        });
+                        csvPreview.style.display = 'none';
+                        csvTable.innerHTML = '';
+                        csvData = [];
+                    } catch (err) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al subir productos',
+                            text: err.message || err
+                        });
+                    }
+                })();
             });
-            
+
             // Aplicar conversión de guión a ceros en campos de código
             // Pestaña Individual
             const codigoIndividual = document.getElementById('codigoAgregar');
             const productoPrimarioIndividual = document.getElementById('producto-primario');
-            
+
             aplicarConversionCodigo(codigoIndividual);
             aplicarConversionCodigo(productoPrimarioIndividual);
-            
+
             // Pestaña Tabla
             const codigoPrimarioTabla = document.getElementById('codigo-primario');
             aplicarConversionCodigo(codigoPrimarioTabla);
-            
+
             // Para los subproductos en la tabla (se aplicará dinámicamente cuando se creen)
-            
+
             // Inicializar funcionalidad de tabla directamente aquí como backup
             setTimeout(() => {
                 try {
                     const limpiarBtn = document.getElementById('limpiar-tabla-btn');
                     if (limpiarBtn) {
-                        limpiarBtn.addEventListener('click', function() {
+                        limpiarBtn.addEventListener('click', function () {
                             console.log('Click en limpiar tabla');
                             if (confirm('¿Está seguro de que desea limpiar todos los datos?')) {
                                 document.getElementById('codigo-primario').value = '';
@@ -431,12 +498,12 @@
                     console.error('Error en backup de inicialización:', error);
                 }
             }, 1000);
-            
+
             // Script original para mostrar/ocultar el campo de producto primario
             const unidadInput = document.getElementById('unidad');
             const productoPrimarioContainer = document.getElementById('producto-primario-container');
             const form = document.getElementById('formAgregarProducto');
-            
+
             function toggleProductoPrimario() {
                 if (unidadInput && productoPrimarioContainer) {
                     const unidad = unidadInput.value.toLowerCase().trim();
@@ -452,16 +519,16 @@
                     }
                 }
             }
-            
+
             // Agregar event listener al campo unidad
             if (unidadInput) {
                 unidadInput.addEventListener('input', toggleProductoPrimario);
                 unidadInput.addEventListener('change', toggleProductoPrimario);
             }
-            
+
             // Ocultar el campo cuando se resetee el formulario
             if (form) {
-                form.addEventListener('reset', function() {
+                form.addEventListener('reset', function () {
                     setTimeout(() => {
                         if (productoPrimarioContainer) {
                             productoPrimarioContainer.style.display = 'none';
@@ -476,24 +543,24 @@
             border-color: #3b82f6;
             color: #2563eb;
         }
-        
+
         .subproducto-row {
             border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
             padding: 1rem;
             background-color: #f9fafb;
         }
-        
+
         .campo-readonly {
             background-color: #f3f4f6;
             cursor: not-allowed;
         }
-        
+
         .producto-existente {
             background-color: #dcfce7;
             border-color: #16a34a;
         }
-        
+
         .producto-nuevo {
             background-color: #fef3c7;
             border-color: #d97706;

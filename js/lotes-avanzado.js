@@ -617,7 +617,7 @@ function verificarProductoExistente(plu) {
 // Función para verificar si un producto con el mismo precio ya fue registrado recientemente
 function verificarRegistroReciente(plu, precioPorcion) {
     const ahora = Date.now();
-    const TIEMPO_REGISTRO_RECIENTE = 30000; // 30 segundos - tiempo más largo para evitar bucle
+    const TIEMPO_REGISTRO_RECIENTE = 5000; // 5 segundos - tiempo más largo para evitar bucle
     
     const registroReciente = productosEscaneados.find(p => 
         p.plu === plu && 

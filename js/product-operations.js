@@ -1134,10 +1134,10 @@ async function actualizarEnIndexedDB(data) {
 
 // Función para buscar inventario en nueva base de datos
 export async function buscarProductoInventario(codigo, formato) {
-    let codigoB = codigo;
-    let tipoFormato = formato || ''; // Valor por defecto
+    let codigoBusqueda = codigo;
+    let tipoFormato = formato || '';
     if (!tipoFormato || tipoFormato === '') {
-        codigoB = document.getElementById("codigo").value;
+        codigoBusqueda = document.getElementById("codigo").value;
         tipoFormato = 'manual';
     }
     document.getElementById("datosInventario").style.display = "none";
@@ -1146,42 +1146,35 @@ export async function buscarProductoInventario(codigo, formato) {
 
     try {
         // Si no hay ningún criterio de búsqueda
-        if (!codigoB && !nombre && !marca) {
+        if (!codigoBusqueda && !nombre && !marca) {
             mostrarMensaje("Ingresa al menos un criterio de búsqueda", "error");
             return;
         }
 
         // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
-        if (codigoB.length === 4) { // Código PLU
-            buscarPorCodigoParcial(codigoB, "Inventario", async (resultados) => {
+        if (codigoBusqueda.length === 4) { // Código PLU
+            buscarPorCodigoParcial(codigoBusqueda, "Inventario", async (resultados) => {
                 if (resultados.length > 0) {
                     const inventarioResultados = await buscarEnInventario(resultados[0].codigo);
-                    console.log('si hay productos existentes')
                     if (inventarioResultados.length > 0) {
-                        // Si existe en inventario, mostrar modal con opciones
                         mostrarModalProductoExistente(resultados[0], inventarioResultados);
                     } else {
-                        // Si no existe en inventario, mostrar formulario para agregar producto
                         mostrarFormularioInventario(resultados[0]);
                     }
                 } else {
                     mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
                 }
             });
-            return;  // Detener la ejecución aquí para evitar la búsqueda normal
+            return;
         } else if (tipoFormato === "upc_a") {
-            const codigoSanitizado = sanitizarEntrada(codigoB);
-
+            const codigoSanitizado = sanitizarEntrada(codigoBusqueda);
             if (!codigoSanitizado || !/^\d{11,12}$/.test(codigoSanitizado)) {
                 mostrarMensaje("Código de barras inválido.", "error");
                 return;
             }
-
             mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "success");
-
             const codigoNormalizado = codigoSanitizado.replace(/^0+/, '');
             const productosResultados = await buscarEnProductos(codigoNormalizado);
-
             if (productosResultados.length === 0) {
                 const resultadoSwal = await Swal.fire({
                     title: 'Producto no encontrado',
@@ -1191,87 +1184,71 @@ export async function buscarProductoInventario(codigo, formato) {
                     confirmButtonText: 'Agregar',
                     cancelButtonText: 'Cancelar'
                 });
-
                 if (resultadoSwal.isConfirmed) {
                     await agregarNuevoProductoDesdeInventario(codigoNormalizado, true);
                 }
                 return;
             }
-
-            // Manejar múltiples productos encontrados
             if (productosResultados.length > 1) {
-                mostrarMensaje("Varios productos coinciden con este código. Contacta al administrador.", "warning");
+                mostrarMensaje("Varios productos coinciden con este código. Selecciona uno.", "warning");
+                mostrarResultadosInventario(productosResultados);
                 return;
             }
-
             const producto = productosResultados[0];
             const inventarioResultados = await buscarEnInventario(codigoNormalizado);
-
             if (inventarioResultados.length > 0) {
                 mostrarModalProductoExistente(producto, inventarioResultados);
             } else {
                 mostrarFormularioInventario(producto);
             }
-        } else if (nombre || marca) { // Búsqueda por nombre o marca
-            // Primero buscar en la base de datos de productos
+        } else if (nombre || marca) {
             const productosResultados = await buscarEnProductos(null, nombre, marca);
-
             if (productosResultados.length === 0) {
                 mostrarMensaje("No se encontraron productos con ese nombre o marca.", "error");
                 return;
             }
-
             if (productosResultados.length === 1) {
-                // Si solo hay un resultado, buscar en inventario
                 const inventarioResultados = await buscarEnInventario(null, nombre, marca);
-
                 if (inventarioResultados.length > 0) {
-                    // Si existe en inventario, mostrar modal con opciones
                     mostrarModalProductoExistente(productosResultados[0], inventarioResultados);
                 } else {
-                    // Si no existe en inventario, mostrar formulario para agregar producto
                     mostrarFormularioInventario(productosResultados[0]);
                 }
             } else {
-                // Si hay múltiples resultados, mostrarlos para seleccionar uno
                 mostrarResultadosInventario(productosResultados);
             }
-        } else if (codigoB.length === 13 || tipoFormato === "ean_13") {
-            // Búsqueda por un código que no sea de los tipos específicos anteriores
-            const codigoSanitizado = sanitizarEntrada(codigoB);
+        } else if (codigoBusqueda.length === 13 || tipoFormato === "ean_13") {
+            const codigoSanitizado = sanitizarEntrada(codigoBusqueda);
+            if (tipoFormato === "ean_13" && !/^\d{13}$/.test(codigoSanitizado)) {
+                mostrarMensaje("Código EAN-13 inválido (debe tener 13 dígitos).", "error");
+                return;
+            }
             const productosResultados = await buscarEnProductos(codigoSanitizado);
-
             if (productosResultados.length === 0) {
-                mostrarMensaje("No se encontró ningún producto con ese código.", "error");
-                Swal.fire({
+                const resultadoSwal = await Swal.fire({
                     title: 'Producto no encontrado',
                     text: '¿Deseas agregar un nuevo producto con este código?',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Agregar',
                     cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        agregarNuevoProductoDesdeInventario(codigoSanitizado, true);
-                    }
                 });
+                if (resultadoSwal.isConfirmed) {
+                    await agregarNuevoProductoDesdeInventario(codigoSanitizado, true);
+                }
                 return;
             }
-
-            if (productosResultados.length === 1) {
-                // Si solo hay un resultado, buscar en inventario
-                const inventarioResultados = await buscarEnInventario(productosResultados[0].codigoSanitizado);
-
-                if (inventarioResultados.length > 0) {
-                    // Si existe en inventario, mostrar modal con opciones
-                    mostrarModalProductoExistente(productosResultados[0], inventarioResultados);
-                } else {
-                    // Si no existe en inventario, mostrar formulario para agregar producto
-                    mostrarFormularioInventario(productosResultados[0]);
-                }
-            } else {
-                // Si hay múltiples resultados, mostrarlos para seleccionar uno
+            if (productosResultados.length > 1) {
+                mostrarMensaje("Hay múltiples productos con este código. Selecciona uno.", "warning");
                 mostrarResultadosInventario(productosResultados);
+                return;
+            }
+            const producto = productosResultados[0];
+            const inventarioResultados = await buscarEnInventario(codigoSanitizado);
+            if (inventarioResultados.length > 0) {
+                mostrarModalProductoExistente(producto, inventarioResultados);
+            } else {
+                mostrarFormularioInventario(producto);
             }
         } else {
             mostrarMensaje("Código inválido.\n vuelve a buscar/escanear", "error");

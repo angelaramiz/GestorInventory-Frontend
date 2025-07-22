@@ -1324,8 +1324,24 @@ function buscarEnInventario(codigo, nombre, marca) {
             const supabase = await getSupabase();
             let query = supabase.from('inventario').select('*');
 
+            // Obtener area_id actual
+            let area_id = localStorage.getItem('area_id');
+            if (!area_id) {
+                // Si no hay area_id, intentar obtenerlo de otra forma o rechazar
+                reject('No se encontró area_id en localStorage');
+                return;
+            }
+
+            query = query.eq('area_id', area_id);
+
             if (codigo) {
-                query = query.eq('codigo', codigo);
+                if (codigo.length === 4 && !isNaN(codigo)) {
+                    // Buscar por PLU (4 dígitos) en cualquier parte del código
+                    query = query.ilike('codigo', `%${codigo}%`);
+                } else {
+                    // Buscar por coincidencia exacta de código
+                    query = query.eq('codigo', codigo);
+                }
             } else {
                 // Si no hay código, buscar por nombre y/o marca
                 if (nombre && marca) {

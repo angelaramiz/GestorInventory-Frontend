@@ -84,7 +84,8 @@
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="codigoRelacion">Código del producto:</label>
                     <div class="flex">
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="codigoRelacion" type="text" placeholder="Escanea o ingresa el código">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="codigoRelacion" type="text" placeholder="Escanea o ingresa el código o últimos 4 dígitos">
+                        <button type="button" id="escanearBtnRelacion" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2">Escanear</button>
                         <button type="button" id="buscarRelacion" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">Buscar Relación</button>
                     </div>
                 </div>
@@ -243,10 +244,38 @@
             if (buscarRelacionBtn) {
                 buscarRelacionBtn.addEventListener('click', async function() {
                     relacionesDiv.innerHTML = '';
-                    const codigo = document.getElementById('codigoRelacion').value.trim();
+                    let codigo = document.getElementById('codigoRelacion').value.trim();
                     if (!codigo) {
                         relacionesDiv.innerHTML = '<div class="text-red-600">Ingresa un código para buscar relaciones.</div>';
                         return;
+                    }
+                    // Permitir búsqueda por últimos 4 dígitos
+                    if (codigo.length === 4) {
+                        // Buscar en Supabase todos los productos cuyo substring(2,5) sea igual a esos 4 dígitos
+                        let supabase;
+                        if (window.getSupabase) {
+                            supabase = await window.getSupabase();
+                        } else if (window.supabase) {
+                            supabase = window.supabase;
+                        }
+                        // Traer todos los códigos y filtrar en JS (por compatibilidad universal)
+                        const { data: productosTodos } = await supabase.from('productos').select('codigo');
+                        const productos4 = (productosTodos || []).filter(p => typeof p.codigo === 'string' && p.codigo.length >= 5 && p.codigo.substring(1,5) === codigo);
+                        if (productos4.length > 0) {
+                            if (productos4.length > 1) {
+                                relacionesDiv.innerHTML = `<div class='mb-2'>Se encontraron varios productos con los dígitos 2-5 <b>${codigo}</b>:</div>`;
+                                productos4.forEach(p => {
+                                    relacionesDiv.innerHTML += `<button class='bg-blue-100 hover:bg-blue-300 text-blue-800 px-2 py-1 rounded m-1' onclick='document.getElementById("codigoRelacion").value="${p.codigo}";document.getElementById("buscarRelacion").click();return false;'>${p.codigo}</button>`;
+                                });
+                                return;
+                            } else {
+                                codigo = productos4[0].codigo;
+                                document.getElementById('codigoRelacion').value = codigo;
+                            }
+                        } else {
+                            relacionesDiv.innerHTML = `<div class='text-red-600'>No se encontró ningún producto con los dígitos 2-5 igual a <b>${codigo}</b>.</div>`;
+                            return;
+                        }
                     }
                     relacionesDiv.innerHTML = '<div class="text-gray-500">Buscando relaciones...</div>';
                     try {
@@ -325,6 +354,18 @@
                     }
                 });
             }
+
+            // Integrar el escáner avanzado de scanner.js para la pestaña de relaciones
+            import('../js/scanner.js').then(scannerModule => {
+                const escanearBtnRelacion = document.getElementById('escanearBtnRelacion');
+                if (escanearBtnRelacion) {
+                    escanearBtnRelacion.addEventListener('click', function() {
+                        // Usar el modal de scanner.js y manejarCodigoEscaneado
+                        scannerModule.toggleEscaner('codigoRelacion');
+                        // El flujo de scanner.js ya coloca el código procesado en el input
+                    });
+                }
+            });
         });
     </script>
 </body>

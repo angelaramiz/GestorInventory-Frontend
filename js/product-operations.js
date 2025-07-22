@@ -146,7 +146,7 @@ export function mostrarFormularioInventario(producto) {
         unidad: unidad,
         esTipoKg: unidad.toLowerCase().includes('kg')
     });
-    
+
     import('./lotes-scanner.js').then(module => {
         console.log('Debug - Módulo lotes-scanner cargado:', module);
         if (module.manejarTipoProducto) {
@@ -343,13 +343,13 @@ export async function agregarProducto(evento) {
                 const { error } = await supabase
                     .from('productos')
                     .insert({ ...productosanitizado, categoria_id: categoriaId, usuario_id: localStorage.getItem('usuario_id') });
-                
+
                 if (error) {
                     console.error("Error al sincronizar con Supabase:", error);
                     mostrarMensaje("Error al sincronizar con Supabase", "error");
                 } else {
                     mostrarMensaje("Producto sincronizado exitosamente con Supabase", "success");
-                    
+
                     // Si hay un producto primario, crear la relación en producto_subproducto
                     if (productoPrimario && productoPrimario.trim() !== '') {
                         const { error: errorRelacion } = await supabase
@@ -358,7 +358,7 @@ export async function agregarProducto(evento) {
                                 principalproductid: productoPrimario,
                                 subproductid: codigo
                             });
-                        
+
                         if (errorRelacion) {
                             console.error("Error al crear relación producto-subproducto:", errorRelacion);
                             mostrarMensaje("Producto agregado pero hubo un error al crear la relación con el producto primario", "warning");
@@ -417,7 +417,7 @@ export function buscarProducto(codigo, formato) {
     if (!tipoFormato || tipoFormato === '') {
         codigoB = document.getElementById("codigoConsulta").value;
         tipoFormato = 'manual';
-    } 
+    }
     console.log(`codigo: ${codigoB}, tipo de formato: ${tipoFormato}`)
     const nombre = document.getElementById("nombreConsulta").value;
     const categoria = document.getElementById("categoriaConsulta").value;
@@ -508,7 +508,7 @@ export function buscarProductoParaEditar(codigo, formato) {
     if (!tipoFormato || tipoFormato === '') {
         codigoB = document.getElementById("codigoEditar").value;
         tipoFormato = 'manual';
-    } 
+    }
 
     // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
     if (codigoB.length === 4) {
@@ -709,7 +709,7 @@ export async function guardarInventario() {
     // Verificar sesión antes de continuar
     const { verificarSesionValida } = await import('./auth.js');
     const sesionValida = await verificarSesionValida();
-    
+
     if (!sesionValida) {
         console.error('Sesión no válida al intentar guardar inventario');
         return;
@@ -922,7 +922,7 @@ export async function modificarInventario() {
     // Verificar sesión antes de continuar
     const { verificarSesionValida } = await import('./auth.js');
     const sesionValida = await verificarSesionValida();
-    
+
     if (!sesionValida) {
         console.error('Sesión no válida al intentar modificar inventario');
         return;
@@ -986,7 +986,7 @@ export async function modificarInventario() {
 
     if (!registroInventarioActual) {
         console.error(`🔍 Debug - No se encontró registro con ID: ${idInventario}`);
-        
+
         // Intentar buscar todos los registros para debug
         const todosLosRegistros = await new Promise((resolve) => {
             const transaction = dbInventario.transaction(["inventario"], "readonly");
@@ -995,11 +995,11 @@ export async function modificarInventario() {
             request.onsuccess = () => resolve(request.result || []);
             request.onerror = () => resolve([]);
         });
-        
-        console.log(`🔍 Debug - Registros existentes en inventario:`, 
+
+        console.log(`🔍 Debug - Registros existentes en inventario:`,
             todosLosRegistros.map(r => ({ id: r.id, codigo: r.codigo, lote: r.lote }))
         );
-        
+
         mostrarMensaje(`No se encontró el registro de inventario con ID ${idInventario} para modificar.`, "error");
         return;
     }
@@ -1049,14 +1049,14 @@ export async function modificarInventario() {
 
             if (error) {
                 console.error("Error al actualizar en Supabase:", error);
-                
+
                 // Manejar errores de autenticación específicamente
                 const errorResult = await manejarErrorSupabase(error, 'modificar inventario');
                 if (errorResult.shouldRetry) {
                     mostrarMensaje("Sesión renovada. Por favor, intente guardar nuevamente.", "info");
                     return;
                 }
-                
+
                 const datosParaIndexedDBError = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
                 delete datosParaIndexedDBError.usuario_id;
                 await actualizarEnIndexedDB(datosParaIndexedDBError);
@@ -1139,7 +1139,7 @@ export async function buscarProductoInventario(codigo, formato) {
     if (!tipoFormato || tipoFormato === '') {
         codigoB = document.getElementById("codigo").value;
         tipoFormato = 'manual';
-    } 
+    }
     document.getElementById("datosInventario").style.display = "none";
     const nombre = document.getElementById("nombreInventario").value;
     const marca = document.getElementById("marcaInventario").value;
@@ -1170,68 +1170,48 @@ export async function buscarProductoInventario(codigo, formato) {
             });
             return;  // Detener la ejecución aquí para evitar la búsqueda normal
         } else if (tipoFormato === "upc_a") {
-            // Procesar códigos de barras (UPC-A)
             const codigoSanitizado = sanitizarEntrada(codigoB);
-            mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "success");
-            const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
-
-            // Para Code128, intentar extraer código parcial
-            const regex = /2(\d{4})/;
-            const match = codigoCorto.match(regex);
-
-            if (match) {
-                const codigoParcial = match[1]; // Extraer los 4 dígitos capturados
-                mostrarMensaje(`Código parcial extraído: ${codigoParcial}`, "info");
-                buscarPorCodigoParcial(codigoParcial, "Inventario", async (resultados) => {
-                    if (resultados.length > 0) {
-                        const inventarioResultados = await buscarEnInventario(resultados[0].codigoParcial);
-
-                        if (inventarioResultados.length > 0) {
-                            // Si existe en inventario, mostrar modal con opciones
-                            mostrarModalProductoExistente(resultados[0], inventarioResultados);
-                        } else {
-                            // Si no existe en inventario, mostrar formulario para agregar producto
-                            mostrarFormularioInventario(resultados[0]);
-                        }
-                    } else {
-                        mostrarMensaje("No se encontraron productos con ese código de 4 dígitos\n ingresa un código largo o agrega el producto", "error");
-                    }
-                });
+            if (!codigoSanitizado || !/^\d{11,12}$/.test(codigoSanitizado)) {
+                mostrarMensaje("Código de barras inválido.", "error");
                 return;
             }
 
+            mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "success");
 
-            // Buscar el producto completo en la base de datos
-            const productosResultados = await buscarEnProductos(codigoParcial);
+            const codigoNormalizado = codigoSanitizado.replace(/^0+/, '');
+            const productosResultados = await buscarEnProductos(codigoNormalizado);
 
             if (productosResultados.length === 0) {
-                Swal.fire({
+                const resultadoSwal = await Swal.fire({
                     title: 'Producto no encontrado',
                     text: '¿Deseas agregar este producto al inventario?',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Agregar',
                     cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        agregarNuevoProductoDesdeInventario(codigoParcial, true); // Permitir modificar el código
-                    }
                 });
+
+                if (resultadoSwal.isConfirmed) {
+                    await agregarNuevoProductoDesdeInventario(codigoNormalizado, true);
+                }
                 return;
             }
 
-            // Si encontramos productos, buscar en inventario
-            const inventarioResultados = await buscarEnInventario(codigoCorto);
+            // Manejar múltiples productos encontrados
+            if (productosResultados.length > 1) {
+                mostrarMensaje("Varios productos coinciden con este código. Contacta al administrador.", "warning");
+                return;
+            }
+
+            const producto = productosResultados[0];
+            const inventarioResultados = await buscarEnInventario(codigoNormalizado);
 
             if (inventarioResultados.length > 0) {
-                // Si existe en inventario, mostrar modal con opciones
-                mostrarModalProductoExistente(productosResultados[0], inventarioResultados);
+                mostrarModalProductoExistente(producto, inventarioResultados);
             } else {
-                // Si no existe en inventario, mostrar formulario para agregar producto
-                mostrarFormularioInventario(productosResultados[0]);
+                mostrarFormularioInventario(producto);
             }
-            return;
         } else if (nombre || marca) { // Búsqueda por nombre o marca
             // Primero buscar en la base de datos de productos
             const productosResultados = await buscarEnProductos(null, nombre, marca);
@@ -1338,30 +1318,34 @@ function buscarEnProductos(codigo, nombre, marca) {
 
 // Función para buscar en la base de datos de inventario
 function buscarEnInventario(codigo, nombre, marca) {
-    return new Promise((resolve, reject) => {
-        const transaction = dbInventario.transaction(["inventario"], "readonly");
-        const objectStore = transaction.objectStore("inventario");
-        const request = objectStore.getAll();
-
-        request.onsuccess = event => {
-            const inventario = event.target.result;
-            let resultados = [];
+    return new Promise(async (resolve, reject) => {
+        try {
+            const { getSupabase } = await import('./auth.js');
+            const supabase = await getSupabase();
+            let query = supabase.from('inventario').select('*');
 
             if (codigo) {
-                // Si hay un código específico, filtrar exactamente por ese código
-                resultados = inventario.filter(item => item.codigo === codigo);
+                query = query.eq('codigo', codigo);
             } else {
                 // Si no hay código, buscar por nombre y/o marca
-                resultados = inventario.filter(item =>
-                    (nombre && item.nombre && item.nombre.toLowerCase().includes(nombre.toLowerCase())) ||
-                    (marca && item.marca && item.marca.toLowerCase().includes(marca.toLowerCase()))
-                );
+                if (nombre && marca) {
+                    query = query.ilike('nombre', `%${nombre}%`).ilike('marca', `%${marca}%`);
+                } else if (nombre) {
+                    query = query.ilike('nombre', `%${nombre}%`);
+                } else if (marca) {
+                    query = query.ilike('marca', `%${marca}%`);
+                }
             }
 
-            resolve(resultados);
-        };
-
-        request.onerror = event => reject(event.target.error);
+            const { data, error } = await query;
+            if (error) {
+                reject(error);
+            } else {
+                resolve(data || []);
+            }
+        } catch (err) {
+            reject(err);
+        }
     });
 }
 
@@ -2060,20 +2044,20 @@ function descargarPDFProducto(producto) {
 // Función auxiliar para manejar errores de autenticación en operaciones de Supabase
 async function manejarErrorSupabase(error, operacion) {
     console.error(`Error en ${operacion}:`, error);
-    
+
     // Verificar si es un error de autenticación
-    if (error?.message?.includes('JWT') || 
-        error?.message?.includes('expired') || 
+    if (error?.message?.includes('JWT') ||
+        error?.message?.includes('expired') ||
         error?.message?.includes('invalid') ||
         error?.code === 'PGRST301' ||
         error?.code === '401') {
-        
+
         console.warn('Error de autenticación detectado, intentando renovar sesión...');
         mostrarMensaje('Token expirado, renovando sesión automáticamente...', 'warning');
-        
+
         const { verificarSesionValida } = await import('./auth.js');
         const sesionRenovada = await verificarSesionValida();
-        
+
         if (sesionRenovada) {
             mostrarMensaje('Sesión renovada. Por favor, intente la operación nuevamente.', 'info');
             return { shouldRetry: true };
@@ -2085,6 +2069,6 @@ async function manejarErrorSupabase(error, operacion) {
             return { shouldRetry: false };
         }
     }
-    
+
     return { shouldRetry: false };
 }

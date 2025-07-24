@@ -1404,7 +1404,7 @@ async function guardarInventarioLotesAvanzado() {
                     categoria: grupo.productoPrimario.categoria,
                     lote: loteNumerico,
                     unidad: grupo.productoPrimario.unidad || 'Kg',
-                    cantidad: Math.round(grupo.pesoTotal * 1000), // Convertir kg a gramos (entero)
+                    cantidad: parseFloat(grupo.pesoTotal), // Guardar como float (kg)
                     caducidad: fechaCaducidadStr,
                     comentarios: comentarios,
                     last_modified: new Date().toISOString(),

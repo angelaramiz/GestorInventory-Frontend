@@ -14,6 +14,7 @@ let scannerLotesAvanzado = null;
 let productosEscaneados = []; // Array de productos escaneados
 let productosAgrupados = []; // Array de productos agrupados por primario
 let isEscaneoLotesAvanzadoActivo = false;
+let isScannerTransitioning = false; // Bloqueo para evitar transiciones simultáneas
 let configuracionEscaneo = {
     confirmarProductosSimilares: false,  // Deshabilitado por defecto
     agruparAutomaticamente: true,
@@ -44,7 +45,7 @@ async function generarLoteNumerico(codigo) {
     try {
         // Obtener instancia de Supabase
         const supabase = await getSupabase();
-        
+
         const { data, error } = await supabase
             .from('inventario')
             .select('lote')
@@ -77,7 +78,7 @@ function inicializarSistemaLotesAvanzado() {
     const checkboxConfirmar = document.getElementById('confirmarProductosSimilares');
     const checkboxAgrupar = document.getElementById('agruparAutomaticamente');
     const checkboxSonido = document.getElementById('sonidoConfirmacion');
-    
+
     if (checkboxConfirmar) {
         checkboxConfirmar.checked = configuracionEscaneo.confirmarProductosSimilares;
     }
@@ -227,7 +228,7 @@ async function cargarDiccionarioSubproductos() {
 
         // Obtener instancia de Supabase
         const supabase = await getSupabase();
-        
+
         // Consultar productos_subproducto desde Supabase
         const { data, error } = await supabase
             .from('productos_subproductos')
@@ -311,18 +312,80 @@ function inicializarEscanerLotesAvanzado() {
         }
     };
 
+    // Por defecto, el escáner está pausado
+    isEscaneoLotesAvanzadoActivo = false;
+
+    // Botón de acción on/off
+    const btnAccion = document.getElementById('accionEscaneoLotesAvanzado');
+    if (btnAccion) {
+        btnAccion.addEventListener('click', function () {
+            if (isEscaneoLotesAvanzadoActivo) {
+                pausarEscanerLotesAvanzado();
+                btnAccion.textContent = 'Activar escáner';
+            } else {
+                activarEscanerLotesAvanzado();
+                btnAccion.textContent = 'Pausar escáner';
+            }
+        });
+        // Estado inicial
+        btnAccion.textContent = 'Activar escáner';
+    }
+}
+
+function activarEscanerLotesAvanzado() {
+    if (scannerLotesAvanzado && !isScannerTransitioning) {
+        isScannerTransitioning = true;
+        // Si el escáner está activo, detenerlo antes de iniciar
+        if (isEscaneoLotesAvanzadoActivo) {
+            scannerLotesAvanzado.stop().then(() => {
+                isEscaneoLotesAvanzadoActivo = false;
+                iniciarEscanerLotesAvanzadoHtml5Qrcode();
+            }).catch(err => {
+                console.warn("No se pudo detener el escáner antes de iniciar:", err);
+                // Intentar iniciar de todos modos
+                iniciarEscanerLotesAvanzadoHtml5Qrcode();
+            });
+        } else {
+            iniciarEscanerLotesAvanzadoHtml5Qrcode();
+        }
+    }
+
+function iniciarEscanerLotesAvanzadoHtml5Qrcode() {
     scannerLotesAvanzado.start(
         { facingMode: "environment" },
-        config,
+        {
+            fps: 10,
+            qrbox: { width: 300, height: 200 },
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            }
+        },
         onEscaneoExitosoLotesAvanzado,
         onErrorEscaneoLotesAvanzado
     ).then(() => {
         isEscaneoLotesAvanzadoActivo = true;
-        console.log("Escáner de lotes avanzado iniciado correctamente");
+        isScannerTransitioning = false;
+        console.log("Escáner de lotes avanzado ACTIVADO");
     }).catch(err => {
-        console.error("Error al iniciar escáner de lotes avanzado:", err);
-        mostrarMensaje('Error al iniciar el escáner', 'error');
+        isScannerTransitioning = false;
+        console.error("Error al activar escáner de lotes avanzado:", err);
+        mostrarMensaje('Error al activar el escáner', 'error');
     });
+}
+}
+
+function pausarEscanerLotesAvanzado() {
+    if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo && !isScannerTransitioning) {
+        isScannerTransitioning = true;
+        scannerLotesAvanzado.stop().then(() => {
+            isEscaneoLotesAvanzadoActivo = false;
+            isScannerTransitioning = false;
+            console.log("Escáner de lotes avanzado DETENIDO (pausar)");
+        }).catch(err => {
+            isScannerTransitioning = false;
+            console.warn("No se pudo detener el escáner al pausar:", err);
+        });
+    }
 }
 
 // Función cuando el escaneo es exitoso
@@ -334,10 +397,10 @@ function onEscaneoExitosoLotesAvanzado(decodedText, decodedResult) {
 
     // Implementar debounce - prevenir registro duplicado de códigos
     const tiempoActual = Date.now();
-    if (ultimoCodigoEscaneado === codigoLimpio && 
+    if (ultimoCodigoEscaneado === codigoLimpio &&
         (tiempoActual - tiempoUltimoEscaneo) < TIEMPO_DEBOUNCE) {
         console.log(`Código ${codigoLimpio} ignorado por debounce (${tiempoActual - tiempoUltimoEscaneo}ms desde el último escaneo)`);
-        
+
         // Reanudar el escáner sin procesar
         setTimeout(() => {
             reanudarEscannerDespuesDeProcesamiento();
@@ -349,10 +412,14 @@ function onEscaneoExitosoLotesAvanzado(decodedText, decodedResult) {
     ultimoCodigoEscaneado = codigoLimpio;
     tiempoUltimoEscaneo = tiempoActual;
 
-    // Pausar el escáner temporalmente
+    // Detener el escáner completamente al detectar código para evitar errores de UI
     if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
-        scannerLotesAvanzado.pause(true);
-        isEscaneoLotesAvanzadoActivo = false;
+        scannerLotesAvanzado.stop().then(() => {
+            isEscaneoLotesAvanzadoActivo = false;
+            console.log("Escáner de lotes avanzado DETENIDO tras escaneo exitoso");
+        }).catch(err => {
+            console.warn("No se pudo detener el escáner tras escaneo exitoso:", err);
+        });
     }
 
     // Procesar el código escaneado
@@ -393,13 +460,13 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
         if (verificarRegistroReciente(datosExtraidos.plu, datosExtraidos.precioPorcion)) {
             mostrarAnimacionProcesamiento('Producto ya registrado recientemente', 'error');
             console.log('Producto ya registrado recientemente, pausando escáner temporalmente');
-            
+
             // Pausar escáner para evitar bucle infinito
             if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
                 scannerLotesAvanzado.pause(true);
                 isEscaneoLotesAvanzadoActivo = false;
             }
-            
+
             // Reanudar después de un tiempo más largo para evitar bucle
             setTimeout(() => {
                 if (scannerLotesAvanzado && !isEscaneoLotesAvanzadoActivo) {
@@ -407,7 +474,7 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
                 }
                 ocultarAnimacionProcesamiento();
             }, 3000); // 3 segundos de pausa para evitar bucle (reducido de 5s)
-            
+
             return;
         }
 
@@ -417,7 +484,7 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
         if (productoExistente && productoExistente.nombre) {
             // Producto completo ya fue escaneado anteriormente
             console.log(`Producto existente encontrado. Configuración confirmación: ${configuracionEscaneo.confirmarProductosSimilares}`);
-            
+
             if (configuracionEscaneo.confirmarProductosSimilares) {
                 // Mostrar ventana de confirmación
                 console.log('Mostrando ventana de confirmación');
@@ -430,13 +497,13 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
         } else if (productoExistente && productoExistente.precioKilo) {
             // Solo tenemos precio por kilo guardado, procesar directamente
             console.log(`Usando precio por kilo guardado: $${productoExistente.precioKilo.toFixed(2)}`);
-            
+
             // Determinar tipo y producto primario usando el código del producto encontrado
             const productoPrimarioId = diccionarioSubproductos.get(producto.codigo);
-            
+
             let infoPrimario = null;
             let tipo = 'primario';
-            
+
             if (productoPrimarioId) {
                 console.log(`✅ Subproducto detectado con precio guardado, código ${producto.codigo} -> primario: ${productoPrimarioId}`);
                 infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
@@ -444,22 +511,22 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
             } else {
                 console.log(`📦 Producto primario detectado con precio guardado: ${producto.codigo}`);
             }
-            
+
             // Crear objeto producto existente completo
             const productoCompleto = {
                 precioKilo: productoExistente.precioKilo,
                 tipo: tipo,
                 productoPrimario: infoPrimario
             };
-            
+
             procesarProductoExistente(producto, datosExtraidos, productoCompleto);
         } else {
             // 5. Verificar si es subproducto o producto primario usando el código del producto encontrado
             console.log(`🔍 Verificando relación de subproducto para código: ${producto.codigo}`);
-            
+
             // Buscar directamente en el diccionario usando el código del producto encontrado
             const productoPrimarioId = diccionarioSubproductos.get(producto.codigo);
-            
+
             if (productoPrimarioId) {
                 // Es un subproducto
                 console.log(`✅ Subproducto detectado, código ${producto.codigo} -> producto primario: ${productoPrimarioId}`);
@@ -495,7 +562,7 @@ async function buscarProductoPorPLU(plu) {
                         resolve(productoExacto);
                         return;
                     }
-                    
+
                     // Si no hay coincidencia exacta, buscar con código completo
                     const codigoCompleto = plu.padStart(12, '0');
                     const productoCompleto = resultados.find(p => String(p.codigo) === codigoCompleto);
@@ -503,7 +570,7 @@ async function buscarProductoPorPLU(plu) {
                         resolve(productoCompleto);
                         return;
                     }
-                    
+
                     // Si no se encuentra, devolver el primer resultado
                     resolve(resultados[0]);
                 } else {
@@ -525,10 +592,10 @@ async function buscarProductoPorPLU(plu) {
 
         // Si no se encuentra en IndexedDB, buscar en Supabase
         console.log(`Producto no encontrado en IndexedDB, buscando en Supabase...`);
-        
+
         // Obtener instancia de Supabase
         const supabase = await getSupabase();
-        
+
         // Primero intentar buscar con el PLU tal como viene (4 dígitos)
         let { data, error } = await supabase
             .from('productos')
@@ -547,7 +614,7 @@ async function buscarProductoPorPLU(plu) {
             console.log(`Producto no encontrado con PLU ${plu}, intentando con código completo...`);
             const codigoCompleto = plu.padStart(12, '0');
             console.log(`Buscando con código completo: ${codigoCompleto}`);
-            
+
             ({ data, error } = await supabase
                 .from('productos')
                 .select(`
@@ -598,19 +665,19 @@ async function buscarProductoPorPLU(plu) {
 // Función para verificar si un producto ya fue escaneado
 function verificarProductoExistente(plu) {
     const productoExistente = productosEscaneados.find(p => p.plu === plu);
-    
+
     if (productoExistente) {
         console.log(`Producto con PLU ${plu} ya fue escaneado anteriormente`);
         return productoExistente;
     }
-    
+
     // Si no fue escaneado, verificar si tenemos precio por kilo guardado
     const precioKiloGuardado = preciosPorKiloGuardados.get(plu);
     if (precioKiloGuardado) {
         console.log(`Precio por kilo guardado para PLU ${plu}: $${precioKiloGuardado.toFixed(2)}`);
         return { plu: plu, precioKilo: precioKiloGuardado };
     }
-    
+
     return null;
 }
 
@@ -618,18 +685,18 @@ function verificarProductoExistente(plu) {
 function verificarRegistroReciente(plu, precioPorcion) {
     const ahora = Date.now();
     const TIEMPO_REGISTRO_RECIENTE = 5000; // 5 segundos - tiempo más largo para evitar bucle
-    
-    const registroReciente = productosEscaneados.find(p => 
-        p.plu === plu && 
+
+    const registroReciente = productosEscaneados.find(p =>
+        p.plu === plu &&
         p.precioPorcion === precioPorcion &&
         (ahora - new Date(p.timestamp).getTime()) < TIEMPO_REGISTRO_RECIENTE
     );
-    
+
     if (registroReciente) {
         console.log(`Producto con PLU ${plu} y precio ${precioPorcion} ya fue registrado recientemente`);
         return true;
     }
-    
+
     return false;
 }
 
@@ -964,22 +1031,22 @@ function actualizarListadoProductosAvanzado() {
 window.eliminarProductoEscaneado = function (id) {
     console.log(`Eliminando producto con ID: ${id}`);
     console.log('Productos antes de eliminar:', productosEscaneados);
-    
+
     // Encontrar el índice del producto a eliminar
     const index = productosEscaneados.findIndex(item => item.id === id);
-    
+
     if (index !== -1) {
         // Eliminar del array
         productosEscaneados.splice(index, 1);
-        
+
         console.log('Productos después de eliminar:', productosEscaneados);
-        
+
         // Actualizar el listado inmediatamente
         actualizarListadoProductosAvanzado();
-        
+
         // Actualizar contadores
         actualizarContadoresAvanzado();
-        
+
         // Mostrar mensaje de confirmación
         mostrarAlertaBurbuja('🗑️ Producto eliminado', 'success');
     } else {
@@ -994,14 +1061,14 @@ function pausarEscaneoLotesAvanzado() {
         // Pausar el escáner completamente
         scannerLotesAvanzado.pause(true);
         isEscaneoLotesAvanzadoActivo = false;
-        
+
         // Actualizar estado del botón
         document.getElementById('pausarEscaneoLotesAvanzado').textContent = 'Reanudar Escáner';
         document.getElementById('pausarEscaneoLotesAvanzado').className = 'bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded';
-        
+
         // Limpiar variables de debounce al pausar
         limpiarDebounce();
-        
+
         console.log('Escáner pausado y variables de debounce limpiadas');
     }
 }
@@ -1011,14 +1078,14 @@ function reanudarEscaneoLotesAvanzado() {
     if (scannerLotesAvanzado && !isEscaneoLotesAvanzadoActivo) {
         scannerLotesAvanzado.resume();
         isEscaneoLotesAvanzadoActivo = true;
-        
+
         // Actualizar estado del botón
         document.getElementById('pausarEscaneoLotesAvanzado').textContent = 'Pausar Escáner';
         document.getElementById('pausarEscaneoLotesAvanzado').className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded';
-        
+
         // Limpiar variables de debounce al reanudar
         limpiarDebounce();
-        
+
         console.log('Escáner reanudado y variables de debounce limpiadas');
     }
 }
@@ -1028,11 +1095,11 @@ function reanudarEscannerSinLimpiarDebounce() {
     if (scannerLotesAvanzado && !isEscaneoLotesAvanzadoActivo) {
         scannerLotesAvanzado.resume();
         isEscaneoLotesAvanzadoActivo = true;
-        
+
         // Actualizar estado del botón
         document.getElementById('pausarEscaneoLotesAvanzado').textContent = 'Pausar Escáner';
         document.getElementById('pausarEscaneoLotesAvanzado').className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded';
-        
+
         // NO limpiar debounce para mantener el control
         console.log('Escáner reanudado sin limpiar debounce');
     }
@@ -1062,6 +1129,21 @@ function finalizarEscaneoLotesAvanzado() {
     const totalProductos = productosEscaneados.length;
     const pesoTotal = productosEscaneados.reduce((sum, item) => sum + item.peso, 0);
     const productosPrimarios = productosAgrupados.length;
+
+    // Deshabilitar el botón de iniciar escaneo por lotes avanzado
+    const btnIniciar = document.getElementById('iniciarEscaneoLotesAvanzado');
+    if (btnIniciar) {
+        btnIniciar.disabled = true;
+        btnIniciar.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    // Hacer scroll automático al botón de guardar inventario
+    setTimeout(() => {
+        const btnGuardar = document.getElementById('guardarInventarioLotesAvanzado');
+        if (btnGuardar) {
+            btnGuardar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 400);
 
     const mensaje = `
         Resumen del escaneo por lotes avanzado:
@@ -1235,7 +1317,7 @@ async function guardarInventarioLotesAvanzado() {
         // Verificar sesión y obtener datos del usuario
         const { verificarSesionValida } = await import('./auth.js');
         const sesionValida = await verificarSesionValida();
-        
+
         if (!sesionValida) {
             mostrarMensaje('Sesión no válida. Por favor, inicie sesión nuevamente', 'error');
             return;
@@ -1392,11 +1474,11 @@ async function guardarInventarioLotesAvanzado() {
             // PASO 4: Actualizar tabla de inventario si existe
             try {
                 console.log('Actualizando tabla de inventario...');
-                
+
                 // Importar y ejecutar sincronización desde Supabase
                 const { sincronizarInventarioDesdeSupabase } = await import('./db-operations.js');
                 await sincronizarInventarioDesdeSupabase();
-                
+
                 console.log('Tabla de inventario actualizada exitosamente');
             } catch (e) {
                 console.warn('No se pudo actualizar la tabla automáticamente:', e);
@@ -1472,6 +1554,13 @@ async function guardarInventarioLotesAvanzado() {
         cambiarPestanaPrincipal('manual');
 
         mostrarAlertaBurbuja(`💾 Inventario guardado: ${productosGuardados} productos`, 'success');
+
+        // Habilitar el botón de iniciar escaneo por lotes avanzado después de guardar
+        const btnIniciar = document.getElementById('iniciarEscaneoLotesAvanzado');
+        if (btnIniciar) {
+            btnIniciar.disabled = false;
+            btnIniciar.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
 
     } catch (error) {
         console.error('Error general al guardar inventario:', error);
@@ -1556,7 +1645,7 @@ function extraerDatosCodeCODE128(codigo) {
     // Sanitizar entrada
     codigo = sanitizarEntrada(codigo);
     codigo = codigo.replace(/^0+/, ''); // Eliminar ceros a la izquierda
-    
+
     // Regex para extraer datos: ^2(\d{4})(\d{6})(\d{2})(\d+)$
     // Grupos: 1=PLU(4 dígitos), 2=pesos(6 dígitos), 3=centavos(2 dígitos), 4=control(variable)
     const regexExtraccion = /^2(\d{4})(\d{6})(\d{2})(\d+)$/;
@@ -1637,11 +1726,11 @@ async function guardarEnIndexedDBConReintento(inventarioData, maxReintentos = 3)
         try {
             await new Promise((resolve, reject) => {
                 const request = indexedDB.open("InventarioDB", 3);
-                request.onsuccess = function(event) {
+                request.onsuccess = function (event) {
                     const db = event.target.result;
                     const transaction = db.transaction(['inventario'], 'readwrite');
                     const objectStore = transaction.objectStore('inventario');
-                    
+
                     // Usar put en lugar de add para permitir actualizaciones/reemplazos
                     const putRequest = objectStore.put(inventarioData);
                     putRequest.onsuccess = () => {
@@ -1666,7 +1755,7 @@ async function guardarEnIndexedDBConReintento(inventarioData, maxReintentos = 3)
                     });
                     reject(e);
                 };
-                request.onupgradeneeded = function(event) {
+                request.onupgradeneeded = function (event) {
                     const db = event.target.result;
                     // Crear el object store si no existe
                     if (!db.objectStoreNames.contains('inventario')) {

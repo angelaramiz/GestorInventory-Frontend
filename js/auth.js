@@ -177,6 +177,22 @@ async function iniciarSesion(email, password) {
         });
 
         if (!response.ok) {
+            if (response.status === 429) {
+                // Bloqueo por demasiados intentos
+                let retrySeconds = 60;
+                let errorData = {};
+                try {
+                    errorData = await response.json();
+                    if (errorData.retry_after) {
+                        retrySeconds = parseInt(errorData.retry_after, 10);
+                    }
+                } catch (e) {
+                    // Si no se puede parsear, usar valor por defecto
+                }
+                mostrarBloqueoLogin(retrySeconds);
+                mostrarAlertaBurbuja('Demasiados intentos. Espera antes de volver a intentar.', 'error');
+                return;
+            }
             const errorData = await response.json();
             mostrarAlertaBurbuja(errorData.error || 'Error al iniciar sesión', 'error');
             return;

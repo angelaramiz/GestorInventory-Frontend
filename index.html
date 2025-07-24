@@ -69,6 +69,14 @@
         </form>
 
         <div id="mensaje" class="mt-4 dark-theme-message"></div>
+        <div id="bloqueoLogin" class="mt-4 hidden">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative flex items-center justify-between">
+                <span>
+                    <strong>Demasiados intentos.</strong> Has sido bloqueado temporalmente.<br>
+                    Espera <span id="temporizadorBloqueo">60</span> segundos para volver a intentar.
+                </span>
+            </div>
+        </div>
     </div>
 
     <script src="./js/mobile-optimizer.js"></script>
@@ -101,6 +109,27 @@
         } else {
             console.warn('⚠️ Service Workers no son compatibles con este navegador');
         }
+    </script>
+    <script>
+    // Función para mostrar bloqueo y temporizador en login
+    function mostrarBloqueoLogin(segundos = 60) {
+        const bloqueoDiv = document.getElementById('bloqueoLogin');
+        const temporizadorSpan = document.getElementById('temporizadorBloqueo');
+        const btnLogin = document.querySelector('#formLogin button[type="submit"]');
+        let tiempoRestante = segundos;
+        bloqueoDiv.classList.remove('hidden');
+        btnLogin.disabled = true;
+        temporizadorSpan.textContent = tiempoRestante;
+        const intervalo = setInterval(() => {
+            tiempoRestante--;
+            temporizadorSpan.textContent = tiempoRestante;
+            if (tiempoRestante <= 0) {
+                clearInterval(intervalo);
+                bloqueoDiv.classList.add('hidden');
+                btnLogin.disabled = false;
+            }
+        }, 1000);
+    }
     </script>
 </body>
 

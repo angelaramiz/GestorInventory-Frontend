@@ -1,7 +1,30 @@
-# 📱 GestorInventory - Sistema de Gestión de Inventario
+# 📱 GestorInventory -### 🚀 **Funcionalidades Avanzadas**
+- ✅ **Sistema de lotes avanzado** con control granular
+- ✅ **Temas oscuro/claro** automáticos
+- ✅ **PWA completa** instalable como aplicación nativa
+- ✅ **Sincronización automática** con resolución de conflictos
+- ✅ **Modo offline completo** con IndexedDB
+
+---
+
+## 📋 **Changelog - Últimas Actualizaciones**
+
+### 🔄 **Agosto 2025 - Corrección de Precisión Decimal**
+- ✅ **Corrección crítica**: Solucionado problema de truncamiento de cantidades decimales
+- ✅ **Inventario manual**: Las cantidades como "5.999" y "14.500" ahora se guardan correctamente
+- ✅ **Inventario por lotes avanzado**: Preservación de precisión decimal en pesos y cantidades
+- ✅ **Validación mejorada**: Nueva validación que acepta valores decimales incluyendo cero
+- ✅ **Funciones afectadas**:
+  - `guardarInventario()`: Cambio de `parseInt()` a `parseFloat()` y validación mejorada
+  - `modificarInventario()`: Cambio de `parseInt()` a `parseFloat()`
+  - `guardarInventarioLotesAvanzado()`: Eliminación de `Math.round()` que causaba truncamiento
+- ✅ **Compatibilidad**: Mantiene compatibilidad total con datos existentes
+- ✅ **Base de datos**: Supabase almacena ahora correctamente los valores decimales
+
+--- de Gestión de Inventario
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/angelaramiz/GestorInventory-Frontend)
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
 ![Mobile Optimized](https://img.shields.io/badge/mobile-optimized-green.svg)
 ![PWA Ready](https://img.shields.io/badge/PWA-ready-purple.svg)
 
@@ -41,8 +64,9 @@
 
 ### 📊 **Gestión de Inventario Avanzada**
 - **🎯 Control multi-lote**: Manejo detallado de diferentes lotes del mismo producto
-- **📋 Trazabilidad completa**: Seguimiento de:
-  - Cantidad exacta y unidades de medida personalizables
+- **� Precisión decimal**: Soporte completo para cantidades decimales (ej: 5.999, 14.500, 0.25)
+- **�📋 Trazabilidad completa**: Seguimiento de:
+  - Cantidad exacta y unidades de medida personalizables con precisión decimal
   - Fechas de caducidad con alertas configurables
   - Números de lote y control de proveedores
   - Comentarios y notas específicas por lote
@@ -616,4 +640,4 @@ Para cualquier consulta, problema técnico o sugerencia, contacta con el equipo 
 
 ---
 
-*Última actualización: Mayo 2025* 
+*Última actualización: Agosto 2025* 

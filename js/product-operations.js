@@ -722,8 +722,10 @@ export async function guardarInventario() {
     const fechaCaducidad = document.getElementById("fechaCaducidad").value;
     const unidad = document.getElementById("unidadProducto").value;
 
-    if (!cantidad || !fechaCaducidad) {
-        mostrarMensaje("Cantidad y Fecha de Caducidad son obligatorios", "error");
+    // Validar que cantidad sea un número válido (incluyendo decimales y cero)
+    const cantidadNum = parseFloat(cantidad);
+    if (isNaN(cantidadNum) || cantidadNum < 0 || !fechaCaducidad) {
+        mostrarMensaje("Cantidad debe ser un número válido mayor o igual a 0 y Fecha de Caducidad es obligatoria", "error");
         return;
     }
 
@@ -1015,7 +1017,7 @@ export async function modificarInventario() {
         marca: productoInfoBase.marca,
         lote: lote,
         unidad: unidad || productoInfoBase.unidad || "Pz",
-        cantidad: parseInt(cantidad),
+        cantidad: parseFloat(cantidad),
         caducidad: fechaCaducidad,
         comentarios: comentarios || "N/A",
         last_modified: new Date().toISOString(),

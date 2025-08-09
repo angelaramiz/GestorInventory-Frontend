@@ -1,0 +1,110 @@
+{
+  "name": "gestor-inventory-frontend",
+  "version": "2.0.0",
+  "description": "Sistema de gestión de inventario con PWA capabilities",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "http-server -p 8080 -c-1",
+    "build": "npm run lint && npm run test && npm run build:assets",
+    "build:assets": "echo 'Building assets...' && npm run optimize:images",
+    "lint": "eslint js/ src/ --ext .js",
+    "lint:fix": "eslint js/ src/ --ext .js --fix",
+    "format": "prettier --write \"**/*.{js,html,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,html,css,md}\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "analyze": "node tools/dependency-analyzer.js",
+    "analyze:bundle": "npm run build && bundlesize",
+    "quality": "node tools/quality-check.js",
+    "optimize:images": "echo 'Optimizing images...'",
+    "validate:html": "html-validate plantillas/*.html index.html",
+    "validate:css": "stylelint css/**/*.css",
+    "audit": "npm audit && npm run analyze",
+    "clean": "rimraf coverage dist .nyc_output",
+    "precommit": "npm run lint && npm run test:ci",
+    "prepare": "husky install",
+    "start": "npm run dev",
+    "serve": "http-server -p 8080",
+    "docs": "jsdoc -c jsdoc.config.json",
+    "migration": "node tools/migration-helper.js",
+    "check-deps": "npm-check-updates",
+    "security": "npm audit --audit-level moderate"
+  },
+  "keywords": [
+    "inventory",
+    "management",
+    "pwa",
+    "javascript",
+    "frontend",
+    "supabase"
+  ],
+  "author": "Angel Aramiz",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "babel-jest": "^29.7.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "fake-indexeddb": "^4.0.2",
+    "http-server": "^14.1.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.1",
+    "bundlesize": "^0.18.1",
+    "html-validate": "^8.5.0",
+    "stylelint": "^15.11.0",
+    "stylelint-config-standard": "^34.0.0",
+    "jsdoc": "^4.0.2",
+    "npm-check-updates": "^16.14.6",
+    "rimraf": "^5.0.5"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "uuid": "^9.0.1"
+  },
+  "bundlesize": [
+    {
+      "path": "./js/*.js",
+      "maxSize": "50 kB"
+    },
+    {
+      "path": "./css/*.css",
+      "maxSize": "20 kB"
+    }
+  ],
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write",
+      "jest --findRelatedTests --passWithNoTests"
+    ],
+    "*.{html,css,md}": [
+      "prettier --write"
+    ]
+  },
+  "jest": {
+    "preset": "./jest.config.js"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not IE_Mob 11"
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angelaramiz/GestorInventory-Frontend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/angelaramiz/GestorInventory-Frontend/issues"
+  },
+  "homepage": "https://github.com/angelaramiz/GestorInventory-Frontend#readme"
+}

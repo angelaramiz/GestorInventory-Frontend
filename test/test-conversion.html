@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Conversión Guión a Ceros</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-container { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        input { padding: 10px; margin: 10px; border: 1px solid #ccc; border-radius: 3px; width: 200px; }
+        .result { margin-top: 10px; padding: 10px; background-color: #f0f0f0; border-radius: 3px; }
+        .test-passed { background-color: #d4edda; color: #155724; }
+        .test-failed { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Test de Conversión de Guión (-) a 6 Ceros (000000)</h1>
+    
+    <div class="test-container">
+        <h3>Test Manual</h3>
+        <label>Prueba escribiendo "28331-1" en este campo:</label><br>
+        <input type="text" id="testInput" placeholder="Escribe aquí: 28331-1">
+        <div id="testResult" class="result"></div>
+    </div>
+    
+    <div class="test-container">
+        <h3>Tests Automáticos</h3>
+        <div id="automaticTests"></div>
+        <button onclick="runAutomaticTests()">Ejecutar Tests Automáticos</button>
+    </div>
+
+    <script>
+        // Función para convertir guión a 6 ceros
+        function convertirGuionACeros(valor) {
+            return valor.replace(/-/g, '000000');
+        }
+
+        // Función para aplicar la conversión a un input
+        function aplicarConversionCodigo(input) {
+            if (!input) return;
+            
+            input.addEventListener('input', function(e) {
+                const valorOriginal = e.target.value;
+                const valorConvertido = convertirGuionACeros(valorOriginal);
+                
+                if (valorOriginal !== valorConvertido) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = valorConvertido;
+                    
+                    const diferencia = valorConvertido.length - valorOriginal.length;
+                    const nuevaPosicion = Math.min(cursorPos + diferencia, valorConvertido.length);
+                    e.target.setSelectionRange(nuevaPosicion, nuevaPosicion);
+                }
+            });
+
+            input.addEventListener('blur', function(e) {
+                e.target.value = convertirGuionACeros(e.target.value);
+            });
+        }
+
+        // Aplicar conversión al campo de test
+        document.addEventListener('DOMContentLoaded', function() {
+            const testInput = document.getElementById('testInput');
+            const testResult = document.getElementById('testResult');
+            
+            aplicarConversionCodigo(testInput);
+            
+            testInput.addEventListener('input', function() {
+                testResult.textContent = `Valor actual: "${this.value}"`;
+                testResult.className = 'result';
+            });
+            
+            testInput.addEventListener('blur', function() {
+                const expected = '283310000001';
+                if (this.value === expected) {
+                    testResult.textContent = `✅ ¡Correcto! Valor: "${this.value}"`;
+                    testResult.className = 'result test-passed';
+                } else if (this.value.includes('-')) {
+                    testResult.textContent = `❌ Error: Aún contiene guión. Valor: "${this.value}"`;
+                    testResult.className = 'result test-failed';
+                } else {
+                    testResult.textContent = `⚠️ Valor inesperado: "${this.value}"`;
+                    testResult.className = 'result';
+                }
+            });
+        });
+
+        function runAutomaticTests() {
+            const tests = [
+                { input: '28331-1', expected: '283310000001', description: 'Código con un guión' },
+                { input: '123-456', expected: '1230000004560000000', description: 'Código con dos guiones' },
+                { input: 'ABC-123', expected: 'ABC0000001230000000', description: 'Código alfanumérico con guión' },
+                { input: '12345', expected: '12345', description: 'Código sin guión (no debe cambiar)' },
+                { input: '', expected: '', description: 'Campo vacío' },
+                { input: '-', expected: '000000', description: 'Solo un guión' },
+                { input: '---', expected: '000000000000000000', description: 'Múltiples guiones' }
+            ];
+
+            const resultsContainer = document.getElementById('automaticTests');
+            resultsContainer.innerHTML = '<h4>Resultados:</h4>';
+
+            tests.forEach((test, index) => {
+                const result = convertirGuionACeros(test.input);
+                const passed = result === test.expected;
+                
+                const testDiv = document.createElement('div');
+                testDiv.className = `result ${passed ? 'test-passed' : 'test-failed'}`;
+                testDiv.innerHTML = `
+                    <strong>Test ${index + 1}:</strong> ${test.description}<br>
+                    Input: "${test.input}" → Output: "${result}"<br>
+                    Esperado: "${test.expected}"<br>
+                    ${passed ? '✅ PASÓ' : '❌ FALLÓ'}
+                `;
+                
+                resultsContainer.appendChild(testDiv);
+            });
+        }
+    </script>
+</body>
+</html>

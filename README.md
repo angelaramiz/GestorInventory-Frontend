@@ -1,13 +1,12 @@
-# 📱 GestorInventory -### 🚀 **Funcionalidades Avanzadas**
-- ✅ **Sistema de lotes avanzado** con control granular
-- ✅ **Temas oscuro/claro** automáticos
-- ✅ **PWA completa** instalable como aplicación nativa
-- ✅ **Sincronización automática** con resolución de conflictos
-- ✅ **Modo offline completo** con IndexedDB
+# GestorInventory-Frontend
 
----
+Sistema de gestión de inventario moderno con arquitectura escalable y capacidades PWA.
 
-## 📋 **Changelog - Últimas Actualizaciones**
+## 🚀 Estado del Proyecto
+
+**Versión**: 2.0.0 (Refactorización en progreso)  
+**Fase Actual**: ✅ Fase 1 Completada - Preparación y Auditoría  
+**Próxima Fase**: 🔄 Fase 2 - Migración del Core (Modelos y Repositorios)
 
 ### 🔄 **Agosto 2025 - Corrección de Precisión Decimal**
 - ✅ **Corrección crítica**: Solucionado problema de truncamiento de cantidades decimales

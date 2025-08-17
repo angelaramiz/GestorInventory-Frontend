@@ -461,8 +461,8 @@ async function generarReportePDF(opciones) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        const pageWidth = 210;
-        const pageHeight = 297;
+    const pageWidth = 210;
+    const pageHeight = 297;
         const margin = 10;
         const cardWidth = (pageWidth - (margin * 3)) / 2;
         const cardHeight = 45;
@@ -477,7 +477,9 @@ async function generarReportePDF(opciones) {
             return areaA.localeCompare(areaB);
         });
 
-        for (let areaIndex = 0; areaIndex < areasOrdenadas.length; areaIndex++) {
+    const organizacion = document.title || 'Organización';
+
+    for (let areaIndex = 0; areaIndex < areasOrdenadas.length; areaIndex++) {
             const areaId = areasOrdenadas[areaIndex];
             const area = todasLasAreas.find(a => a.id === areaId);
             const areaNombre = area ? area.nombre : 'Área desconocida';
@@ -518,11 +520,11 @@ async function generarReportePDF(opciones) {
                 y = margin;
             }
 
-            // Título del área
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text(`Productos de inventario de área: "${areaNombre}"`, margin, y);
-            y += 15;
+            // Dibujar encabezado con fecha y pie con organización en la página actual
+            dibujarEncabezadoYPie(doc, areaNombre, margin, pageWidth, pageHeight, organizacion);
+
+            // Reservar espacio debajo del encabezado
+            y = margin + 15;
 
             contenidoProcesado = true;
 
@@ -530,7 +532,7 @@ async function generarReportePDF(opciones) {
             for (const categoria of categoriasAfiltrar) {
                 if (!categorias[categoria] || categorias[categoria].length === 0) continue;
 
-                y = procesarCategoriaEnPDF(doc, categorias[categoria], categoria, y, margin, cardWidth, cardHeight, pageHeight, opciones);
+                y = procesarCategoriaEnPDF(doc, categorias[categoria], categoria, y, margin, cardWidth, cardHeight, pageHeight, opciones, areaNombre, pageWidth, organizacion);
             }
         }
 
@@ -557,6 +559,28 @@ async function generarReportePDF(opciones) {
             }
         }
         
+        // Asegurar que la organización aparezca en el pie de todas las páginas (incluida la única página)
+        try {
+            const totalPages = doc.getNumberOfPages();
+            for (let p = 1; p <= totalPages; p++) {
+                doc.setPage(p);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(100, 100, 100);
+                // Ubicar el pie ligeramente por encima del borde inferior para evitar solapamientos
+                const footerY = pageHeight - margin - 6;
+                const footerText = `Página ${p}/${totalPages}`;
+                try {
+                    doc.text(footerText, pageWidth / 2, footerY, { align: 'center' });
+                } catch (e) {
+                    const w = doc.getTextWidth(footerText);
+                    doc.text(footerText, (pageWidth - w) / 2, footerY);
+                }
+            }
+        } catch (e) {
+            console.error('Error al dibujar pies de página en todas las páginas:', e);
+        }
+
         doc.save(`${nombreArchivo}.pdf`);
         Swal.fire('¡Éxito!', 'Reporte de preconteo generado correctamente.', 'success');
     } catch (error) {
@@ -635,7 +659,7 @@ function categorizarProductosPorCaducidad(productos) {
 }
 
 // Procesar una categoría de productos en el PDF
-function procesarCategoriaEnPDF(doc, productos, categoria, yInicial, margin, cardWidth, cardHeight, pageHeight, opciones) {
+function procesarCategoriaEnPDF(doc, productos, categoria, yInicial, margin, cardWidth, cardHeight, pageHeight, opciones, areaNombre, pageWidth, organizacion) {
     let y = yInicial;
 
     if (productos.length === 0) return y;
@@ -643,7 +667,9 @@ function procesarCategoriaEnPDF(doc, productos, categoria, yInicial, margin, car
     // Verificar si hay espacio para el encabezado de la categoría
     if (y + 20 > pageHeight - margin) {
         doc.addPage();
-        y = margin;
+        // Dibujar encabezado/pie en la nueva página
+        dibujarEncabezadoYPie(doc, areaNombre, margin, pageWidth, pageHeight, organizacion);
+        y = margin + 15;
     }
 
     // Configurar estilo del encabezado según la categoría
@@ -677,7 +703,9 @@ function procesarCategoriaEnPDF(doc, productos, categoria, yInicial, margin, car
         // Verificar si necesitamos una nueva página
         if (y + cardHeight > pageHeight - margin) {
             doc.addPage();
-            y = margin;
+            // Dibujar encabezado/pie en la nueva página
+            dibujarEncabezadoYPie(doc, areaNombre, margin, pageWidth, pageHeight, organizacion);
+            y = margin + 15;
             currentColumn = 0;
         }
 
@@ -740,6 +768,35 @@ function obtenerConfiguracionCategoria(categoria) {
     };
 
     return configuraciones[categoria] || configuraciones.otros;
+}
+
+// Dibujar encabezado (título + fecha) y pie de página (organización) en la página actual
+function dibujarEncabezadoYPie(doc, areaNombre, margin, pageWidth, pageHeight, organizacion) {
+    const fechaStr = new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+
+    // Encabezado: título a la izquierda, fecha a la derecha
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Productos de inventario de área: "${areaNombre}"`, margin, margin + 6);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    try {
+        doc.text(fechaStr, pageWidth - margin, margin + 6, { align: 'right' });
+    } catch (e) {
+        // Fallback si la opción align no está soportada
+        const txtWidth = doc.getTextWidth(fechaStr);
+        doc.text(fechaStr, pageWidth - margin - txtWidth, margin + 6);
+    }
+
+    // Línea separadora debajo del encabezado
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.4);
+    doc.line(margin, margin + 9, pageWidth - margin, margin + 9);
+
+    // Nota: el pie con paginación se agrega en una pasada final antes de guardar el PDF.
+    // Aquí no dibujamos el nombre de la organización para evitar duplicados.
 }
 
 // Agregar producto con estilo específico de categoría

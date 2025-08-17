@@ -320,7 +320,8 @@ function inicializarEscanerLotesAvanzado() {
     if (btnAccion) {
         btnAccion.addEventListener('click', function () {
             if (isEscaneoLotesAvanzadoActivo) {
-                pausarEscanerLotesAvanzado();
+                // Llamar a la función correcta que pausa el escáner
+                pausarEscaneoLotesAvanzado();
                 btnAccion.textContent = 'Activar escáner';
             } else {
                 activarEscanerLotesAvanzado();
@@ -337,18 +338,25 @@ function activarEscanerLotesAvanzado() {
         isScannerTransitioning = true;
         // Si el escáner está activo, detenerlo antes de iniciar
         if (isEscaneoLotesAvanzadoActivo) {
-            scannerLotesAvanzado.stop().then(() => {
-                isEscaneoLotesAvanzadoActivo = false;
+            try {
+                scannerLotesAvanzado.stop().then(() => {
+                    isEscaneoLotesAvanzadoActivo = false;
+                    iniciarEscanerLotesAvanzadoHtml5Qrcode();
+                }).catch(err => {
+                    console.warn("No se pudo detener el escáner antes de iniciar:", err);
+                    // Intentar iniciar de todos modos
+                    iniciarEscanerLotesAvanzadoHtml5Qrcode();
+                });
+            } catch (err) {
+                // html5-qrcode puede lanzar inmediatamente si no está corriendo
+                console.warn('stop() lanzó excepción sincronamente:', err);
                 iniciarEscanerLotesAvanzadoHtml5Qrcode();
-            }).catch(err => {
-                console.warn("No se pudo detener el escáner antes de iniciar:", err);
-                // Intentar iniciar de todos modos
-                iniciarEscanerLotesAvanzadoHtml5Qrcode();
-            });
+            }
         } else {
             iniciarEscanerLotesAvanzadoHtml5Qrcode();
         }
     }
+}
 
 function iniciarEscanerLotesAvanzadoHtml5Qrcode() {
     scannerLotesAvanzado.start(
@@ -372,7 +380,7 @@ function iniciarEscanerLotesAvanzadoHtml5Qrcode() {
         mostrarMensaje('Error al activar el escáner', 'error');
     });
 }
-}
+
 
 function pausarEscanerLotesAvanzado() {
     if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo && !isScannerTransitioning) {
@@ -983,17 +991,20 @@ function actualizarContadoresAvanzado() {
     const pesoTotal = productosEscaneados.reduce((sum, item) => sum + item.peso, 0);
     const productosPrimarios = new Set(productosEscaneados.map(p => p.productoPrimario?.codigo || p.codigo)).size;
 
-    document.getElementById('contadorProductosAvanzado').textContent = totalProductos;
-    document.getElementById('totalProductosAvanzado').textContent = totalProductos;
-    document.getElementById('pesoTotalAvanzado').textContent = pesoTotal.toFixed(3);
-    document.getElementById('totalProductosPrimarios').textContent = productosPrimarios;
+    const contadorEl = document.getElementById('contadorProductosAvanzado');
+    const totalProductosEl = document.getElementById('totalProductosAvanzado');
+    const pesoTotalEl = document.getElementById('pesoTotalAvanzado');
+    const totalPrimariosEl = document.getElementById('totalProductosPrimarios');
+
+    if (contadorEl) contadorEl.textContent = totalProductos;
+    if (totalProductosEl) totalProductosEl.textContent = totalProductos;
+    if (pesoTotalEl) pesoTotalEl.textContent = pesoTotal.toFixed(3);
+    if (totalPrimariosEl) totalPrimariosEl.textContent = productosPrimarios;
 
     // Habilitar botón finalizar si hay productos
     const btnFinalizar = document.getElementById('finalizarEscaneoLotesAvanzado');
-    if (totalProductos > 0) {
-        btnFinalizar.disabled = false;
-    } else {
-        btnFinalizar.disabled = true;
+    if (btnFinalizar) {
+        btnFinalizar.disabled = !(totalProductos > 0);
     }
 }
 
@@ -1057,51 +1068,109 @@ window.eliminarProductoEscaneado = function (id) {
 
 // Función para pausar el escaneo
 function pausarEscaneoLotesAvanzado() {
-    if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
-        // Pausar el escáner completamente
-        scannerLotesAvanzado.pause(true);
-        isEscaneoLotesAvanzadoActivo = false;
+    const btn = document.getElementById('pausarEscaneoLotesAvanzado');
+    try {
+        if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
+            try {
+                // Intentar pausar primero
+                scannerLotesAvanzado.pause(true);
+            } catch (pauseErr) {
+                // Si pause falla (librería puede no soportarlo), intentar stop como fallback
+                console.warn('pause() falló, intentando stop() como fallback:', pauseErr);
+                try {
+                    scannerLotesAvanzado.stop();
+                } catch (stopErr) {
+                    console.warn('stop() también falló al pausar:', stopErr);
+                }
+            }
 
-        // Actualizar estado del botón
-        document.getElementById('pausarEscaneoLotesAvanzado').textContent = 'Reanudar Escáner';
-        document.getElementById('pausarEscaneoLotesAvanzado').className = 'bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded';
+            isEscaneoLotesAvanzadoActivo = false;
 
-        // Limpiar variables de debounce al pausar
-        limpiarDebounce();
+            // Actualizar estado del botón si existe
+            if (btn) {
+                btn.textContent = 'Reanudar Escáner';
+                btn.className = 'bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded';
+            }
 
-        console.log('Escáner pausado y variables de debounce limpiadas');
+            // Limpiar variables de debounce al pausar
+            limpiarDebounce();
+
+            console.log('Escáner pausado y variables de debounce limpiadas');
+        } else {
+            console.log('pausarEscaneoLotesAvanzado: el escáner no está activo, no hay acción');
+        }
+    } catch (err) {
+        console.warn('Error al pausar el escáner:', err);
+        if (btn) {
+            btn.textContent = 'Reanudar Escáner';
+        }
     }
 }
 
 // Función para reanudar el escaneo
 function reanudarEscaneoLotesAvanzado() {
+    const btn = document.getElementById('pausarEscaneoLotesAvanzado');
     if (scannerLotesAvanzado && !isEscaneoLotesAvanzadoActivo) {
-        scannerLotesAvanzado.resume();
-        isEscaneoLotesAvanzadoActivo = true;
+        try {
+            // Intentar resume(); si falla, intentar iniciar el escáner de nuevo
+            if (typeof scannerLotesAvanzado.resume === 'function') {
+                scannerLotesAvanzado.resume();
+            } else {
+                throw new Error('resume() no disponible');
+            }
+            isEscaneoLotesAvanzadoActivo = true;
 
-        // Actualizar estado del botón
-        document.getElementById('pausarEscaneoLotesAvanzado').textContent = 'Pausar Escáner';
-        document.getElementById('pausarEscaneoLotesAvanzado').className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded';
+            // Actualizar estado del botón si existe
+            if (btn) {
+                btn.textContent = 'Pausar Escáner';
+                btn.className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded';
+            }
 
-        // Limpiar variables de debounce al reanudar
-        limpiarDebounce();
+            // Limpiar variables de debounce al reanudar
+            limpiarDebounce();
 
-        console.log('Escáner reanudado y variables de debounce limpiadas');
+            console.log('Escáner reanudado y variables de debounce limpiadas');
+        } catch (err) {
+            console.warn('No se pudo resumir el escáner con resume():', err, 'Intentando iniciar el escáner...');
+            // Intentar iniciar el escáner si resume no funciona
+            try {
+                iniciarEscanerLotesAvanzadoHtml5Qrcode();
+                // iniciarEscanerLotesAvanzadoHtml5Qrcode marcará isEscaneoLotesAvanzadoActivo en su flujo
+            } catch (startErr) {
+                console.error('Error al iniciar el escáner como fallback:', startErr);
+            }
+        }
     }
 }
 
 // Función para reanudar el escáner sin limpiar debounce (para evitar bucles)
 function reanudarEscannerSinLimpiarDebounce() {
+    const btn = document.getElementById('pausarEscaneoLotesAvanzado');
     if (scannerLotesAvanzado && !isEscaneoLotesAvanzadoActivo) {
-        scannerLotesAvanzado.resume();
-        isEscaneoLotesAvanzadoActivo = true;
+        try {
+            if (typeof scannerLotesAvanzado.resume === 'function') {
+                scannerLotesAvanzado.resume();
+            } else {
+                throw new Error('resume() no disponible');
+            }
+            isEscaneoLotesAvanzadoActivo = true;
 
-        // Actualizar estado del botón
-        document.getElementById('pausarEscaneoLotesAvanzado').textContent = 'Pausar Escáner';
-        document.getElementById('pausarEscaneoLotesAvanzado').className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded';
+            // Actualizar estado del botón si existe
+            if (btn) {
+                btn.textContent = 'Pausar Escáner';
+                btn.className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded';
+            }
 
-        // NO limpiar debounce para mantener el control
-        console.log('Escáner reanudado sin limpiar debounce');
+            // NO limpiar debounce para mantener el control
+            console.log('Escáner reanudado sin limpiar debounce');
+        } catch (err) {
+            console.warn('resume() falló en reanudarEscannerSinLimpiarDebounce():', err, 'Intentando iniciar...');
+            try {
+                iniciarEscanerLotesAvanzadoHtml5Qrcode();
+            } catch (startErr) {
+                console.error('Error al iniciar escáner como fallback:', startErr);
+            }
+        }
     }
 }
 
@@ -1575,19 +1644,53 @@ async function guardarInventarioLotesAvanzado() {
 
 // Función para cerrar el modal de lotes avanzado
 function cerrarModalLotesAvanzado() {
-    if (scannerLotesAvanzado) {
-        scannerLotesAvanzado.stop().then(() => {
+    (async () => {
+        if (scannerLotesAvanzado) {
+            try {
+                // Intentar detener de forma segura
+                await scannerLotesAvanzado.stop();
+            } catch (err) {
+                console.warn('stop() falló al cerrar modal (puede que ya estuviera detenido):', err);
+            }
+
+            try {
+                // Intentar limpiar la instancia
+                if (typeof scannerLotesAvanzado.clear === 'function') {
+                    await scannerLotesAvanzado.clear();
+                }
+            } catch (clearErr) {
+                console.warn('clear() falló al cerrar modal:', clearErr);
+            }
+
+            // Además, detener manualmente cualquier track de video residual en el contenedor
+            try {
+                const reader = document.getElementById('reader-lotes-avanzado');
+                if (reader) {
+                    const video = reader.querySelector('video');
+                    if (video && video.srcObject) {
+                        const tracks = video.srcObject.getTracks();
+                        tracks.forEach(t => {
+                            try { t.stop(); } catch (e) { /* ignore */ }
+                        });
+                    }
+                    // Vaciar el contenedor
+                    reader.innerHTML = '';
+                }
+            } catch (trackErr) {
+                console.warn('Error al limpiar tracks de video:', trackErr);
+            }
+
+            // Finalmente, nullificar la referencia
             scannerLotesAvanzado = null;
             isEscaneoLotesAvanzadoActivo = false;
-        }).catch(err => {
-            console.error('Error al detener scanner:', err);
-        });
-    }
+        }
 
-    document.getElementById('modalEscaneoLotesAvanzado').style.display = 'none';
+        const modal = document.getElementById('modalEscaneoLotesAvanzado');
+        if (modal) modal.style.display = 'none';
 
-    // Limpiar animaciones
-    ocultarAnimacionProcesamiento();
+        // Limpiar animaciones
+        ocultarAnimacionProcesamiento();
+    })();
 }
 
 // Función para mostrar animación de procesamiento

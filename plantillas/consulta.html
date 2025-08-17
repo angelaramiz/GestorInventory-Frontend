@@ -355,17 +355,7 @@
                 });
             }
 
-            // Integrar el escáner avanzado de scanner.js para la pestaña de relaciones
-            import('../js/scanner.js').then(scannerModule => {
-                const escanearBtnRelacion = document.getElementById('escanearBtnRelacion');
-                if (escanearBtnRelacion) {
-                    escanearBtnRelacion.addEventListener('click', function() {
-                        // Usar el modal de scanner.js y manejarCodigoEscaneado
-                        scannerModule.toggleEscaner('codigoRelacion');
-                        // El flujo de scanner.js ya coloca el código procesado en el input
-                    });
-                }
-            });
+            // El manejo del botón de escanear ya lo realiza `main.js` (evitamos listeners duplicados).
         });
     </script>
 </body>

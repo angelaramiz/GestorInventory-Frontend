@@ -141,28 +141,87 @@ export function toggleEscaner(inputId) {
 
 // Detener el escáner
 export function detenerEscaner() {
+    // Si existe una instancia de scanner, detenerla correctamente
     if (scanner) {
         scanner.stop().then(() => {
             // Liberar el stream de la cámara manualmente
-            const videoElement = document.querySelector("#reader video");
-            if (videoElement && videoElement.srcObject) {
-                videoElement.srcObject.getTracks().forEach(track => track.stop());
-                videoElement.srcObject = null;
+            try {
+                const videoElement = document.querySelector("#reader video");
+                if (videoElement && videoElement.srcObject) {
+                    videoElement.srcObject.getTracks().forEach(track => track.stop());
+                    videoElement.srcObject = null;
+                }
+            } catch (e) {
+                console.warn('No se pudo acceder al elemento video para detener pistas:', e);
             }
-            scanner.clear();
+            try {
+                scanner.clear();
+            } catch (e) {
+                console.warn('Error al limpiar instancia de scanner:', e);
+            }
             scanner = null;
             console.log("Escáner y cámara detenidos correctamente");
         }).catch((err) => {
             console.error("Error al detener el escáner:", err);
             mostrarMensaje("Error al detener la cámara", "error");
+            // Intentar forzar la detención de la cámara aunque scanner.stop falle
+            try {
+                const videoElement = document.querySelector("#reader video");
+                if (videoElement && videoElement.srcObject) {
+                    videoElement.srcObject.getTracks().forEach(track => track.stop());
+                    videoElement.srcObject = null;
+                }
+            } catch (e) {
+                console.warn('Forzado: no se pudo detener las pistas de video:', e);
+            }
+            try {
+                if (scanner && typeof scanner.clear === 'function') scanner.clear();
+            } catch (e) {}
+            scanner = null;
         });
+        return;
+    }
+
+    // Si no hay instancia de scanner, intentar detener cualquier stream activo por el elemento video
+    try {
+        const videoElement = document.querySelector("#reader video");
+        if (videoElement && videoElement.srcObject) {
+            videoElement.srcObject.getTracks().forEach(track => track.stop());
+            videoElement.srcObject = null;
+            console.log("Pistas de video detenidas (no existía instancia scanner)");
+        }
+    } catch (e) {
+        console.warn('No se encontró video activo para detener:', e);
     }
 }
 // Nueva función para iniciar el escáner dentro del modal
-export function iniciarEscaneoConModal(inputId) {
+export async function iniciarEscaneoConModal(inputId) {
     try {
         const scannerContainer = document.getElementById("scanner-container-modal");
         if (!scannerContainer) return;
+        // Si ya hay una instancia activa, detenerla primero para evitar múltiples streams
+        if (scanner) {
+            try {
+                await scanner.stop();
+            } catch (e) {
+                console.warn('Error al detener instancia previa de scanner antes de crear nueva:', e);
+            }
+            try {
+                const videoElementPrev = document.querySelector("#reader video");
+                if (videoElementPrev && videoElementPrev.srcObject) {
+                    videoElementPrev.srcObject.getTracks().forEach(track => track.stop());
+                    videoElementPrev.srcObject = null;
+                }
+            } catch (e) {
+                console.warn('No se pudo forzar parada de pistas del video previo:', e);
+            }
+            try { scanner.clear(); } catch (e) {}
+            scanner = null;
+        }
+
+        // Asegurar que el contenedor reader esté limpio antes de crear la nueva instancia
+        const readerEl = document.getElementById('reader');
+        if (readerEl) readerEl.innerHTML = '';
 
         scanner = new Html5Qrcode("reader");
         scanner.start(

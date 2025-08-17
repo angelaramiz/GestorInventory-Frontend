@@ -21,6 +21,20 @@ let configuracionEscaneo = {
     sonidoConfirmacion: true
 };
 
+// Nueva opción: permitir/denegar la búsqueda de relaciones productos_subproductos
+// Leer persistencia desde localStorage, si existe
+try {
+    const storedRelacionar = localStorage.getItem('lotes_relacionarProductos');
+    if (storedRelacionar === null) {
+        configuracionEscaneo.relacionarProductos = true; // default ON
+    } else {
+        configuracionEscaneo.relacionarProductos = (storedRelacionar === '1' || storedRelacionar === 'true');
+    }
+} catch (e) {
+    // Si localStorage no está disponible, usar default
+    configuracionEscaneo.relacionarProductos = true;
+}
+
 // Variables para control de debounce de escaneo
 let ultimoCodigoEscaneado = null;
 let tiempoUltimoEscaneo = 0;
@@ -89,6 +103,26 @@ function inicializarSistemaLotesAvanzado() {
         checkboxSonido.checked = configuracionEscaneo.sonidoConfirmacion;
     }
 
+    // Checkbox para relacionar productos (por defecto true). Reflejar valor persistido y asegurar listener
+    const checkboxRelacionar = document.getElementById('relacionarProductos');
+    if (checkboxRelacionar) {
+        try {
+            checkboxRelacionar.checked = !!configuracionEscaneo.relacionarProductos;
+        } catch (e) {
+            checkboxRelacionar.checked = true;
+        }
+        // Guardar cambios en localStorage cuando el usuario lo modifique
+        checkboxRelacionar.addEventListener('change', function () {
+            configuracionEscaneo.relacionarProductos = !!this.checked;
+            try {
+                localStorage.setItem('lotes_relacionarProductos', this.checked ? '1' : '0');
+            } catch (err) {
+                console.warn('No se pudo persistir la opción relacionarProductos en localStorage', err);
+            }
+            console.log('Configuración relacionarProductos cambiada:', configuracionEscaneo.relacionarProductos);
+        });
+    }
+
     // Event listeners para las pestañas principales
     document.getElementById('tabInventarioManual')?.addEventListener('click', () => {
         cambiarPestanaPrincipal('manual');
@@ -113,6 +147,8 @@ function inicializarSistemaLotesAvanzado() {
         configuracionEscaneo.sonidoConfirmacion = this.checked;
         console.log('Configuración sonido cambiada:', this.checked);
     });
+
+    // (Ya se registró listener arriba cuando existe el elemento)
 
     // Event listener para iniciar escaneo por lotes avanzado
     document.getElementById('iniciarEscaneoLotesAvanzado')?.addEventListener('click', iniciarEscaneoLotesAvanzado);
@@ -507,17 +543,20 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
             console.log(`Usando precio por kilo guardado: $${productoExistente.precioKilo.toFixed(2)}`);
 
             // Determinar tipo y producto primario usando el código del producto encontrado
-            const productoPrimarioId = diccionarioSubproductos.get(producto.codigo);
-
             let infoPrimario = null;
             let tipo = 'primario';
 
-            if (productoPrimarioId) {
-                console.log(`✅ Subproducto detectado con precio guardado, código ${producto.codigo} -> primario: ${productoPrimarioId}`);
-                infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
-                tipo = 'subproducto';
+            if (configuracionEscaneo.relacionarProductos) {
+                const productoPrimarioId = diccionarioSubproductos.get(producto.codigo);
+                if (productoPrimarioId) {
+                    console.log(`✅ Subproducto detectado con precio guardado, código ${producto.codigo} -> primario: ${productoPrimarioId}`);
+                    infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
+                    tipo = 'subproducto';
+                } else {
+                    console.log(`📦 Producto primario detectado con precio guardado: ${producto.codigo}`);
+                }
             } else {
-                console.log(`📦 Producto primario detectado con precio guardado: ${producto.codigo}`);
+                console.log('Relacionar productos DESACTIVADO - saltando búsqueda de relaciones');
             }
 
             // Crear objeto producto existente completo
@@ -532,18 +571,24 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
             // 5. Verificar si es subproducto o producto primario usando el código del producto encontrado
             console.log(`🔍 Verificando relación de subproducto para código: ${producto.codigo}`);
 
-            // Buscar directamente en el diccionario usando el código del producto encontrado
-            const productoPrimarioId = diccionarioSubproductos.get(producto.codigo);
-
-            if (productoPrimarioId) {
-                // Es un subproducto
-                console.log(`✅ Subproducto detectado, código ${producto.codigo} -> producto primario: ${productoPrimarioId}`);
-                const infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
-                mostrarModalInformacionProducto(producto, datosExtraidos, infoPrimario, 'subproducto');
-            } else {
-                // Es un producto primario
-                console.log(`📦 Producto primario detectado: ${producto.codigo}`);
+            // Si la configuración indica saltar relaciones, tratar como primario
+            if (!configuracionEscaneo.relacionarProductos) {
+                console.log('Relacionar productos DESACTIVADO - tratar como primario');
                 mostrarModalInformacionProducto(producto, datosExtraidos, null, 'primario');
+            } else {
+                // Buscar directamente en el diccionario usando el código del producto encontrado
+                const productoPrimarioId = diccionarioSubproductos.get(producto.codigo);
+
+                if (productoPrimarioId) {
+                    // Es un subproducto
+                    console.log(`✅ Subproducto detectado, código ${producto.codigo} -> producto primario: ${productoPrimarioId}`);
+                    const infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
+                    mostrarModalInformacionProducto(producto, datosExtraidos, infoPrimario, 'subproducto');
+                } else {
+                    // Es un producto primario
+                    console.log(`📦 Producto primario detectado: ${producto.codigo}`);
+                    mostrarModalInformacionProducto(producto, datosExtraidos, null, 'primario');
+                }
             }
         }
 

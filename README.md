@@ -23,6 +23,13 @@
 
 --- de Gestión de Inventario
 
+### 🛠️ 17 de agosto de 2025 - Correcciones y mejoras
+- ✅ Correcciones en el sistema de escaneo: se solucionó apertura doble de cámara y se reforzó el ciclo de vida del escáner para evitar cámaras persistentes.
+- ✅ Mejoras en "Lotes Avanzado": protección contra errores DOM nulos, manejo robusto de pausa/reanudar, y nueva opción "Relacionar productos" (persistida en localStorage).
+- ✅ Reportes PDF: fecha de generación en encabezado, paginación en pie y se removieron emojis incompatibles para evitar caracteres garbled en jsPDF.
+
+Para detalles completos de las modificaciones, ver `CAMBIOS.md` en la raíz del proyecto.
+
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/angelaramiz/GestorInventory-Frontend)
 ![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
 ![Mobile Optimized](https://img.shields.io/badge/mobile-optimized-green.svg)

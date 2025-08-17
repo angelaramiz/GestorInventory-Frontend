@@ -731,35 +731,36 @@ function procesarCategoriaEnPDF(doc, productos, categoria, yInicial, margin, car
 function obtenerConfiguracionCategoria(categoria) {
     const configuraciones = {
         vencidos: {
-            titulo: '🚨 PRODUCTOS VENCIDOS',
+            // Evitar emojis aquí porque jsPDF no los renderiza correctamente en muchos entornos
+            titulo: 'PRODUCTOS VENCIDOS',
             fondo: { r: 220, g: 53, b: 69 },     // Rojo oscuro
             borde: { r: 139, g: 0, b: 0 },       // Rojo muy oscuro
             texto: { r: 255, g: 255, b: 255 },   // Blanco
             bordeTarjeta: { r: 220, g: 53, b: 69 }
         },
         proximosSemana: {
-            titulo: '⚠️ VENCEN EN MENOS DE UNA SEMANA',
+            titulo: 'VENCEN EN MENOS DE UNA SEMANA',
             fondo: { r: 255, g: 193, b: 7 },     // Amarillo
             borde: { r: 212, g: 146, b: 0 },     // Amarillo oscuro
             texto: { r: 0, g: 0, b: 0 },         // Negro
             bordeTarjeta: { r: 255, g: 193, b: 7 }
         },
         mismoMes: {
-            titulo: '📅 VENCEN ESTE MES',
+            titulo: 'VENCEN ESTE MES',
             fondo: { r: 255, g: 152, b: 0 },     // Naranja
             borde: { r: 198, g: 117, b: 0 },     // Naranja oscuro
             texto: { r: 0, g: 0, b: 0 },         // Negro
             bordeTarjeta: { r: 255, g: 152, b: 0 }
         },
         siguienteMes: {
-            titulo: '📋 VENCEN EL PRÓXIMO MES',
+            titulo: 'VENCEN EL PRÓXIMO MES',
             fondo: { r: 32, g: 201, b: 151 },    // Verde azulado
             borde: { r: 22, g: 141, b: 106 },    // Verde azulado oscuro
             texto: { r: 255, g: 255, b: 255 },   // Blanco
             bordeTarjeta: { r: 32, g: 201, b: 151 }
         },
         otros: {
-            titulo: '📦 OTROS PRODUCTOS',
+            titulo: 'OTROS PRODUCTOS',
             fondo: { r: 108, g: 117, b: 125 },   // Gris
             borde: { r: 73, g: 80, b: 87 },      // Gris oscuro
             texto: { r: 255, g: 255, b: 255 },   // Blanco

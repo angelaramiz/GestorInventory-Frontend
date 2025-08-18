@@ -224,7 +224,30 @@ export function buscarPorCodigoParcial(codigoCorto, tipo, callback) {
         if (esNumerico) {
             // Búsqueda por código
             resultados = productos.filter(producto => {
-                const code = String(producto.codigo); // Asegurarse de que el código sea una cadena de texto
+                const codeRaw = String(producto.codigo || ''); // Asegurarse de que el código sea una cadena de texto
+                const code = codeRaw.trim();
+                const codeNoZeros = code.replace(/^0+/, '');
+
+                // Si la búsqueda tiene 4 dígitos (PLU), buscar exactamente en la posición esperada:
+                // normalmente el PLU viene después del prefijo '2' (ej: 283100000006 -> PLU = '8310' en substr(1,4)).
+                if (codigoCorto.length === 4) {
+                    // Comparar en el formato sin ceros iniciales
+                    if (codeNoZeros.length >= 5 && codeNoZeros.charAt(0) === '2' && codeNoZeros.substr(1, 4) === codigoCorto) {
+                        return true;
+                    }
+                    // También comparar en el código original si tiene el mismo patrón
+                    if (code.length >= 5 && code.charAt(0) === '2' && code.substr(1, 4) === codigoCorto) {
+                        return true;
+                    }
+                    // Fall back: coincidencia exacta total (si el producto guarda solo el PLU)
+                    if (code === codigoCorto || codeNoZeros === codigoCorto) {
+                        return true;
+                    }
+                    // No coincidencia exacta en la posición => no incluir
+                    return false;
+                }
+
+                // Búsqueda general (mantener includes para otras longitudes)
                 return code.includes(codigoCorto);
             });
         }

@@ -881,7 +881,9 @@ function guardarInfoProducto() {
     console.log(`Precio por kilo guardado para PLU ${datosExtraidos.plu}: $${precioKilo.toFixed(2)}`);
 
     // Recalcular peso con el precio por kilo ingresado
-    const pesoCalculado = datosExtraidos.precioPorcion / precioKilo;
+    const pesoCalculadoRaw = datosExtraidos.precioPorcion / precioKilo;
+    // Redondear a 3 decimales para evitar artefactos de punto flotante
+    const pesoCalculado = Math.round(pesoCalculadoRaw * 1000) / 1000;
 
     // Crear objeto del producto escaneado
     const productoEscaneado = {
@@ -892,7 +894,7 @@ function guardarInfoProducto() {
         marca: producto.marca,
         unidad: producto.unidad,
         categoria: producto.categoria,
-        peso: pesoCalculado,
+    peso: pesoCalculado,
         precioPorcion: datosExtraidos.precioPorcion,
         precioKilo: precioKilo,
         tipo: tipo,
@@ -936,7 +938,8 @@ function cerrarModalInfoProducto() {
 function procesarProductoExistente(producto, datosExtraidos, productoExistente) {
     // Usar el precio por kilo ya almacenado (puede venir de producto escaneado o precio guardado)
     const precioKilo = productoExistente.precioKilo;
-    const pesoCalculado = datosExtraidos.precioPorcion / precioKilo;
+    const pesoCalculadoRaw = datosExtraidos.precioPorcion / precioKilo;
+    const pesoCalculado = Math.round(pesoCalculadoRaw * 1000) / 1000;
 
     // Crear objeto del producto escaneado
     const productoEscaneado = {
@@ -1518,7 +1521,8 @@ async function guardarInventarioLotesAvanzado() {
                     categoria: grupo.productoPrimario.categoria,
                     lote: loteNumerico,
                     unidad: grupo.productoPrimario.unidad || 'Kg',
-                    cantidad: parseFloat(grupo.pesoTotal), // Guardar como float (kg)
+                    // Redondear pesoTotal a 3 decimales antes de guardar
+                    cantidad: Math.round(parseFloat(grupo.pesoTotal || 0) * 1000) / 1000,
                     caducidad: fechaCaducidadStr,
                     comentarios: comentarios,
                     last_modified: new Date().toISOString(),

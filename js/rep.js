@@ -312,10 +312,14 @@ function fusionarProductosPorCodigo(productos) {
         if (mapaProductos.has(codigo)) {
             const productoExistente = mapaProductos.get(codigo);
 
-            // Sumar cantidades (como números)
+            // Sumar cantidades (como números) y redondear a 3 decimales para evitar artefactos de punto flotante
             const cantidadOriginal = parseFloat(productoExistente.cantidad) || 0;
             const cantidadNueva = parseFloat(producto.cantidad) || 0;
-            productoExistente.cantidad = (cantidadOriginal + cantidadNueva).toString();
+            const suma = cantidadOriginal + cantidadNueva;
+            // Redondeo a 3 decimales
+            const sumaRedondeada = Math.round(suma * 1000) / 1000;
+            // Guardar como string con 3 decimales para consistencia en el reporte
+            productoExistente.cantidad = sumaRedondeada.toFixed(3);
 
             // Acumular información de lotes en los comentarios
             let comentarioLote = `Lote: ${producto.lote || 'Sin especificar'}, Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
@@ -847,7 +851,13 @@ function agregarProductoConEstiloCategoria(doc, producto, xCurrent, yCurrent, ca
         }
     }
 
-    const cantidadTexto = `Cant: ${producto.cantidad || '0'} ${producto.unidad || 'uds.'}`;
+    // Mostrar cantidad formateada: si la unidad es Kg mostrar 3 decimales, si no mostrar tal cual
+    let cantidadDisplay = producto.cantidad || '0';
+    const cantidadNum = parseFloat(producto.cantidad);
+    if (!isNaN(cantidadNum) && producto.unidad && String(producto.unidad).toLowerCase().includes('kg')) {
+        cantidadDisplay = cantidadNum.toFixed(3);
+    }
+    const cantidadTexto = `Cant: ${cantidadDisplay} ${producto.unidad || 'uds.'}`;
     if (textY + 4 <= yCurrent + cardHeight - 3) {
         doc.text(cantidadTexto, xCurrent + 3, textY);
         textY += 4;

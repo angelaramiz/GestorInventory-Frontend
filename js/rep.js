@@ -5,6 +5,36 @@ let productosInventario = [];
 let supabase;
 let todasLasAreas = [];
 
+// Helper: parsear una fecha tipo 'YYYY-MM-DD' o ISO y devolver una Date en la fecha local
+function parseDateLocal(fecha) {
+    if (!fecha) return null;
+    if (fecha instanceof Date && !isNaN(fecha)) {
+        return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+    }
+    const s = String(fecha).trim();
+    // Formato exacto YYYY-MM-DD -> crear Date en hora local (evitar conversión UTC)
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) {
+        const y = parseInt(m[1], 10);
+        const mo = parseInt(m[2], 10) - 1;
+        const d = parseInt(m[3], 10);
+        return new Date(y, mo, d);
+    }
+
+    // Intentar parseo general (ISO u otros). Luego convertir a fecha local usando componentes año/mes/día
+    const dt = new Date(s);
+    if (!isNaN(dt)) {
+        return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    }
+
+    return null;
+}
+
+function formatDateLocal(fecha) {
+    const d = parseDateLocal(fecha);
+    return d ? d.toLocaleDateString('es-ES') : null;
+}
+
 // Inicializar la página
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -323,8 +353,8 @@ function fusionarProductosPorCodigo(productos) {
 
             // Acumular información de lotes en los comentarios
             let comentarioLote = `Lote: ${producto.lote || 'Sin especificar'}, Cantidad: ${producto.cantidad || '0'} ${producto.unidad || 'unidades'}`;
-            if (producto.caducidad) {
-                comentarioLote += `, Caducidad: ${new Date(producto.caducidad).toLocaleDateString('es-ES')}`;
+                if (producto.caducidad) {
+                comentarioLote += `, Caducidad: ${formatDateLocal(producto.caducidad)}`;
             }
 
             // Agregar el área si está disponible
@@ -392,9 +422,9 @@ function fusionarProductosPorCodigo(productos) {
 
             // Conservar la fecha de caducidad más próxima
             if (producto.caducidad && productoExistente.caducidad) {
-                const fechaExistente = new Date(productoExistente.caducidad);
-                const fechaNueva = new Date(producto.caducidad);
-                if (fechaNueva < fechaExistente) {
+                const fechaExistente = parseDateLocal(productoExistente.caducidad);
+                const fechaNueva = parseDateLocal(producto.caducidad);
+                if (fechaNueva && fechaExistente && fechaNueva < fechaExistente) {
                     productoExistente.caducidad = producto.caducidad;
                 }
             } else if (producto.caducidad) {
@@ -641,7 +671,12 @@ function categorizarProductosPorCaducidad(productos) {
             return;
         }
 
-        const fechaCaducidad = new Date(producto.caducidad);
+        const fechaCaducidad = parseDateLocal(producto.caducidad);
+
+        if (!fechaCaducidad) {
+            categorias.otros.push(producto);
+            return;
+        }
 
         if (fechaCaducidad < fechaActual) {
             categorias.vencidos.push(producto);
@@ -817,7 +852,7 @@ function agregarProductoConEstiloCategoria(doc, producto, xCurrent, yCurrent, ca
 
     const nombreProducto = producto.nombre || 'Sin nombre';
     const fechaCaducidad = producto.caducidad
-        ? new Date(producto.caducidad).toLocaleDateString('es-ES')
+        ? formatDateLocal(producto.caducidad)
         : 'Sin caducidad';
 
     // Mostrar el nombre del producto

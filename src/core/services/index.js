@@ -13,6 +13,20 @@ export { BaseService } from './BaseService.js';
 export { InventoryService } from './InventoryService.js';
 export { ProductService } from './ProductService.js';
 export { ScannerService } from './ScannerService.js';
+export { DatabaseService, databaseService } from './DatabaseService.js';
+export { FileOperationsService, fileOperationsService } from './FileOperationsService.js';
+
+// Servicios especializados de productos (migración de product-operations.js)
+export { productOperationsService } from './ProductOperationsService.js';
+export { productUIService } from './ProductUIService.js';
+export { inventoryOperationsService } from './InventoryOperationsService.js';
+export { productPrintService } from './ProductPrintService.js';
+
+// Servicios especializados de lotes (migración de lotes-avanzado.js)
+export { batchScannerService } from './BatchScannerService.js';
+export { batchManagementService } from './BatchManagementService.js';
+export { batchUIService } from './BatchUIService.js';
+export { batchPersistenceService } from './BatchPersistenceService.js';
 
 // Gestor de servicios
 export { ServiceManager, serviceManager } from './ServiceManager.js';

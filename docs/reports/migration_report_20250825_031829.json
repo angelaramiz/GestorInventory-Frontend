@@ -1,0 +1,848 @@
+{
+  "timestamp": "2025-08-25T03:18:29.510659",
+  "analysis": {
+    "legacy": {
+      "db-operations.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\js\\db-operations.js",
+        "size": 78225,
+        "total_lines": 2050,
+        "code_lines": 1500,
+        "comment_lines": 211,
+        "blank_lines": 339,
+        "exports": [
+          "db",
+          "dbInventario",
+          "agregarAColaSincronizacion",
+          "inicializarDB",
+          "inicializarDBInventario",
+          "resetearBaseDeDatos",
+          "cargarCSV",
+          "descargarCSV",
+          "descargarInventarioCSV",
+          "descargarInventarioPDF",
+          "cargarDatosInventarioEnTablaPlantilla",
+          "generarPlantillaInventario",
+          "guardarAreaIdPersistente",
+          "obtenerAreaId",
+          "dbEntradas",
+          "inicializarDBEntradas",
+          "agregarAColaSincronizacionEntradas"
+        ],
+        "imports": [
+          "./logs.js",
+          "./sanitizacion.js",
+          "./auth.js"
+        ],
+        "classes": [],
+        "functions": [
+          "agregarAColaSincronizacion",
+          "procesarColaSincronizacion",
+          "inicializarDB",
+          "inicializarDBInventario",
+          "actualizarInventarioDesdeServidor",
+          "inicializarSuscripciones",
+          "resetearBaseDeDatos",
+          "cargarCSV",
+          "headers",
+          "values",
+          "descargarCSV",
+          "descargarInventarioCSV",
+          "descargarInventarioPDF",
+          "generarPDFConOpciones",
+          "filtrarInventario",
+          "ordenarInventario",
+          "sincronizarProductosDesdeBackend",
+          "existing",
+          "after",
+          "subirProductosAlBackend",
+          "productos",
+          "cargarDatosInventarioEnTablaPlantilla",
+          "ordenarDatosInventario",
+          "mostrarPaginaInventario",
+          "crearControlesPaginacionInventario",
+          "cambiarPaginaInventario",
+          "actualizarInfoPaginacionInventario",
+          "agregarOrdenamientoAColumnas",
+          "cargarDatosEnTabla",
+          "ordenarDatosProductos",
+          "mostrarPaginaProductos",
+          "crearControlesPaginacionProductos",
+          "cambiarPaginaProductos",
+          "actualizarInfoPaginacionProductos",
+          "agregarOrdenamientoAColumnasProductos",
+          "generarPlantillaInventario",
+          "obtenerUbicacionEnUso",
+          "sincronizarInventarioDesdeSupabase",
+          "obtenerAreasPorCategoria",
+          "guardarAreaIdPersistente",
+          "obtenerAreaId",
+          "inicializarDBEntradas",
+          "agregarRegistroEntrada",
+          "cargarEntradasEnTabla",
+          "agregarAColaSincronizacionEntradas",
+          "procesarColaSincronizacionEntradas",
+          "sincronizarEntradasDesdeSupabase",
+          "eliminarRegistroEntrada",
+          "eliminarEntradaDeSupabase",
+          "generarReporteEntradas"
+        ],
+        "last_modified": "2025-08-10T01:43:52.915417"
+      },
+      "product-operations.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\js\\product-operations.js",
+        "size": 87835,
+        "total_lines": 2070,
+        "code_lines": 1649,
+        "comment_lines": 190,
+        "blank_lines": 231,
+        "exports": [
+          "mostrarResultados",
+          "mostrarResultadosInventario",
+          "mostrarFormularioInventario",
+          "mostrarResultadosEdicion",
+          "buscarPorCodigoParcial",
+          "buscarProducto",
+          "buscarProductoParaEditar",
+          "validarCodigoUnico",
+          "limpiarFormularioInventario",
+          "iniciarInventario",
+          "mostrarDetallesProductoConBarcode"
+        ],
+        "imports": [
+          "./db-operations.js",
+          "./logs.js",
+          "./db-operations.js",
+          "./sanitizacion.js",
+          "./auth.js",
+          "https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm",
+          "./main.js"
+        ],
+        "classes": [],
+        "functions": [
+          "generarIdTemporal",
+          "mostrarResultados",
+          "mostrarResultadosInventario",
+          "mostrarFormularioInventario",
+          "mostrarResultadosEdicion",
+          "llenarFormularioEdicion",
+          "buscarPorCodigoParcial",
+          "agregarProducto",
+          "existe",
+          "productoPrimarioExiste",
+          "buscarProducto",
+          "buscarProductoParaEditar",
+          "validarCodigoUnico",
+          "guardarCambios",
+          "eliminarProducto",
+          "limpiarFormularioInventario",
+          "guardarInventario",
+          "producto",
+          "supabase",
+          "supabase",
+          "supabase",
+          "modificarInventario",
+          "productoInfoBase",
+          "todosLosRegistros",
+          "actualizarEnIndexedDB",
+          "buscarProductoInventario",
+          "buscarEnProductos",
+          "buscarEnInventario",
+          "mostrarModalProductoExistente",
+          "productosHTML",
+          "habilitarSeleccionOpciones",
+          "productosHTML",
+          "obtenerUltimoLote",
+          "mostrarFormularioNuevoLote",
+          "reiniciarBusqueda",
+          "mostrarFormularioModificacion",
+          "seleccionarUbicacionAlmacen",
+          "areaSeleccionada",
+          "verificarYSeleccionarUbicacion",
+          "areaSeleccionada",
+          "iniciarInventario",
+          "guardarInventarioLocal",
+          "cargarInventarioLocal",
+          "agregarNuevoProductoDesdeInventario",
+          "existe",
+          "mostrarDetallesProductoConBarcode",
+          "mostrarDetallesProductoConBarcodeImpl",
+          "determinarFormatoBarcode",
+          "imprimirDetallesProducto",
+          "descargarPDFProducto",
+          "manejarErrorSupabase"
+        ],
+        "last_modified": "2025-08-10T01:43:52.919908"
+      },
+      "lotes-avanzado.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\js\\lotes-avanzado.js",
+        "size": 76386,
+        "total_lines": 1800,
+        "code_lines": 1310,
+        "comment_lines": 220,
+        "blank_lines": 270,
+        "exports": [
+          "inicializarSistemaLotesAvanzado,\n    cambiarPestanaPrincipal,\n    cargarDiccionarioSubproductos\n"
+        ],
+        "imports": [
+          "./auth.js",
+          "./product-operations.js",
+          "./main.js",
+          "./logs.js"
+        ],
+        "classes": [],
+        "functions": [
+          "generarIdUnico",
+          "generarLoteNumerico",
+          "inicializarSistemaLotesAvanzado",
+          "cambiarPestanaPrincipal",
+          "cambiarTabModalAvanzado",
+          "limpiarDebounce",
+          "cargarDiccionarioSubproductos",
+          "iniciarEscaneoLotesAvanzado",
+          "inicializarEscanerLotesAvanzado",
+          "activarEscanerLotesAvanzado",
+          "iniciarEscanerLotesAvanzadoHtml5Qrcode",
+          "pausarEscanerLotesAvanzado",
+          "onEscaneoExitosoLotesAvanzado",
+          "onErrorEscaneoLotesAvanzado",
+          "procesarCodigoEscaneadoLotesAvanzado",
+          "buscarProductoPorPLU",
+          "resultadoIndexedDB",
+          "productoExacto",
+          "productoCompleto",
+          "verificarProductoExistente",
+          "productoExistente",
+          "verificarRegistroReciente",
+          "registroReciente",
+          "mostrarModalInformacionProducto",
+          "guardarInfoProducto",
+          "cerrarModalInfoProducto",
+          "procesarProductoExistente",
+          "mostrarVentanaConfirmacionProducto",
+          "actualizarContadoresAvanzado",
+          "pesoTotal",
+          "productosPrimarios",
+          "actualizarListadoProductosAvanzado",
+          "index",
+          "pausarEscaneoLotesAvanzado",
+          "reanudarEscaneoLotesAvanzado",
+          "reanudarEscannerSinLimpiarDebounce",
+          "reanudarEscannerDespuesDeProcesamiento",
+          "finalizarEscaneoLotesAvanzado",
+          "pesoTotal",
+          "agruparProductosPorPrimario",
+          "mostrarResultadosLotesAvanzado",
+          "mostrarDetalleProductoPrimario",
+          "generarComentariosDetallados",
+          "guardarInventarioLotesAvanzado",
+          "cerrarModalLotesAvanzado",
+          "mostrarAnimacionProcesamiento",
+          "ocultarAnimacionProcesamiento",
+          "extraerDatosCodeCODE128",
+          "reproducirSonidoConfirmacion",
+          "sanitizarEntrada",
+          "guardarEnIndexedDBConReintento"
+        ],
+        "last_modified": "2025-08-10T01:43:52.917417"
+      }
+    },
+    "services": {
+      "BaseService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\BaseService.js",
+        "size": 14374,
+        "total_lines": 466,
+        "code_lines": 264,
+        "comment_lines": 148,
+        "blank_lines": 54,
+        "exports": [
+          "BaseService"
+        ],
+        "imports": [
+          "../../js/logs.js"
+        ],
+        "classes": [
+          "BaseService"
+        ],
+        "functions": [
+          "timeoutId",
+          "onlineHandler"
+        ],
+        "last_modified": "2025-08-10T03:04:40.700024"
+      },
+      "DatabaseService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\DatabaseService.js",
+        "size": 14971,
+        "total_lines": 511,
+        "code_lines": 339,
+        "comment_lines": 83,
+        "blank_lines": 89,
+        "exports": [
+          "DatabaseService",
+          "databaseService",
+          "db",
+          "dbInventario",
+          "agregarAColaSincronizacion",
+          "procesarColaSincronizacion",
+          "inicializarDB",
+          "inicializarDBInventario",
+          "inicializarSuscripciones",
+          "resetearBaseDeDatos"
+        ],
+        "imports": [
+          "./BaseService.js",
+          "../../../js/logs.js",
+          "../../../js/auth.js"
+        ],
+        "classes": [
+          "DatabaseService"
+        ],
+        "functions": [
+          "agregarAColaSincronizacion",
+          "procesarColaSincronizacion",
+          "inicializarDB",
+          "inicializarDBInventario",
+          "inicializarSuscripciones",
+          "resetearBaseDeDatos"
+        ],
+        "last_modified": "2025-08-25T02:58:33.024856"
+      },
+      "FileOperationsService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\FileOperationsService.js",
+        "size": 18223,
+        "total_lines": 538,
+        "code_lines": 351,
+        "comment_lines": 80,
+        "blank_lines": 107,
+        "exports": [
+          "FileOperationsService",
+          "fileOperationsService",
+          "cargarCSV",
+          "descargarCSV",
+          "descargarInventarioCSV",
+          "descargarInventarioPDF"
+        ],
+        "imports": [
+          "./BaseService.js",
+          "../../../js/logs.js",
+          "../../../js/sanitizacion.js"
+        ],
+        "classes": [
+          "FileOperationsService"
+        ],
+        "functions": [
+          "lines",
+          "headers",
+          "values",
+          "row",
+          "row",
+          "totalQuantity",
+          "lowStockItems",
+          "cargarCSV",
+          "descargarCSV",
+          "descargarInventarioCSV",
+          "descargarInventarioPDF"
+        ],
+        "last_modified": "2025-08-25T02:54:53.668994"
+      },
+      "ProductOperationsService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\ProductOperationsService.js",
+        "size": 16229,
+        "total_lines": 494,
+        "code_lines": 305,
+        "comment_lines": 97,
+        "blank_lines": 92,
+        "exports": [
+          "ProductOperationsService",
+          "productOperationsService",
+          "agregarProducto",
+          "buscarProducto",
+          "buscarProductoParaEditar",
+          "validarCodigoUnico",
+          "guardarCambios",
+          "eliminarProducto",
+          "buscarPorCodigoParcial"
+        ],
+        "imports": [
+          "./BaseService.js",
+          "../../../js/logs.js",
+          "../../../js/sanitizacion.js",
+          "../models/Product.js",
+          "../repositories/ProductRepository.js",
+          "./DatabaseService.js"
+        ],
+        "classes": [
+          "ProductOperationsService"
+        ],
+        "functions": [
+          "agregarProducto",
+          "buscarProducto",
+          "buscarProductoParaEditar",
+          "validarCodigoUnico",
+          "guardarCambios",
+          "eliminarProducto",
+          "buscarPorCodigoParcial"
+        ],
+        "last_modified": "2025-08-25T03:02:18.981896"
+      },
+      "ProductUIService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\ProductUIService.js",
+        "size": 21960,
+        "total_lines": 569,
+        "code_lines": 415,
+        "comment_lines": 82,
+        "blank_lines": 72,
+        "exports": [
+          "ProductUIService",
+          "productUIService",
+          "mostrarResultados",
+          "mostrarResultadosInventario",
+          "mostrarFormularioInventario",
+          "limpiarFormularioInventario"
+        ],
+        "imports": [
+          "./BaseService.js",
+          "../../../js/logs.js"
+        ],
+        "classes": [
+          "ProductUIService"
+        ],
+        "functions": [
+          "mostrarResultados",
+          "mostrarResultadosInventario",
+          "mostrarFormularioInventario",
+          "limpiarFormularioInventario"
+        ],
+        "last_modified": "2025-08-25T03:03:33.049433"
+      },
+      "InventoryOperationsService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\InventoryOperationsService.js",
+        "size": 21015,
+        "total_lines": 576,
+        "code_lines": 393,
+        "comment_lines": 85,
+        "blank_lines": 98,
+        "exports": [
+          "InventoryOperationsService",
+          "inventoryOperationsService",
+          "guardarInventario",
+          "modificarInventario",
+          "buscarProductoInventario",
+          "seleccionarUbicacionAlmacen",
+          "verificarYSeleccionarUbicacion",
+          "iniciarInventario",
+          "agregarNuevoProductoDesdeInventario"
+        ],
+        "imports": [
+          "./BaseService.js",
+          "../../../js/logs.js",
+          "../../../js/sanitizacion.js",
+          "../repositories/InventoryRepository.js",
+          "../repositories/ProductRepository.js",
+          "./DatabaseService.js"
+        ],
+        "classes": [
+          "InventoryOperationsService"
+        ],
+        "functions": [
+          "product",
+          "guardarInventario",
+          "modificarInventario",
+          "buscarProductoInventario",
+          "seleccionarUbicacionAlmacen",
+          "verificarYSeleccionarUbicacion",
+          "iniciarInventario",
+          "agregarNuevoProductoDesdeInventario"
+        ],
+        "last_modified": "2025-08-25T03:04:37.628548"
+      },
+      "ProductPrintService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\ProductPrintService.js",
+        "size": 20995,
+        "total_lines": 613,
+        "code_lines": 399,
+        "comment_lines": 119,
+        "blank_lines": 95,
+        "exports": [
+          "productPrintService"
+        ],
+        "imports": [
+          "../base/BaseService.js"
+        ],
+        "classes": [
+          "ProductPrintService",
+          "ProductPrintService"
+        ],
+        "functions": [],
+        "last_modified": "2025-08-25T03:07:30.137985"
+      },
+      "InventoryService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\InventoryService.js",
+        "size": 27596,
+        "total_lines": 782,
+        "code_lines": 473,
+        "comment_lines": 187,
+        "blank_lines": 122,
+        "exports": [
+          "InventoryService"
+        ],
+        "imports": [
+          "./BaseService.js",
+          "../../js/logs.js",
+          "../models/Inventory.js",
+          "../models/Batch.js"
+        ],
+        "classes": [
+          "InventoryService"
+        ],
+        "functions": [],
+        "last_modified": "2025-08-10T03:17:42.136028"
+      },
+      "ProductService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\ProductService.js",
+        "size": 32108,
+        "total_lines": 919,
+        "code_lines": 514,
+        "comment_lines": 249,
+        "blank_lines": 156,
+        "exports": [
+          "ProductService"
+        ],
+        "imports": [
+          "./BaseService.js",
+          "../../js/logs.js",
+          "../models/Product.js"
+        ],
+        "classes": [
+          "ProductService"
+        ],
+        "functions": [
+          "localProduct",
+          "remoteCodes"
+        ],
+        "last_modified": "2025-08-10T03:17:42.135027"
+      },
+      "ScannerService.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\ScannerService.js",
+        "size": 17963,
+        "total_lines": 577,
+        "code_lines": 320,
+        "comment_lines": 162,
+        "blank_lines": 95,
+        "exports": [
+          "ScannerService"
+        ],
+        "imports": [
+          "./BaseService.js",
+          "../../js/logs.js"
+        ],
+        "classes": [
+          "ScannerService"
+        ],
+        "functions": [],
+        "last_modified": "2025-08-10T03:17:42.135027"
+      },
+      "ServiceManager.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\services\\ServiceManager.js",
+        "size": 15392,
+        "total_lines": 490,
+        "code_lines": 298,
+        "comment_lines": 126,
+        "blank_lines": 66,
+        "exports": [
+          "ServiceManager",
+          "serviceManager"
+        ],
+        "imports": [
+          "./BaseService.js",
+          "./InventoryService.js",
+          "./ProductService.js",
+          "./ScannerService.js"
+        ],
+        "classes": [
+          "ServiceManager"
+        ],
+        "functions": [],
+        "last_modified": "2025-08-10T03:17:42.135027"
+      }
+    },
+    "bridges": {
+      "db-operations-bridge.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\js\\db-operations-bridge.js",
+        "size": 7712,
+        "total_lines": 254,
+        "code_lines": 117,
+        "comment_lines": 100,
+        "blank_lines": 37,
+        "exports": [
+          "db",
+          "dbInventario",
+          "inicializarDB",
+          "inicializarDBInventario",
+          "inicializarSuscripciones",
+          "agregarAColaSincronizacion",
+          "procesarColaSincronizacion",
+          "resetearBaseDeDatos",
+          "cargarCSV",
+          "descargarCSV",
+          "descargarInventarioCSV",
+          "descargarInventarioPDF",
+          "cargarDatosInventarioEnTablaPlantilla",
+          "sincronizarProductosDesdeBackend",
+          "subirProductosAlBackend",
+          "obtenerEstadisticasSincronizacion",
+          "verificarEstadoDB",
+          "escucharEventoDB",
+          "escucharEventoArchivos",
+          "inicializarTodosLosServicios",
+          "databaseService, fileOperationsService "
+        ],
+        "imports": [
+          "../core/services/DatabaseService.js",
+          "../core/services/FileOperationsService.js"
+        ],
+        "classes": [],
+        "functions": [
+          "initializeServices",
+          "inicializarDB",
+          "inicializarDBInventario",
+          "inicializarSuscripciones",
+          "agregarAColaSincronizacion",
+          "procesarColaSincronizacion",
+          "resetearBaseDeDatos",
+          "cargarCSV",
+          "descargarCSV",
+          "descargarInventarioCSV",
+          "descargarInventarioPDF",
+          "cargarDatosInventarioEnTablaPlantilla",
+          "sincronizarProductosDesdeBackend",
+          "subirProductosAlBackend",
+          "obtenerEstadisticasSincronizacion",
+          "verificarEstadoDB",
+          "escucharEventoDB",
+          "escucharEventoArchivos",
+          "inicializarTodosLosServicios"
+        ],
+        "last_modified": "2025-08-25T02:55:40.633898"
+      },
+      "product-operations-bridge.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\js\\product-operations-bridge.js",
+        "size": 17519,
+        "total_lines": 520,
+        "code_lines": 261,
+        "comment_lines": 193,
+        "blank_lines": 66,
+        "exports": [
+          "agregarProducto",
+          "buscarProducto",
+          "buscarProductoParaEditar",
+          "validarCodigoUnico",
+          "guardarCambios",
+          "eliminarProducto",
+          "buscarPorCodigoParcial",
+          "guardarInventario",
+          "modificarInventario",
+          "buscarProductoInventario",
+          "seleccionarUbicacionAlmacen",
+          "verificarYSeleccionarUbicacion",
+          "iniciarInventario",
+          "agregarNuevoProductoDesdeInventario",
+          "mostrarResultados",
+          "mostrarResultadosInventario",
+          "mostrarResultadosEdicion",
+          "mostrarFormularioInventario",
+          "limpiarFormularioInventario",
+          "mostrarDetallesProductoConBarcode",
+          "generarCodigoBarras",
+          "imprimirEtiquetaProducto",
+          "crearPDFEtiquetas",
+          "configurarImpresion",
+          "generarIdTemporal",
+          "actualizarEnIndexedDB",
+          "buscarEnProductos",
+          "buscarEnInventario",
+          "llenarFormularioEdicion",
+          "guardarInventarioLocal",
+          "cargarInventarioLocal",
+          "inicializarTodosLosServiciosProductos",
+          "autoInicializar",
+          "productOperationsService, \n    productUIService, \n    inventoryOperationsService,\n    productPrintService\n"
+        ],
+        "imports": [
+          "../src/core/services/ProductOperationsService.js",
+          "../src/core/services/ProductUIService.js",
+          "../src/core/services/InventoryOperationsService.js",
+          "../src/core/services/ProductPrintService.js"
+        ],
+        "classes": [],
+        "functions": [
+          "initializeServices",
+          "agregarProducto",
+          "buscarProducto",
+          "buscarProductoParaEditar",
+          "validarCodigoUnico",
+          "guardarCambios",
+          "eliminarProducto",
+          "buscarPorCodigoParcial",
+          "guardarInventario",
+          "modificarInventario",
+          "buscarProductoInventario",
+          "seleccionarUbicacionAlmacen",
+          "verificarYSeleccionarUbicacion",
+          "iniciarInventario",
+          "agregarNuevoProductoDesdeInventario",
+          "mostrarResultados",
+          "mostrarResultadosInventario",
+          "mostrarResultadosEdicion",
+          "mostrarFormularioInventario",
+          "limpiarFormularioInventario",
+          "mostrarDetallesProductoConBarcode",
+          "generarCodigoBarras",
+          "imprimirEtiquetaProducto",
+          "crearPDFEtiquetas",
+          "configurarImpresion",
+          "generarIdTemporal",
+          "actualizarEnIndexedDB",
+          "buscarEnProductos",
+          "buscarEnInventario",
+          "llenarFormularioEdicion",
+          "guardarInventarioLocal",
+          "cargarInventarioLocal",
+          "setupServiceEventListeners",
+          "createLocationSelectionModal",
+          "locationsHTML",
+          "selectedLocation",
+          "inicializarTodosLosServiciosProductos",
+          "autoInicializar"
+        ],
+        "last_modified": "2025-08-25T03:08:20.440385"
+      }
+    },
+    "tests": {
+      "migration-test.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\tests\\migration-test.js",
+        "size": 7978,
+        "total_lines": 240,
+        "code_lines": 167,
+        "comment_lines": 32,
+        "blank_lines": 41,
+        "exports": [
+          "ejecutarTestsMigracion, \n    verificarDependencias, \n    generarReporteFinal \n"
+        ],
+        "imports": [],
+        "classes": [],
+        "functions": [
+          "ejecutarTestsMigracion",
+          "generarReporteFinal",
+          "exito",
+          "porcentajeExito",
+          "verificarDependencias",
+          "todasDisponibles",
+          "main"
+        ],
+        "last_modified": "2025-08-25T02:56:25.569356"
+      },
+      "product-operations-migration-test.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\tests\\product-operations-migration-test.js",
+        "size": 17282,
+        "total_lines": 514,
+        "code_lines": 371,
+        "comment_lines": 71,
+        "blank_lines": 72,
+        "exports": [
+          "TestUtils, TEST_CONFIG, TEST_DATA "
+        ],
+        "imports": [],
+        "classes": [
+          "TestUtils",
+          "BasicServiceTests",
+          "ProductOperationTests",
+          "InventoryOperationTests",
+          "UITests",
+          "PrintTests",
+          "ProductOperationsMigrationTestSuite"
+        ],
+        "functions": [
+          "runProductOperationsMigrationTests"
+        ],
+        "last_modified": "2025-08-25T03:09:41.974195"
+      }
+    },
+    "repositories": {
+      "ProductRepository.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\repositories\\ProductRepository.js",
+        "size": 19350,
+        "total_lines": 581,
+        "code_lines": 373,
+        "comment_lines": 113,
+        "blank_lines": 95,
+        "exports": [
+          "ProductRepository"
+        ],
+        "imports": [
+          "./BaseRepository.js",
+          "../../storage/IndexedDBAdapter.js",
+          "../../storage/SyncQueue.js",
+          "../models/Product.js"
+        ],
+        "classes": [
+          "ProductRepository"
+        ],
+        "functions": [
+          "productosToDelete"
+        ],
+        "last_modified": "2025-08-10T02:43:05.333946"
+      },
+      "InventoryRepository.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\repositories\\InventoryRepository.js",
+        "size": 17514,
+        "total_lines": 528,
+        "code_lines": 335,
+        "comment_lines": 112,
+        "blank_lines": 81,
+        "exports": [
+          "InventoryRepository"
+        ],
+        "imports": [
+          "./BaseRepository.js",
+          "../../storage/IndexedDBAdapter.js",
+          "../../storage/SyncQueue.js",
+          "../models/Inventory.js"
+        ],
+        "classes": [
+          "InventoryRepository"
+        ],
+        "functions": [
+          "results",
+          "allItems",
+          "itemsToDelete"
+        ],
+        "last_modified": "2025-08-10T02:43:05.333946"
+      },
+      "BatchRepository.js": {
+        "path": "C:\\Users\\angel\\Desktop\\Proyectos\\GestorInventory-Frontend(refactory)\\src\\core\\repositories\\BatchRepository.js",
+        "status": "not_found"
+      }
+    }
+  },
+  "metrics": {
+    "legacy_lines": 4459,
+    "new_service_lines": 4071,
+    "bridge_lines": 378,
+    "total_migrated_lines": 4449,
+    "migration_percentage": 99.77573446961202,
+    "files_analyzed": {
+      "legacy": 3,
+      "services": 11,
+      "bridges": 2,
+      "tests": 2,
+      "repositories": 3
+    },
+    "files_completed": {
+      "legacy": 3,
+      "services": 11,
+      "bridges": 2,
+      "tests": 2,
+      "repositories": 2
+    }
+  }
+}

@@ -131,3 +131,4 @@ class BaseModel {
 }
 
 export default BaseModel;
+export { BaseModel }; // Named export para consistencia

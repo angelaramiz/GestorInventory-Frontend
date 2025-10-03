@@ -10,7 +10,7 @@
  * @version 2.0.0
  */
 
-import { BaseService } from '../base/BaseService.js';
+import { BaseService } from './BaseService.js'; // ✅ Corregido de ../base/ a ./
 
 class BasicScannerService extends BaseService {
     constructor() {
@@ -62,7 +62,9 @@ class BasicScannerService extends BaseService {
 
             // Verificar disponibilidad de Html5Qrcode
             if (typeof Html5Qrcode === 'undefined') {
-                throw new Error('Html5Qrcode no está disponible');
+                this.warn('Html5Qrcode no está disponible - servicio de escáner no disponible en esta página');
+                this.status = 'unavailable';
+                return; // No lanzar error, solo marcar como no disponible
             }
             
             // Crear elementos UI necesarios

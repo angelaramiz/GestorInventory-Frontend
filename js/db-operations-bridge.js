@@ -12,8 +12,8 @@
  */
 
 // Importar servicios nuevos
-import { databaseService } from '../core/services/DatabaseService.js';
-import { fileOperationsService } from '../core/services/FileOperationsService.js';
+import { databaseService } from '../src/core/services/DatabaseService.js';
+import { fileOperationsService } from '../src/core/services/FileOperationsService.js';
 
 // Inicializar servicios si no están inicializados
 const initializeServices = async () => {
@@ -142,6 +142,29 @@ export const descargarInventarioPDF = (opciones = {}) => {
 
 /**
  * @deprecated Usar productRepository.findAll() en su lugar
+ * Cargar datos en tabla de archivos (legacy)
+ */
+export const cargarDatosEnTabla = async () => {
+    console.warn('DEPRECATED: cargarDatosEnTabla() - Usar productRepository.findAll()');
+    
+    const tbody = document.getElementById("databaseBody");
+    if (!tbody) {
+        console.error("Elemento 'databaseBody' no encontrado.");
+        return;
+    }
+
+    try {
+        // Import legacy function dynamically to avoid circular dependencies
+        const { cargarDatosEnTabla: legacyCargarDatos } = await import('./db-operations.js');
+        return await legacyCargarDatos();
+    } catch (error) {
+        console.error('Error al cargar datos en tabla:', error);
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500">Error al cargar datos</td></tr>';
+    }
+};
+
+/**
+ * @deprecated Usar productRepository.findAll() en su lugar
  */
 export const cargarDatosInventarioEnTablaPlantilla = () => {
     console.warn('DEPRECATED: cargarDatosInventarioEnTablaPlantilla() - Usar productRepository.findAll()');
@@ -208,6 +231,113 @@ export const escucharEventoArchivos = (evento, callback) => {
     fileOperationsService.on(evento, callback);
 };
 
+// ===== FUNCIONES ADICIONALES PARA COMPATIBILIDAD =====
+
+/**
+ * @deprecated Generar plantilla de inventario (legacy)
+ * Usar InventoryService en su lugar
+ */
+export const generarPlantillaInventario = async () => {
+    console.warn('DEPRECATED: generarPlantillaInventario() - Usar InventoryService');
+    try {
+        const { generarPlantillaInventario: legacyFunc } = await import('./db-operations.js');
+        return await legacyFunc();
+    } catch (error) {
+        console.error('Error al generar plantilla de inventario:', error);
+        throw error;
+    }
+};
+
+/**
+ * @deprecated Sincronizar inventario desde Supabase (legacy)
+ * Usar InventoryService.syncFromBackend() en su lugar
+ */
+export const sincronizarInventarioDesdeSupabase = async () => {
+    console.warn('DEPRECATED: sincronizarInventarioDesdeSupabase() - Usar InventoryService.syncFromBackend()');
+    try {
+        const { sincronizarInventarioDesdeSupabase: legacyFunc } = await import('./db-operations.js');
+        return await legacyFunc();
+    } catch (error) {
+        console.error('Error al sincronizar inventario:', error);
+        throw error;
+    }
+};
+
+/**
+ * @deprecated Obtener ubicación en uso (legacy)
+ * Usar DatabaseService o LocationRepository en su lugar
+ */
+export const obtenerUbicacionEnUso = async () => {
+    console.warn('DEPRECATED: obtenerUbicacionEnUso() - Usar LocationRepository');
+    try {
+        const { obtenerUbicacionEnUso: legacyFunc } = await import('./db-operations.js');
+        return await legacyFunc();
+    } catch (error) {
+        console.error('Error al obtener ubicación en uso:', error);
+        return null;
+    }
+};
+
+/**
+ * @deprecated Guardar área ID de forma persistente (legacy)
+ * Usar ConfigurationService en su lugar
+ */
+export const guardarAreaIdPersistente = async (areaId) => {
+    console.warn('DEPRECATED: guardarAreaIdPersistente() - Usar ConfigurationService');
+    try {
+        const { guardarAreaIdPersistente: legacyFunc } = await import('./db-operations.js');
+        return await legacyFunc(areaId);
+    } catch (error) {
+        console.error('Error al guardar área ID:', error);
+        throw error;
+    }
+};
+
+/**
+ * @deprecated Obtener área ID (legacy)
+ * Usar ConfigurationService en su lugar
+ */
+export const obtenerAreaId = async () => {
+    console.warn('DEPRECATED: obtenerAreaId() - Usar ConfigurationService');
+    try {
+        const { obtenerAreaId: legacyFunc } = await import('./db-operations.js');
+        return await legacyFunc();
+    } catch (error) {
+        console.error('Error al obtener área ID:', error);
+        return null;
+    }
+};
+
+/**
+ * @deprecated Inicializar DB de entradas (legacy)
+ * Usar DatabaseService en su lugar
+ */
+export const inicializarDBEntradas = async () => {
+    console.warn('DEPRECATED: inicializarDBEntradas() - Usar DatabaseService');
+    try {
+        const { inicializarDBEntradas: legacyFunc } = await import('./db-operations.js');
+        return await legacyFunc();
+    } catch (error) {
+        console.error('Error al inicializar DB de entradas:', error);
+        throw error;
+    }
+};
+
+/**
+ * @deprecated Procesar cola de sincronización de entradas (legacy)
+ * Usar DatabaseService.processSyncQueue() en su lugar
+ */
+export const procesarColaSincronizacionEntradas = async () => {
+    console.warn('DEPRECATED: procesarColaSincronizacionEntradas() - Usar DatabaseService.processSyncQueue()');
+    try {
+        const { procesarColaSincronizacionEntradas: legacyFunc } = await import('./db-operations.js');
+        return await legacyFunc();
+    } catch (error) {
+        console.error('Error al procesar cola de sincronización de entradas:', error);
+        throw error;
+    }
+};
+
 // ===== CONFIGURACIÓN AUTOMÁTICA =====
 
 // Configurar listeners automáticos para conexión/desconexión
@@ -226,9 +356,9 @@ if (typeof window !== 'undefined') {
 
 console.log('🔄 db-operations-bridge.js cargado - Usando nueva arquitectura de servicios');
 console.log('📊 Estadísticas de migración:', {
-    servicioBaseDatos: databaseService.name,
-    servicioArchivos: fileOperationsService.name,
-    estadoInicializacion: databaseService.status
+    servicioBaseDatos: databaseService?.name || 'DatabaseService',
+    servicioArchivos: fileOperationsService?.name || 'FileOperationsService',
+    estadoInicializacion: databaseService?.status || 'pendiente'
 });
 
 // Exportar servicios directamente para uso avanzado
@@ -251,3 +381,9 @@ export const inicializarTodosLosServicios = async () => {
         throw error;
     }
 };
+
+// Nota: Las exportaciones de este módulo ya se realizan en cada declaración
+// (export const ...) y, adicionalmente, se exportan directamente los servicios
+// 'databaseService' y 'fileOperationsService' unas líneas arriba. No es
+// necesario (ni correcto) volver a exportar símbolos que no existen en este
+// archivo. Mantener las exportaciones declarativas evita errores de carga ESM.

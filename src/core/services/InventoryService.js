@@ -13,7 +13,7 @@
  */
 
 import { BaseService } from './BaseService.js';
-import { mostrarAlertaBurbuja, mostrarMensaje } from '../../js/logs.js';
+// NO importar logs.js - usar this.showMessage() y this.showToast() de BaseService
 import { Inventory } from '../models/Inventory.js';
 import { Batch } from '../models/Batch.js';
 

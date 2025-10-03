@@ -371,4 +371,6 @@ class Product extends BaseModel {
   }
 }
 
+// Named export para consistencia
+export { Product };
 export default Product;

@@ -1,8 +1,9 @@
-// Importaciones
-import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion, guardarAreaIdPersistente, obtenerAreaId, inicializarDBEntradas, procesarColaSincronizacionEntradas } from './db-operations.js';
+//  MIGRACIÓN: Actualizado para usar bridges de compatibilidad - 2025-08-25T15:00:00.000Z
+// Importaciones actualizadas para usar bridges
+import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion, guardarAreaIdPersistente, obtenerAreaId, inicializarDBEntradas, procesarColaSincronizacionEntradas } from './db-operations-bridge.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
-import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations.js';
-import { toggleEscaner, detenerEscaner } from './scanner.js';
+import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations-bridge.js';
+import { toggleEscaner, detenerEscaner } from './scanner-bridge.js';
 import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente, configurarInterceptorSupabase } from './auth.js';
 
 

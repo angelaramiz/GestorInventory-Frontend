@@ -11,8 +11,8 @@
  */
 
 // Importar servicios especializados
-import { configurationService } from '../core/services/ConfigurationService.js';
-import { configurationUIService } from '../core/services/ConfigurationUIService.js';
+import { configurationService } from '../src/core/services/ConfigurationService.js';
+import { configurationUIService } from '../src/core/services/ConfigurationUIService.js';
 
 /**
  * Inicializar sistema de configuraciones

@@ -12,7 +12,8 @@
  * @version 1.0.0
  */
 
-import { mostrarAlertaBurbuja, mostrarMensaje } from '../../js/logs.js';
+// NO importar logs.js para evitar dependencias circulares
+// Los servicios pueden usar console o window.Swal directamente si es necesario
 
 export class BaseService {
     /**
@@ -28,6 +29,46 @@ export class BaseService {
         this.repositories = {};
         this.eventListeners = new Map();
         this.isInitialized = false;
+    }
+
+    /**
+     * Helper para mostrar mensajes UI (reemplaza mostrarMensaje de logs.js)
+     * @param {string} mensaje - Mensaje a mostrar
+     * @param {string} tipo - Tipo de alerta ('success', 'error', 'info', 'warning')
+     */
+    showMessage(mensaje, tipo = 'info') {
+        if (window.Swal) {
+            window.Swal.fire({
+                icon: tipo,
+                title: tipo === 'success' ? 'Éxito' : tipo === 'error' ? 'Error' : 'Información',
+                text: mensaje,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else {
+            console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
+        }
+    }
+
+    /**
+     * Helper para mostrar alertas toast (reemplaza mostrarAlertaBurbuja de logs.js)
+     * @param {string} mensaje - Mensaje a mostrar
+     * @param {string} tipo - Tipo de alerta
+     */
+    showToast(mensaje, tipo = 'info') {
+        if (window.Swal) {
+            window.Swal.fire({
+                icon: tipo,
+                text: mensaje,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        } else {
+            console.log(`[TOAST ${tipo.toUpperCase()}] ${mensaje}`);
+        }
     }
 
     /**
@@ -161,8 +202,14 @@ export class BaseService {
             this.log(`Operación ${operationName} completada en ${duration}ms`);
             
             // Mostrar mensaje de éxito si está configurado
-            if (options.successMessage) {
-                mostrarMensaje(options.successMessage, 'success');
+            if (options.successMessage && window.Swal) {
+                window.Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: options.successMessage,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             }
             
             // Emitir evento de éxito
@@ -179,11 +226,16 @@ export class BaseService {
             this.handleError(error, operationName, duration);
             
             // Mostrar mensaje de error si está configurado
-            if (options.showErrorAlert !== false) {
-                mostrarAlertaBurbuja(
-                    `Error en ${operationName}: ${error.message}`,
-                    'error'
-                );
+            if (options.showErrorAlert !== false && window.Swal) {
+                window.Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: `Error en ${operationName}: ${error.message}`,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
             }
             
             // Emitir evento de error
@@ -207,8 +259,8 @@ export class BaseService {
         const errorInfo = {
             service: this.serviceName,
             operation,
-            error: error.message,
-            stack: error.stack,
+            error: error?.message || String(error),
+            stack: error?.stack,
             duration,
             timestamp: new Date().toISOString()
         };
@@ -216,15 +268,18 @@ export class BaseService {
         // Log del error
         console.error(`[${this.serviceName}] Error en ${operation}:`, errorInfo);
         
+        // Obtener mensaje de error de forma segura
+        const errorMessage = error?.message || String(error);
+        
         // Clasificar tipo de error
-        if (error.name === 'ValidationError') {
-            this.log(`Error de validación en ${operation}: ${error.message}`);
-        } else if (error.message.includes('conexión') || error.message.includes('network')) {
-            this.log(`Error de conexión en ${operation}: ${error.message}`);
-        } else if (error.message.includes('autenticación') || error.message.includes('authorization')) {
-            this.log(`Error de autenticación en ${operation}: ${error.message}`);
+        if (error?.name === 'ValidationError') {
+            this.log(`Error de validación en ${operation}: ${errorMessage}`);
+        } else if (errorMessage.includes?.('conexión') || errorMessage.includes?.('network')) {
+            this.log(`Error de conexión en ${operation}: ${errorMessage}`);
+        } else if (errorMessage.includes?.('autenticación') || errorMessage.includes?.('authorization')) {
+            this.log(`Error de autenticación en ${operation}: ${errorMessage}`);
         } else {
-            this.log(`Error no clasificado en ${operation}: ${error.message}`);
+            this.log(`Error no clasificado en ${operation}: ${errorMessage}`);
         }
     }
 
@@ -246,6 +301,50 @@ export class BaseService {
                 break;
             default:
                 console.log(logMessage);
+        }
+    }
+
+    /**
+     * Log de debug (más detallado que log normal)
+     * @param {string} message - Mensaje a logear
+     * @param {Object} data - Datos adicionales opcionales
+     */
+    debug(message, data = null) {
+        if (localStorage.getItem('debug') === 'true') {
+            const debugMessage = `[DEBUG ${this.serviceName}] ${message}`;
+            if (data) {
+                console.log(debugMessage, data);
+            } else {
+                console.log(debugMessage);
+            }
+        }
+    }
+
+    /**
+     * Log de errores
+     * @param {string} message - Mensaje de error
+     * @param {Error|Object} error - Error opcional
+     */
+    error(message, error = null) {
+        const errorMessage = `[ERROR ${this.serviceName}] ${message}`;
+        if (error) {
+            console.error(errorMessage, error);
+        } else {
+            console.error(errorMessage);
+        }
+    }
+
+    /**
+     * Log de advertencias
+     * @param {string} message - Mensaje de advertencia
+     * @param {Object} data - Datos adicionales opcionales
+     */
+    warn(message, data = null) {
+        const warnMessage = `[WARN ${this.serviceName}] ${message}`;
+        if (data) {
+            console.warn(warnMessage, data);
+        } else {
+            console.warn(warnMessage);
         }
     }
 

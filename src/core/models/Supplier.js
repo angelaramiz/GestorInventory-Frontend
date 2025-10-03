@@ -513,3 +513,4 @@ class Supplier extends BaseModel {
 }
 
 export default Supplier;
+export { Supplier }; // Named export

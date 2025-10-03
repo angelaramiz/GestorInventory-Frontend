@@ -278,3 +278,4 @@ class Inventory extends BaseModel {
 }
 
 export default Inventory;
+export { Inventory }; // Named export para consistencia

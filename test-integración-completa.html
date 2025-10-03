@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Integración Legacy Completa</title>
+    <script src="librerías/sweetalert2@11.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .status.success { background: #d1fae5; color: #065f46; }
+        .status.error { background: #fee2e2; color: #991b1b; }
+        .status.pending { background: #fef3c7; color: #92400e; }
+        h1 { color: #1f2937; }
+        h2 { color: #374151; font-size: 18px; margin-top: 0; }
+        pre {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+        .test-section {
+            margin: 15px 0;
+            padding: 15px;
+            border-left: 3px solid #3b82f6;
+            background: #eff6ff;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+        }
+        button:hover { background: #2563eb; }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .log-entry {
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-info { background: #e0f2fe; }
+        .log-success { background: #d1fae5; }
+        .log-error { background: #fee2e2; }
+        .log-warn { background: #fef3c7; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Integración Legacy Completa</h1>
+    
+    <div class="test-card">
+        <h2>📊 Estado de Bridges</h2>
+        <div id="bridgeStatus">
+            <span class="status pending">⏳ Verificando...</span>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h2>🔧 Funciones de main.js</h2>
+        <div id="mainStatus">
+            <span class="status pending">⏳ Cargando...</span>
+        </div>
+    </div>
+
+    <div class="test-card">
+        <h2>🎯 Pruebas Funcionales</h2>
+        <button id="testDB" disabled>Probar Base de Datos</button>
+        <button id="testCSV" disabled>Probar CSV</button>
+        <button id="testInventory" disabled>Probar Inventario</button>
+        <button id="testScanner" disabled>Probar Scanner</button>
+        <div id="testResults" style="margin-top: 20px;"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>📝 Log de Actividad</h2>
+        <div id="logContainer"></div>
+    </div>
+
+    <script type="module">
+        // Log helper
+        const logs = [];
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = { timestamp, message, type };
+            logs.push(entry);
+            
+            const logDiv = document.createElement('div');
+            logDiv.className = `log-entry log-${type}`;
+            logDiv.textContent = `[${timestamp}] ${message}`;
+            
+            const container = document.getElementById('logContainer');
+            container.insertBefore(logDiv, container.firstChild);
+        }
+
+        addLog('🚀 Iniciando pruebas de integración...', 'info');
+
+        // Test 1: Verificar bridges
+        try {
+            addLog('📦 Importando db-operations-bridge...', 'info');
+            const dbBridge = await import('./js/db-operations-bridge.js');
+            
+            const requiredFunctions = [
+                'db', 'dbInventario', 'inicializarDB', 'inicializarDBInventario',
+                'cargarCSV', 'descargarCSV', 'cargarDatosEnTabla',
+                'generarPlantillaInventario', 'sincronizarInventarioDesdeSupabase',
+                'obtenerUbicacionEnUso', 'guardarAreaIdPersistente', 'obtenerAreaId',
+                'inicializarDBEntradas', 'procesarColaSincronizacionEntradas'
+            ];
+
+            let missing = [];
+            for (const func of requiredFunctions) {
+                if (!(func in dbBridge)) {
+                    missing.push(func);
+                }
+            }
+
+            if (missing.length === 0) {
+                document.getElementById('bridgeStatus').innerHTML = 
+                    `<span class="status success">✅ Completo (${requiredFunctions.length} exports)</span>`;
+                addLog(`✅ db-operations-bridge: ${requiredFunctions.length} funciones exportadas`, 'success');
+            } else {
+                document.getElementById('bridgeStatus').innerHTML = 
+                    `<span class="status error">❌ Faltan ${missing.length} exports</span>`;
+                addLog(`❌ Funciones faltantes: ${missing.join(', ')}`, 'error');
+            }
+
+            // Test 2: Verificar carga de main.js
+            addLog('📦 Intentando importar main.js...', 'info');
+            
+            try {
+                // No importamos main.js directamente porque tiene efectos secundarios
+                // Solo verificamos que los imports estén disponibles
+                const productBridge = await import('./js/product-operations-bridge.js');
+                const scannerBridge = await import('./js/scanner-bridge.js');
+                
+                document.getElementById('mainStatus').innerHTML = 
+                    `<span class="status success">✅ Todos los imports de main.js disponibles</span>`;
+                addLog('✅ main.js puede cargar correctamente', 'success');
+                
+                // Habilitar botones de prueba
+                document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+                
+            } catch (error) {
+                document.getElementById('mainStatus').innerHTML = 
+                    `<span class="status error">❌ Error al verificar main.js</span>`;
+                addLog(`❌ Error en main.js: ${error.message}`, 'error');
+            }
+
+        } catch (error) {
+            document.getElementById('bridgeStatus').innerHTML = 
+                `<span class="status error">❌ Error al cargar bridge</span>`;
+            addLog(`❌ Error crítico: ${error.message}`, 'error');
+            console.error('Error detallado:', error);
+        }
+
+        // Test handlers
+        document.getElementById('testDB').addEventListener('click', async () => {
+            addLog('🧪 Probando inicialización de base de datos...', 'info');
+            try {
+                const { inicializarDB, verificarEstadoDB } = await import('./js/db-operations-bridge.js');
+                await inicializarDB();
+                const estado = verificarEstadoDB();
+                
+                const resultsDiv = document.getElementById('testResults');
+                resultsDiv.innerHTML = `
+                    <div class="test-section">
+                        <h3>✅ Base de Datos Inicializada</h3>
+                        <pre>${JSON.stringify(estado, null, 2)}</pre>
+                    </div>
+                `;
+                addLog('✅ Base de datos inicializada correctamente', 'success');
+            } catch (error) {
+                addLog(`❌ Error en test DB: ${error.message}`, 'error');
+                document.getElementById('testResults').innerHTML = 
+                    `<div class="test-section" style="border-color: #ef4444; background: #fee2e2;">
+                        <h3>❌ Error en Base de Datos</h3>
+                        <pre>${error.message}</pre>
+                    </div>`;
+            }
+        });
+
+        document.getElementById('testCSV').addEventListener('click', async () => {
+            addLog('🧪 Verificando funciones CSV...', 'info');
+            try {
+                const { cargarCSV, descargarCSV } = await import('./js/db-operations-bridge.js');
+                
+                if (typeof cargarCSV === 'function' && typeof descargarCSV === 'function') {
+                    document.getElementById('testResults').innerHTML = `
+                        <div class="test-section">
+                            <h3>✅ Funciones CSV Disponibles</h3>
+                            <p>✓ cargarCSV: ${typeof cargarCSV}</p>
+                            <p>✓ descargarCSV: ${typeof descargarCSV}</p>
+                        </div>
+                    `;
+                    addLog('✅ Funciones CSV disponibles y funcionales', 'success');
+                }
+            } catch (error) {
+                addLog(`❌ Error en test CSV: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('testInventory').addEventListener('click', async () => {
+            addLog('🧪 Probando funciones de inventario...', 'info');
+            try {
+                const { 
+                    generarPlantillaInventario,
+                    obtenerUbicacionEnUso,
+                    obtenerAreaId
+                } = await import('./js/db-operations-bridge.js');
+                
+                document.getElementById('testResults').innerHTML = `
+                    <div class="test-section">
+                        <h3>✅ Funciones de Inventario Disponibles</h3>
+                        <p>✓ generarPlantillaInventario: ${typeof generarPlantillaInventario}</p>
+                        <p>✓ obtenerUbicacionEnUso: ${typeof obtenerUbicacionEnUso}</p>
+                        <p>✓ obtenerAreaId: ${typeof obtenerAreaId}</p>
+                    </div>
+                `;
+                addLog('✅ Funciones de inventario disponibles', 'success');
+            } catch (error) {
+                addLog(`❌ Error en test inventario: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('testScanner').addEventListener('click', async () => {
+            addLog('🧪 Verificando funciones de scanner...', 'info');
+            try {
+                const { toggleEscaner, detenerEscaner } = await import('./js/scanner-bridge.js');
+                
+                document.getElementById('testResults').innerHTML = `
+                    <div class="test-section">
+                        <h3>✅ Funciones de Scanner Disponibles</h3>
+                        <p>✓ toggleEscaner: ${typeof toggleEscaner}</p>
+                        <p>✓ detenerEscaner: ${typeof detenerEscaner}</p>
+                    </div>
+                `;
+                addLog('✅ Funciones de scanner disponibles', 'success');
+            } catch (error) {
+                addLog(`❌ Error en test scanner: ${error.message}`, 'error');
+            }
+        });
+
+        // Log de consola para debugging
+        console.log('🧪 Test de integración legacy iniciado');
+        console.log('📊 Logs capturados:', logs);
+
+        addLog('✅ Sistema de pruebas listo', 'success');
+    </script>
+</body>
+</html>

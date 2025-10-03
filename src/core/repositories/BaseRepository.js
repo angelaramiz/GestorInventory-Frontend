@@ -12,8 +12,8 @@
  * @version 1.0.0
  */
 
-import { getSupabase } from '../../js/auth.js';
-import { mostrarAlertaBurbuja } from '../../js/logs.js';
+// Dynamic imports para evitar dependencias circulares
+// getSupabase y mostrarAlertaBurbuja se importarán cuando se necesiten
 
 export class BaseRepository {
     /**
@@ -47,6 +47,7 @@ export class BaseRepository {
      */
     async getSupabaseClient() {
         if (!this.supabase) {
+            const { getSupabase } = await import('../../../js/auth.js');
             this.supabase = await getSupabase();
         }
         return this.supabase;
@@ -426,12 +427,30 @@ export class BaseRepository {
     handleError(error) {
         if (error.code === 'PGRST301') {
             // Error de autenticación
-            mostrarAlertaBurbuja("Sesión expirada. Por favor, inicie sesión nuevamente.", "error");
+            if (window.Swal) {
+                window.Swal.fire({
+                    icon: 'error',
+                    text: "Sesión expirada. Por favor, inicie sesión nuevamente.",
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
         } else if (error.code === 'PGRST116') {
             // No se encontró registro
             return error; // No mostrar alerta para este caso
         } else {
-            mostrarAlertaBurbuja(`Error en ${this.tableName}: ${error.message}`, "error");
+            if (window.Swal) {
+                window.Swal.fire({
+                    icon: 'error',
+                    text: `Error en ${this.tableName}: ${error.message}`,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
         }
         
         return error;

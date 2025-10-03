@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple de Módulos</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .log { background: #f0f0f0; padding: 10px; margin: 5px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .info { background: #e3f2fd; color: #1565c0; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Simple de Módulos</h1>
+    <button onclick="testModules()">🚀 Probar Carga de Módulos</button>
+    <div id="output"></div>
+
+    <script type="module">
+        let output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `[${new Date().toISOString()}] ${message}`;
+            output.appendChild(div);
+            console.log(message);
+        }
+
+        window.testModules = async function() {
+            output.innerHTML = '';
+            log('🚀 Iniciando prueba simple de módulos...', 'info');
+            
+            // Test 1: Verificar si existe el ServiceManager
+            try {
+                log('📦 Probando carga de ServiceManager...', 'info');
+                const serviceManagerModule = await import('./src/core/services/ServiceManager.js');
+                log('✅ ServiceManager cargado correctamente', 'success');
+                log(`   • Exports disponibles: ${Object.keys(serviceManagerModule).join(', ')}`, 'info');
+            } catch (error) {
+                log(`❌ Error cargando ServiceManager: ${error.message}`, 'error');
+            }
+            
+            // Test 2: Verificar un bridge
+            try {
+                log('📦 Probando carga de db-operations-bridge...', 'info');
+                const bridgeModule = await import('./js/db-operations-bridge.js');
+                log('✅ Bridge cargado correctamente', 'success');
+                log(`   • Exports disponibles: ${Object.keys(bridgeModule).join(', ')}`, 'info');
+            } catch (error) {
+                log(`❌ Error cargando bridge: ${error.message}`, 'error');
+            }
+            
+            // Test 3: Verificar ruta simple
+            try {
+                log('📦 Probando carga de DatabaseService...', 'info');
+                const dbService = await import('./src/core/services/DatabaseService.js');
+                log('✅ DatabaseService cargado correctamente', 'success');
+                log(`   • Exports disponibles: ${Object.keys(dbService).join(', ')}`, 'info');
+            } catch (error) {
+                log(`❌ Error cargando DatabaseService: ${error.message}`, 'error');
+            }
+            
+            // Test 4: Verificar que los archivos existen
+            log('📁 Verificando existencia de archivos...', 'info');
+            const files = [
+                './src/core/services/ServiceManager.js',
+                './js/db-operations-bridge.js',
+                './src/core/services/DatabaseService.js'
+            ];
+            
+            for (const file of files) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        log(`✅ ${file} existe y es accesible`, 'success');
+                    } else {
+                        log(`❌ ${file} no accesible (${response.status})`, 'error');
+                    }
+                } catch (error) {
+                    log(`❌ Error verificando ${file}: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        log('💡 Página cargada. Haga clic en "🚀 Probar Carga de Módulos" para comenzar.', 'info');
+    </script>
+</body>
+</html>

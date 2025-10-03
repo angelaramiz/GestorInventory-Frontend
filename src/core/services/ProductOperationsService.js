@@ -12,12 +12,11 @@
  */
 
 import { BaseService } from './BaseService.js';
-import { mostrarMensaje, mostrarAlertaBurbuja } from '../../../js/logs.js';
+// NO importar logs.js - usar this.showMessage() y this.showToast() de BaseService
 import { sanitizarProducto, sanitizarEntrada, sanitizarNumeroEntero } from '../../../js/sanitizacion.js';
 import { Product } from '../models/Product.js';
 import { ProductRepository } from '../repositories/ProductRepository.js';
 import { databaseService } from './DatabaseService.js';
-
 export class ProductOperationsService extends BaseService {
     constructor() {
         super('ProductOperationsService');
@@ -43,9 +42,8 @@ export class ProductOperationsService extends BaseService {
                 await databaseService.initialize();
             }
             
-            // Inicializar repositorio
+            // Inicializar repositorio (se inicializa en el constructor, no necesita initialize())
             this.productRepository = new ProductRepository();
-            await this.productRepository.initialize();
             
             // Cargar área actual
             this.currentArea = localStorage.getItem('area_id');

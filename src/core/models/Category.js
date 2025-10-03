@@ -363,3 +363,4 @@ class Category extends BaseModel {
 }
 
 export default Category;
+export { Category }; // Named export

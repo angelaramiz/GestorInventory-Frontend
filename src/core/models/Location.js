@@ -605,3 +605,4 @@ class Location extends BaseModel {
 }
 
 export default Location;
+export { Location }; // Named export

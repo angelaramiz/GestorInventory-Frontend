@@ -497,10 +497,10 @@ export const inicializarTodosLosServiciosProductos = async () => {
 
 console.log('🔄 product-operations-bridge.js cargado - Usando nueva arquitectura de servicios');
 console.log('📊 Servicios de productos disponibles:', {
-    operaciones: productOperationsService.name,
-    interfaz: productUIService.name,
-    inventario: inventoryOperationsService.name,
-    impresion: productPrintService.name
+    operaciones: productOperationsService?.name || 'ProductOperationsService',
+    interfaz: productUIService?.name || 'ProductUIService',
+    inventario: inventoryOperationsService?.name || 'InventoryOperationsService',
+    impresion: productPrintService?.name || 'ProductPrintService'
 });
 
 // Auto-inicialización si es necesario

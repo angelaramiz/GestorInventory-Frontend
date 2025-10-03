@@ -13,7 +13,7 @@
  */
 
 import { BaseService } from './BaseService.js';
-import { mostrarAlertaBurbuja, mostrarMensaje } from '../../js/logs.js';
+// NO importar logs.js - usar this.showMessage() y this.showToast() de BaseService
 
 export class ScannerService extends BaseService {
     constructor() {

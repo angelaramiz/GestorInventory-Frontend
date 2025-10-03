@@ -12,12 +12,11 @@
  */
 
 import { BaseService } from './BaseService.js';
-import { mostrarMensaje, mostrarAlertaBurbuja } from '../../../js/logs.js';
+// NO importar logs.js - usar this.showMessage() y this.showToast() de BaseService
 import { sanitizarEntrada, sanitizarNumeroEntero } from '../../../js/sanitizacion.js';
 import { InventoryRepository } from '../repositories/InventoryRepository.js';
 import { ProductRepository } from '../repositories/ProductRepository.js';
 import { databaseService } from './DatabaseService.js';
-
 export class InventoryOperationsService extends BaseService {
     constructor() {
         super('InventoryOperationsService');
@@ -44,12 +43,9 @@ export class InventoryOperationsService extends BaseService {
                 await databaseService.initialize();
             }
             
-            // Inicializar repositorios
+            // Inicializar repositorios (se inicializan en constructor, no necesitan initialize())
             this.inventoryRepository = new InventoryRepository();
             this.productRepository = new ProductRepository();
-            
-            await this.inventoryRepository.initialize();
-            await this.productRepository.initialize();
             
             // Cargar ubicación actual del localStorage
             this.currentLocation = localStorage.getItem('current_location');

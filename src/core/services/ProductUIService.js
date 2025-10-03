@@ -12,7 +12,7 @@
  */
 
 import { BaseService } from './BaseService.js';
-import { mostrarMensaje, mostrarAlertaBurbuja } from '../../../js/logs.js';
+// NO importar logs.js - usar this.showMessage() y this.showToast() de BaseService
 
 export class ProductUIService extends BaseService {
     constructor() {

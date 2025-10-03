@@ -356,7 +356,7 @@
             }
 
             // Integrar el escáner avanzado de scanner.js para la pestaña de relaciones
-            import('../js/scanner.js').then(scannerModule => {
+            import('../js/scanner-bridge.js').then(scannerModule => {
                 const escanearBtnRelacion = document.getElementById('escanearBtnRelacion');
                 if (escanearBtnRelacion) {
                     escanearBtnRelacion.addEventListener('click', function() {

@@ -618,8 +618,8 @@
     <script type="module" src="../js/registro-entradas-operations.js"></script>
     <script type="module">
         import { inicializarRegistroEntradas } from '../js/registro-entradas-operations.js';
-        import { inicializarDB } from '../js/db-operations.js';
-        import { toggleEscaner } from '../js/scanner.js';        // Inicializar cuando el DOM esté cargado
+        import { inicializarDB } from '../js/db-operations-bridge.js';
+        import { toggleEscaner } from '../js/scanner-bridge.js';        // Inicializar cuando el DOM esté cargado
         document.addEventListener('DOMContentLoaded', async function () {
             try {
                 // Inicializar base de datos principal

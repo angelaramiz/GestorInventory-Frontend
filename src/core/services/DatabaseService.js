@@ -12,8 +12,8 @@
  */
 
 import { BaseService } from './BaseService.js';
-import { mostrarMensaje, mostrarResultadoCarga, mostrarAlertaBurbuja } from '../../../js/logs.js';
-import { getSupabase } from '../../../js/auth.js';
+// NO importar logs.js - usar this.showMessage() y this.showToast() de BaseService
+// NO importar auth.js directamente - se importará dinámicamente cuando se necesite para evitar dependencias circulares
 
 export class DatabaseService extends BaseService {
   constructor() {
@@ -43,7 +43,8 @@ export class DatabaseService extends BaseService {
     try {
       await this.initializeMainDB();
       await this.initializeInventoryDB();
-      await this.initializeSubscriptions();
+      // NO inicializar suscripciones aquí para evitar dependencias circulares
+      // Se pueden inicializar manualmente después: databaseService.initializeSubscriptions()
 
       // Procesar cola de sincronización si hay conexión
       if (navigator.onLine) {
@@ -192,6 +193,8 @@ export class DatabaseService extends BaseService {
       const item = this.syncQueue.shift();
 
       try {
+        // Dynamic import para evitar dependencias circulares
+        const { getSupabase } = await import('../../../js/auth.js');
         const supabase = await getSupabase();
 
         // Verificar que el ítem tenga área_id
@@ -243,6 +246,8 @@ export class DatabaseService extends BaseService {
      */
   async initializeSubscriptions() {
     try {
+      // Dynamic import para evitar dependencias circulares
+      const { getSupabase } = await import('../../../js/auth.js');
       const supabase = await getSupabase();
       const areaId = localStorage.getItem('area_id');
 

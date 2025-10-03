@@ -12,7 +12,7 @@
  */
 
 import { BaseService } from './BaseService.js';
-import { mostrarMensaje, mostrarResultadoCarga, mostrarAlertaBurbuja } from '../../../js/logs.js';
+// NO importar logs.js - usar this.showMessage() y this.showToast() de BaseService
 import { sanitizarProducto } from '../../../js/sanitizacion.js';
 
 export class FileOperationsService extends BaseService {

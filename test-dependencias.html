@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test de Dependencias</title>
+</head>
+<body>
+    <h1>Test de Cadena de Dependencias</h1>
+    <div id="output"></div>
+    
+    <script type="module">
+        const output = document.getElementById('output');
+        
+        function log(msg, color = 'black') {
+            output.innerHTML += `<p style="color: ${color};">${msg}</p>`;
+            console.log(msg);
+        }
+        
+        async function testDependencies() {
+            // Test 1: logs.js (dependencia común)
+            log('🔍 Test 1: Cargando logs.js...', 'blue');
+            try {
+                await import('./js/logs.js');
+                log('✅ logs.js carga OK', 'green');
+            } catch (e) {
+                log(`❌ logs.js FALLÓ: ${e.message}`, 'red');
+                return;
+            }
+            
+            // Test 2: auth.js (dependencia de DatabaseService)
+            log('🔍 Test 2: Cargando auth.js...', 'blue');
+            try {
+                await import('./js/auth.js');
+                log('✅ auth.js carga OK', 'green');
+            } catch (e) {
+                log(`❌ auth.js FALLÓ: ${e.message}`, 'red');
+                return;
+            }
+            
+            // Test 3: BaseService (padre de DatabaseService)
+            log('🔍 Test 3: Cargando BaseService.js...', 'blue');
+            try {
+                await import('./src/core/services/BaseService.js');
+                log('✅ BaseService.js carga OK', 'green');
+            } catch (e) {
+                log(`❌ BaseService.js FALLÓ: ${e.message}`, 'red');
+                log(`Stack: ${e.stack}`, 'orange');
+                return;
+            }
+            
+            // Test 4: DatabaseService
+            log('🔍 Test 4: Cargando DatabaseService.js...', 'blue');
+            try {
+                const module = await import('./src/core/services/DatabaseService.js');
+                log('✅ DatabaseService.js carga OK', 'green');
+                log(`Exports: ${Object.keys(module).join(', ')}`, 'blue');
+            } catch (e) {
+                log(`❌ DatabaseService.js FALLÓ: ${e.message}`, 'red');
+                log(`Stack: ${e.stack}`, 'orange');
+            }
+        }
+        
+        testDependencies();
+    </script>
+</body>
+</html>

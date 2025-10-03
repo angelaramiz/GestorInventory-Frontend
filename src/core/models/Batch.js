@@ -443,3 +443,4 @@ class Batch extends BaseModel {
 }
 
 export default Batch;
+export { Batch }; // Named export para consistencia

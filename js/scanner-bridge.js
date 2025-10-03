@@ -11,7 +11,7 @@
  */
 
 // Importar servicio especializado
-import { basicScannerService } from '../core/services/BasicScannerService.js';
+import { basicScannerService } from '../src/core/services/BasicScannerService.js';
 
 /**
  * Inicializar escáner básico
@@ -22,12 +22,18 @@ export async function initScanner() {
         
         await basicScannerService.initialize();
         
+        // Verificar si el servicio se inicializó o solo está marcado como no disponible
+        if (basicScannerService.status === 'unavailable') {
+            console.log('ℹ️ Servicio de escáner no disponible en esta página (biblioteca Html5Qrcode no cargada)');
+            return false;
+        }
+        
         console.log('✅ Servicio de escáner básico inicializado');
         return true;
         
     } catch (error) {
-        console.error('❌ Error al inicializar servicio de escáner:', error);
-        throw error;
+        console.warn('⚠️ No se pudo inicializar el servicio de escáner:', error.message);
+        return false;
     }
 }
 

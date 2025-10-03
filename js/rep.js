@@ -1,3 +1,40 @@
+/**
+ * ⚠️ ARCHIVO EN PROCESO DE REFACTORIZACIÓN
+ * 
+ * Este archivo gestiona la generación de reportes PDF con códigos de barras.
+ * Está marcado para refactorización futura en un ReportService especializado.
+ * 
+ * ESTADO ACTUAL: FUNCIONAL (Fase 3 completada)
+ * PRÓXIMA FASE: Migrar a ReportService (Fase 4)
+ * 
+ * FUNCIONALIDADES:
+ * - Generación de reportes PDF con jsPDF
+ * - Códigos de barras con JsBarcode
+ * - Filtrado por áreas y categorías
+ * - Agrupación por fecha de caducidad
+ * - Fusión de productos por código
+ * 
+ * DEPENDENCIAS:
+ * - db-operations.js (obtenerAreasPorCategoria)
+ * - auth.js (getSupabase)
+ * - jsPDF (generación PDF)
+ * - JsBarcode (códigos de barras)
+ * - SweetAlert2 (alertas)
+ * 
+ * USO: Solo en plantillas/report.html
+ * 
+ * FUTURO REPORTE SERVICE:
+ * - Separar lógica de negocio de UI
+ * - Modularizar generación de PDF
+ * - Crear servicio de exportación
+ * - Mejorar performance y mantenibilidad
+ * 
+ * @deprecated Para nuevo código, planear arquitectura de ReportService
+ * @version 3.0.0
+ */
+
+console.info('📊 rep.js - Sistema de reportes cargado (pendiente refactorización a ReportService)');
+
 import { obtenerAreasPorCategoria } from './db-operations.js';
 import { getSupabase } from './auth.js';
 

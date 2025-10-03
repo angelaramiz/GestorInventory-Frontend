@@ -1,3 +1,38 @@
+/**
+ * ⚠️ ARCHIVO EN PROCESO DE REFACTORIZACIÓN
+ * ESTADO ACTUAL: FUNCIONAL (Fase 3 completada)
+ * PRÓXIMA FASE: Migrar a EntryManagementService (Fase 4)
+ * 
+ * CARACTERÍSTICAS:
+ * - Gestión de entradas de productos
+ * - Búsqueda de productos para entrada
+ * - Sincronización con Supabase
+ * - Generación de reportes de entradas
+ * 
+ * DEPENDENCIAS:
+ * - db-operations.js (DatabaseService)
+ * - logs.js (NotificationService)
+ * - SweetAlert2
+ * 
+ * FUTURO (Fase 4):
+ * - Crear EntryManagementService
+ * - Crear EntryUIService
+ * - Migrar lógica de negocio a servicios
+ * - Crear bridge de compatibilidad
+ * 
+ * RAZÓN DE POSPONER:
+ * - No tiene bridge de Fase 2 (código específico de una página)
+ * - Requiere creación de servicios nuevos (EntryManagementService)
+ * - Funcionalidad estable y autocontenida
+ * - Usado solo en plantillas/registro-entradas.html
+ * 
+ * @deprecated Para nuevo código, planear uso de EntryManagementService (Fase 4)
+ * @file registro-entradas-operations.js
+ * @version 3.0.0-alpha
+ */
+
+console.info('📝 registro-entradas-operations.js - Módulo de gestión de entradas cargado (pendiente migración a Fase 4)');
+
 // Operaciones específicas para el registro de entradas
 import { agregarRegistroEntrada, cargarEntradasEnTabla, sincronizarEntradasDesdeSupabase, eliminarRegistroEntrada, generarReporteEntradas, inicializarDBEntradas } from './db-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';

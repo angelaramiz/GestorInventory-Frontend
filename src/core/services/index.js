@@ -16,6 +16,9 @@ export { ScannerService } from './ScannerService.js';
 export { DatabaseService, databaseService } from './DatabaseService.js';
 export { FileOperationsService, fileOperationsService } from './FileOperationsService.js';
 
+// Servicio de autenticación (migración de auth.js)
+export { AuthService, authService } from './AuthService.js';
+
 // Servicios especializados de productos (migración de product-operations.js)
 export { productOperationsService } from './ProductOperationsService.js';
 export { productUIService } from './ProductUIService.js';
@@ -27,6 +30,12 @@ export { batchScannerService } from './BatchScannerService.js';
 export { batchManagementService } from './BatchManagementService.js';
 export { batchUIService } from './BatchUIService.js';
 export { batchPersistenceService } from './BatchPersistenceService.js';
+
+// Servicio de gestión de lotes avanzado (migración de lotes-database.js)
+export { BatchService, batchService } from './BatchService.js';
+
+// Servicio de notificaciones (migración de logs.js)
+export { default as notificationService } from './NotificationService.js';
 
 // Gestor de servicios
 export { ServiceManager, serviceManager } from './ServiceManager.js';

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gestor-inventory-v4'; // ✅ INCREMENTADO para forzar actualización
+const CACHE_NAME = 'gestor-inventory-v16'; // ✅ INCREMENTADO para correcciones Fase 3
 
 // Detectar si estamos en localhost o en GitHub Pages
 const isLocalhost =

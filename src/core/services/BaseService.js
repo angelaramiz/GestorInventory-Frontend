@@ -417,6 +417,14 @@ export class BaseService {
         this.log('Service disposed');
     }
 
+    /**
+     * Destruir servicio (alias de dispose para compatibilidad)
+     * Puede ser sobreescrito por clases hijas para cleanup adicional
+     */
+    async destroy() {
+        this.dispose();
+    }
+
     // ========================================
     // MÉTODOS DE UTILIDAD COMUNES
     // ========================================

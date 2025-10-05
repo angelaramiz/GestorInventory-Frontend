@@ -37,6 +37,16 @@ export class DatabaseService extends BaseService {
   }
 
   /**
+   * Helper para llamar mostrarAlertaBurbuja solo si está disponible
+   * @private
+   */
+  _showAlert(message, type = 'info') {
+    if (typeof window !== 'undefined' && typeof window.mostrarAlertaBurbuja === 'function') {
+      window.mostrarAlertaBurbuja(message, type);
+    }
+  }
+
+  /**
      * Inicializar el servicio
      */
   async initialize() {
@@ -52,7 +62,7 @@ export class DatabaseService extends BaseService {
       }
 
       this.status = 'initialized';
-      this.emit('initialized', { service: this.name });
+      this.emit('initialized', { service: this.serviceName });
 
     } catch (error) {
       this.handleError('Error al inicializar DatabaseService', error);
@@ -143,10 +153,11 @@ export class DatabaseService extends BaseService {
   /**
      * Agregar item a la cola de sincronización
      */
-  addToSyncQueue(data) {
+  addToSyncQueue(data) {    
     try {
       // Verificar área_id
       const areaId = localStorage.getItem('area_id');
+      
       if (!areaId) {
         throw new Error('No se encontró el área_id para sincronización');
       }
@@ -174,8 +185,8 @@ export class DatabaseService extends BaseService {
       this.emit('itemAddedToSyncQueue', { item: dataSupabase });
 
     } catch (error) {
-      this.handleError('Error al agregar a cola de sincronización', error);
-      mostrarAlertaBurbuja('Error: No se pudo agregar a la cola de sincronización', 'error');
+      this.handleError(error, 'addToSyncQueue', 0);
+      this._showAlert('Error: No se pudo agregar a la cola de sincronización', 'error');
     }
   }
 
@@ -234,7 +245,7 @@ export class DatabaseService extends BaseService {
         remainingCount: this.syncQueue.length
       });
 
-      mostrarAlertaBurbuja(
+      this._showAlert(
         `Sincronización completada: ${processedItems.length} items`,
         'success'
       );
@@ -303,6 +314,12 @@ export class DatabaseService extends BaseService {
 
       switch (eventType) {
       case 'INSERT':
+        if (newRecord) {
+          await this.updateLocalProduct(newRecord);
+          this.emit('productAdded', { product: newRecord, eventType });
+        }
+        break;
+        
       case 'UPDATE':
         if (newRecord) {
           await this.updateLocalProduct(newRecord);
@@ -334,6 +351,12 @@ export class DatabaseService extends BaseService {
 
       switch (eventType) {
       case 'INSERT':
+        if (newRecord) {
+          await this.updateLocalInventory(newRecord);
+          this.emit('inventoryAdded', { inventory: newRecord, eventType });
+        }
+        break;
+        
       case 'UPDATE':
         if (newRecord) {
           await this.updateLocalInventory(newRecord);
@@ -450,7 +473,7 @@ export class DatabaseService extends BaseService {
 
       request.onsuccess = () => {
         console.log(`Base de datos ${storeName} reseteada exitosamente`);
-        mostrarAlertaBurbuja(`Base de datos ${storeName} limpiada`, 'success');
+        this._showAlert(`Base de datos ${storeName} limpiada`, 'success');
         resolve();
       };
 
@@ -470,7 +493,7 @@ export class DatabaseService extends BaseService {
       queueLength: this.syncQueue.length,
       isOnline: navigator.onLine,
       subscriptionsActive: this.subscriptions.size,
-      lastSync: localStorage.getItem('lastSyncTime') || null
+      lastSync: localStorage.getItem('lastSync') || null
     };
   }
 

@@ -87,9 +87,6 @@
       "prettier --write"
     ]
   },
-  "jest": {
-    "preset": "./jest.config.js"
-  },
   "browserslist": [
     "defaults",
     "not IE 11",

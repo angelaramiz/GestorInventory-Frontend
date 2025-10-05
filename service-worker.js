@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gestor-inventory-v16'; // ✅ INCREMENTADO para correcciones Fase 3
+const CACHE_NAME = 'gestor-inventory-v18'; // ✅ INCREMENTADO para migración de registro-entradas-operations.js (Fase 4)
 
 // Detectar si estamos en localhost o en GitHub Pages
 const isLocalhost =

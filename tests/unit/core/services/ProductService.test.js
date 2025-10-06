@@ -33,7 +33,14 @@ import {
     getCacheEntry,
     createTestProductsForSearch,
     isValidSearchFilters,
-    mockTimerFunctions
+    mockTimerFunctions,
+    // Code Generation helpers - Fase 5
+    mockCanvasAPI,
+    mockJsBarcode,
+    setupCodeGenerationMocks,
+    isValidImageDataURL,
+    createProductForQR,
+    isValidQRData
 } from '../../../helpers/product-test-helpers.js';
 import {
     expectEventEmitted,
@@ -2302,6 +2309,127 @@ describe('ProductService', () => {
 
             it('should return "good" for Infinity', () => {
                 expect(service.getExpiryStatus(Infinity)).toBe('good');
+            });
+        });
+    });
+
+    // ============================================================================
+    // PHASE 5: CODE GENERATION
+    // ============================================================================
+
+    describe('Phase 5: Code Generation', () => {
+        
+        // ========================================================================
+        // BARCODE GENERATION TESTS
+        // ========================================================================
+        
+        describe('generateBarcode()', () => {
+            let mocks;
+
+            beforeEach(() => {
+                mocks = setupCodeGenerationMocks();
+            });
+
+            afterEach(() => {
+                mocks.cleanupAll();
+            });
+
+            it('should generate barcode successfully with valid code', async () => {
+                const code = 'PROD-12345';
+                
+                const result = await service.generateBarcode(code);
+
+                // Verify JsBarcode was called with correct parameters
+                expect(global.JsBarcode).toHaveBeenCalledWith(
+                    expect.anything(),
+                    code,
+                    expect.objectContaining({
+                        format: 'CODE128',
+                        width: 2,
+                        height: 100,
+                        displayValue: true
+                    })
+                );
+
+                // Verify result is valid data URL
+                expect(isValidImageDataURL(result)).toBe(true);
+                expect(result).toContain('data:image/png;base64,');
+            });
+
+            it('should throw error when JsBarcode library is not available', async () => {
+                delete global.JsBarcode;
+
+                await expect(service.generateBarcode('PROD-001'))
+                    .rejects.toThrow('Librería JsBarcode no está disponible');
+            });
+
+            it('should create canvas element for barcode generation', async () => {
+                await service.generateBarcode('PROD-001');
+
+                expect(document.createElement).toHaveBeenCalledWith('canvas');
+            });
+
+            it('should call canvas.toDataURL with PNG format', async () => {
+                await service.generateBarcode('PROD-001');
+
+                expect(mocks.mockCanvas.toDataURL).toHaveBeenCalledWith('image/png');
+            });
+
+            it('should return null when JsBarcode throws error', async () => {
+                global.JsBarcode = jest.fn(() => {
+                    throw new Error('Invalid code format');
+                });
+
+                const result = await service.generateBarcode('INVALID');
+
+                expect(result).toBeNull();
+            });
+        });
+
+        // ========================================================================
+        // QR CODE GENERATION TESTS
+        // ========================================================================
+
+        describe('generateQRCode()', () => {
+            
+            it('should generate QR data with correct structure', async () => {
+                const product = createProductForQR({
+                    id: 123,
+                    codigo: 'PROD-123',
+                    nombre: 'Test Product',
+                    precio_venta: 250.00
+                });
+
+                const result = await service.generateQRCode(product);
+
+                // Verify structure is valid
+                expect(isValidQRData(result)).toBe(true);
+
+                // Verify data content
+                const data = JSON.parse(result);
+                expect(data.id).toBe(123);
+                expect(data.codigo).toBe('PROD-123');
+                expect(data.nombre).toBe('Test Product');
+                expect(data.precio).toBe(250.00);
+            });
+
+            it('should include timestamp in QR data', async () => {
+                const product = createProductForQR();
+
+                const result = await service.generateQRCode(product);
+                const data = JSON.parse(result);
+
+                expect(data.timestamp).toBeDefined();
+                expect(new Date(data.timestamp).getTime()).toBeGreaterThan(0);
+            });
+
+            it('should return valid JSON string', async () => {
+                const product = createProductForQR();
+
+                const result = await service.generateQRCode(product);
+
+                expect(() => JSON.parse(result)).not.toThrow();
+                expect(typeof result).toBe('string');
             });
         });
     });

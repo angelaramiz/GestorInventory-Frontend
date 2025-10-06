@@ -602,6 +602,143 @@ export function mockTimerFunctions() {
     };
 }
 
+// ========================================
+// CODE GENERATION HELPERS - FASE 5
+// ========================================
+
+/**
+ * Mock completo de Canvas API para testing
+ * @returns {Object} Mocks de Canvas
+ */
+export function mockCanvasAPI() {
+    const mockCanvas = {
+        width: 200,
+        height: 100,
+        toDataURL: jest.fn(() => 'data:image/png;base64,mockBarcodeData123'),
+        getContext: jest.fn(() => mockContext)
+    };
+
+    const mockContext = {
+        fillRect: jest.fn(),
+        clearRect: jest.fn(),
+        strokeRect: jest.fn(),
+        fillText: jest.fn(),
+        strokeText: jest.fn(),
+        measureText: jest.fn(() => ({ width: 100 })),
+        save: jest.fn(),
+        restore: jest.fn(),
+        beginPath: jest.fn(),
+        closePath: jest.fn(),
+        moveTo: jest.fn(),
+        lineTo: jest.fn(),
+        arc: jest.fn(),
+        fill: jest.fn(),
+        stroke: jest.fn()
+    };
+
+    // Mock document.createElement para Canvas
+    const originalCreateElement = document.createElement.bind(document);
+    document.createElement = jest.fn((tagName) => {
+        if (tagName === 'canvas') {
+            return mockCanvas;
+        }
+        return originalCreateElement(tagName);
+    });
+
+    return {
+        mockCanvas,
+        mockContext,
+        cleanup: () => {
+            document.createElement = originalCreateElement;
+        }
+    };
+}
+
+/**
+ * Mock de librería JsBarcode
+ * @returns {Object} Mock de JsBarcode
+ */
+export function mockJsBarcode() {
+    const jsBarcodeFunc = jest.fn((canvas, code, options) => {
+        // Simular que JsBarcode modificó el canvas
+        canvas.width = options?.width || 2;
+        canvas.height = options?.height || 100;
+        return true;
+    });
+
+    global.JsBarcode = jsBarcodeFunc;
+
+    return {
+        jsBarcodeFunc,
+        cleanup: () => {
+            delete global.JsBarcode;
+        }
+    };
+}
+
+/**
+ * Setup completo de mocks para code generation
+ * @returns {Object} Todos los mocks configurados
+ */
+export function setupCodeGenerationMocks() {
+    const canvasMocks = mockCanvasAPI();
+    const jsBarcodeMock = mockJsBarcode();
+
+    return {
+        ...canvasMocks,
+        jsBarcodeMock: jsBarcodeMock.jsBarcodeFunc,
+        cleanupAll: () => {
+            canvasMocks.cleanup();
+            jsBarcodeMock.cleanup();
+        }
+    };
+}
+
+/**
+ * Verificar que un string es un data URL de imagen válido
+ * @param {string} dataUrl - Data URL a validar
+ * @returns {boolean} true si es válido
+ */
+export function isValidImageDataURL(dataUrl) {
+    if (typeof dataUrl !== 'string') return false;
+    return /^data:image\/(png|jpeg|jpg|gif|webp);base64,/.test(dataUrl);
+}
+
+/**
+ * Crear producto mock con datos mínimos para QR
+ * @param {Object} overrides - Valores personalizados
+ * @returns {Object} Producto para QR
+ */
+export function createProductForQR(overrides = {}) {
+    return {
+        id: 1,
+        codigo: 'PROD-001',
+        nombre: 'Producto Test',
+        precio_venta: 100.00,
+        ...overrides
+    };
+}
+
+/**
+ * Validar estructura de datos QR
+ * @param {string} qrString - String JSON del QR
+ * @returns {boolean} true si es válido
+ */
+export function isValidQRData(qrString) {
+    try {
+        const data = JSON.parse(qrString);
+        return (
+            data.hasOwnProperty('id') &&
+            data.hasOwnProperty('codigo') &&
+            data.hasOwnProperty('nombre') &&
+            data.hasOwnProperty('precio') &&
+            data.hasOwnProperty('timestamp')
+        );
+    } catch {
+        return false;
+    }
+}
+
 // Export por defecto con todos los helpers
 export default {
     PRODUCT_FIELDS,
@@ -637,6 +774,13 @@ export default {
     getCacheEntry,
     createTestProductsForSearch,
     isValidSearchFilters,
-    mockTimerFunctions
+    mockTimerFunctions,
+    // Code Generation helpers - Fase 5
+    mockCanvasAPI,
+    mockJsBarcode,
+    setupCodeGenerationMocks,
+    isValidImageDataURL,
+    createProductForQR,
+    isValidQRData
 };
 

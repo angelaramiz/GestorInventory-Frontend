@@ -882,8 +882,8 @@ function guardarInfoProducto() {
 
     // Recalcular peso con el precio por kilo ingresado
     const pesoCalculadoRaw = datosExtraidos.precioPorcion / precioKilo;
-    // Redondear a 3 decimales para evitar artefactos de punto flotante
-    const pesoCalculado = Math.round(pesoCalculadoRaw * 1000) / 1000;
+    // Truncar a 3 decimales (recortar sin redondear)
+    const pesoCalculado = Math.floor(pesoCalculadoRaw * 1000) / 1000;
 
     // Crear objeto del producto escaneado
     const productoEscaneado = {
@@ -939,7 +939,8 @@ function procesarProductoExistente(producto, datosExtraidos, productoExistente) 
     // Usar el precio por kilo ya almacenado (puede venir de producto escaneado o precio guardado)
     const precioKilo = productoExistente.precioKilo;
     const pesoCalculadoRaw = datosExtraidos.precioPorcion / precioKilo;
-    const pesoCalculado = Math.round(pesoCalculadoRaw * 1000) / 1000;
+    // Truncar a 3 decimales (recortar sin redondear)
+    const pesoCalculado = Math.floor(pesoCalculadoRaw * 1000) / 1000;
 
     // Crear objeto del producto escaneado
     const productoEscaneado = {
@@ -1077,9 +1078,15 @@ function actualizarListadoProductosAvanzado() {
                 </span>
             </td>
             <td class="py-2 px-4">
+                <button onclick="editarProductoEscaneado('${item.id}')" 
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm mr-1"
+                        title="Editar">
+                    ✏️
+                </button>
                 <button onclick="eliminarProductoEscaneado('${item.id}')" 
-                        class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm">
-                    Eliminar
+                        class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"
+                        title="Eliminar">
+                    🗑️
                 </button>
             </td>
         `;
@@ -1112,6 +1119,145 @@ window.eliminarProductoEscaneado = function (id) {
         console.error('No se encontró el producto con ID:', id);
         mostrarAlertaBurbuja('❌ Error al eliminar producto', 'error');
     }
+};
+
+// Función para editar un producto escaneado
+window.editarProductoEscaneado = function (id) {
+    console.log(`Editando producto con ID: ${id}`);
+    
+    // Encontrar el producto
+    const producto = productosEscaneados.find(item => item.id === id);
+    
+    if (!producto) {
+        console.error('No se encontró el producto con ID:', id);
+        mostrarAlertaBurbuja('❌ Error al encontrar producto', 'error');
+        return;
+    }
+    
+    // Abrir modal de edición
+    abrirModalEdicionProducto(producto);
+};
+
+// Función para abrir el modal de edición de producto
+function abrirModalEdicionProducto(producto) {
+    const modal = document.getElementById('modalEdicionProductoLote');
+    if (!modal) {
+        console.error('No se encontró el modal de edición');
+        return;
+    }
+    
+    // Rellenar los campos del modal con los datos actuales
+    document.getElementById('editProductoId').value = producto.id;
+    document.getElementById('editProductoNombre').textContent = producto.nombre;
+    document.getElementById('editProductoCodigo').textContent = producto.codigo;
+    document.getElementById('editProductoPLU').textContent = producto.plu;
+    document.getElementById('editPrecioKilo').value = producto.precioKilo.toFixed(2);
+    document.getElementById('editPeso').value = producto.peso.toFixed(3);
+    document.getElementById('editPrecioPorcion').value = producto.precioPorcion.toFixed(2);
+    
+    // Guardar el precio de porción ORIGINAL (sin redondeo) en un atributo data para cálculos precisos
+    document.getElementById('editPrecioPorcion').setAttribute('data-precio-original', producto.precioPorcion);
+    
+    // Mostrar el modal
+    modal.style.display = 'block';
+    
+    // Calcular precio al cambiar peso
+    document.getElementById('editPeso').addEventListener('input', calcularPrecioPorcionDesdeEdit);
+    
+    // Calcular peso al cambiar precio por kilo
+    document.getElementById('editPrecioKilo').addEventListener('input', calcularPesoDesdeEdit);
+}
+
+// Función para calcular precio de porción cuando se cambia el peso
+function calcularPrecioPorcionDesdeEdit() {
+    const precioKilo = parseFloat(document.getElementById('editPrecioKilo').value) || 0;
+    const peso = parseFloat(document.getElementById('editPeso').value) || 0;
+    const precioPorcion = precioKilo * peso;
+    
+    // Actualizar tanto el valor visual como el valor original guardado
+    const inputPrecioPorcion = document.getElementById('editPrecioPorcion');
+    inputPrecioPorcion.value = precioPorcion.toFixed(2);
+    inputPrecioPorcion.setAttribute('data-precio-original', precioPorcion);
+}
+
+// Función para calcular peso cuando se cambia el precio por kilo (recalcula con precio original)
+function calcularPesoDesdeEdit() {
+    const precioKilo = parseFloat(document.getElementById('editPrecioKilo').value) || 0;
+    
+    // Usar el precio de porción ORIGINAL (sin redondeo) para cálculo preciso
+    const inputPrecioPorcion = document.getElementById('editPrecioPorcion');
+    const precioOriginal = parseFloat(inputPrecioPorcion.getAttribute('data-precio-original')) || 0;
+    
+    if (precioKilo > 0 && precioOriginal > 0) {
+        const pesoCalculado = precioOriginal / precioKilo;
+        // Truncar a 3 decimales (recortar sin redondear): multiplicar por 1000, truncar, dividir por 1000
+        const pesoTruncado = Math.floor(pesoCalculado * 1000) / 1000;
+        document.getElementById('editPeso').value = pesoTruncado.toFixed(3);
+    }
+}
+
+// Función para guardar los cambios del producto editado
+window.guardarEdicionProducto = function () {
+    const productoId = document.getElementById('editProductoId').value;
+    const nuevoPrecioKilo = parseFloat(document.getElementById('editPrecioKilo').value);
+    const nuevoPeso = parseFloat(document.getElementById('editPeso').value);
+    const nuevoPrecioPorcion = parseFloat(document.getElementById('editPrecioPorcion').value);
+    
+    // Validaciones
+    if (isNaN(nuevoPrecioKilo) || nuevoPrecioKilo <= 0) {
+        mostrarAlertaBurbuja('❌ El precio por kilo debe ser mayor a 0', 'error');
+        return;
+    }
+    
+    if (isNaN(nuevoPeso) || nuevoPeso <= 0) {
+        mostrarAlertaBurbuja('❌ El peso debe ser mayor a 0', 'error');
+        return;
+    }
+    
+    if (isNaN(nuevoPrecioPorcion) || nuevoPrecioPorcion <= 0) {
+        mostrarAlertaBurbuja('❌ El precio de porción debe ser mayor a 0', 'error');
+        return;
+    }
+    
+    // Encontrar y actualizar el producto
+    const producto = productosEscaneados.find(item => item.id === productoId);
+    
+    if (producto) {
+        // Actualizar los valores con redondeo apropiado
+        producto.precioKilo = Math.round(nuevoPrecioKilo * 100) / 100; // Redondear a 2 decimales
+        producto.peso = Math.round(nuevoPeso * 1000) / 1000; // Redondear a 3 decimales
+        producto.precioPorcion = Math.round(nuevoPrecioPorcion * 100) / 100; // Redondear a 2 decimales
+        
+        console.log('Producto actualizado:', producto);
+        
+        // Actualizar la tabla
+        actualizarListadoProductosAvanzado();
+        
+        // Actualizar contadores
+        actualizarContadoresAvanzado();
+        
+        // Cerrar el modal
+        cerrarModalEdicionProducto();
+        
+        // Mostrar mensaje de éxito
+        mostrarAlertaBurbuja('✅ Producto actualizado correctamente', 'success');
+    } else {
+        console.error('No se encontró el producto con ID:', productoId);
+        mostrarAlertaBurbuja('❌ Error al actualizar producto', 'error');
+    }
+};
+
+// Función para cerrar el modal de edición
+window.cerrarModalEdicionProducto = function () {
+    const modal = document.getElementById('modalEdicionProductoLote');
+    if (modal) {
+        modal.style.display = 'none';
+        
+        // Limpiar listeners
+        document.getElementById('editPeso').removeEventListener('input', calcularPrecioPorcionDesdeEdit);
+        document.getElementById('editPrecioKilo').removeEventListener('input', calcularPesoDesdeEdit);
+    }
+
 };
 
 // Función para pausar el escaneo

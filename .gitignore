@@ -48,3 +48,13 @@ temp/
 *.tmp
 *.backup
 *.bak
+
+# Test files obsoletos (usar tests/ con Jest)
+test-*.html
+migracion-*.html
+
+# Documentos de migración (mover a docs/archive/)
+*MIGRACION*.md
+*MIGRATION*.md
+*ANALISIS*.md
+*SOLUCION*.md

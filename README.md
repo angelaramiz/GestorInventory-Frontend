@@ -1,4 +1,6 @@
-# 📱 GestorInventory -### 🚀 **Funcionalidades Avanzadas**
+# 📱 GestorInventory - Sistema de Gestión de Inventario
+
+### 🚀 **Funcionalidades Avanzadas**
 - ✅ **Sistema de lotes avanzado** con control granular
 - ✅ **Temas oscuro/claro** automáticos
 - ✅ **PWA completa** instalable como aplicación nativa
@@ -21,14 +23,34 @@
 - ✅ **Compatibilidad**: Mantiene compatibilidad total con datos existentes
 - ✅ **Base de datos**: Supabase almacena ahora correctamente los valores decimales
 
---- de Gestión de Inventario
+---
 
-### 🛠️ 17 de agosto de 2025 - Correcciones y mejoras
-- ✅ Correcciones en el sistema de escaneo: se solucionó apertura doble de cámara y se reforzó el ciclo de vida del escáner para evitar cámaras persistentes.
-- ✅ Mejoras en "Lotes Avanzado": protección contra errores DOM nulos, manejo robusto de pausa/reanudar, y nueva opción "Relacionar productos" (persistida en localStorage).
-- ✅ Reportes PDF: fecha de generación en encabezado, paginación en pie y se removieron emojis incompatibles para evitar caracteres garbled en jsPDF.
+## 📋 **Changelog - Últimas Actualizaciones**
 
-Para detalles completos de las modificaciones, ver `CAMBIOS.md` en la raíz del proyecto.
+### 🛠️ **17 de agosto de 2025 - Correcciones y Mejoras**
+
+#### 📷 Escáner (Modal y Ciclo de Vida)
+- ✅ **Corrección crítica**: Eliminado listener duplicado que causaba apertura de dos vistas de cámara
+- ✅ **Hardened lifecycle**: Funciones de inicio/stop/clear ahora detienen explícitamente `MediaStreamTrack`s como fallback
+- ✅ **Protección concurrencia**: Añadidos try/catch y flags de transición para evitar llamadas concurrentes
+- ✅ **Beneficio**: Evita cámaras persistentes y errores "cannot stop/resume" en distintos navegadores
+
+#### 🎯 Lotes Avanzado (Robustez y Nueva Opción)
+- ✅ **Null-safety**: Reparados errores TypeError por accesos DOM sin comprobación
+- ✅ **Scope corregido**: `iniciarEscanerLotesAvanzadoHtml5Qrcode` accesible desde todos los flujos
+- ✅ **Pausa/Reanudar mejorado**: Envoltorios con try/catch y fallback a `start()` si `resume()` falla
+- ✅ **Nueva opción**: `relacionarProductos` (por defecto ON) para controlar consultas a `productos_subproductos`
+- ✅ **Interfaz**: Nuevo checkbox en inventario para alternar la opción
+- ✅ **Persistencia**: Opción guardada en `localStorage` con key `lotes_relacionarProductos`
+- ✅ **Debounce mejorado**: Mejor manejo para evitar bucles de re-escaneo
+
+#### 📄 Reportes PDF (Preconteo)
+- ✅ **Fecha de generación**: Impresa en el encabezado de cada página (formato es-ES)
+- ✅ **Paginación**: Numeración "Página X/Y" en cada hoja, sin solapamiento
+- ✅ **Compatibilidad**: Eliminados emojis en títulos de agrupaciones para evitar caracteres garbled
+- ✅ **Beneficio**: Reportes legibles y consistentes en diferentes entornos
+
+> 📖 Para detalles técnicos completos de las modificaciones, ver `CAMBIOS.md` en la raíz del proyecto.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/angelaramiz/GestorInventory-Frontend)
 ![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
@@ -211,53 +233,66 @@ Para detalles completos de las modificaciones, ver `CAMBIOS.md` en la raíz del 
 ```
 GestorInventory-Frontend/
 │
-├── 📄 index.html                 # Página principal
-├── 📄 register.html             # Registro de usuarios
-├── 📄 manifest.json             # Configuración PWA
-├── 📄 service-worker.js         # Service Worker para PWA
+├── 📄 index.html                 # Página principal (login)
+├── 📄 register.html              # Registro de usuarios
+├── 📄 manifest.json              # Configuración PWA
+├── 📄 service-worker.js          # Service Worker para PWA
+├── 📄 CAMBIOS.md                 # Registro de cambios detallado
+├── 📄 README.md                  # Documentación del proyecto
 │
 ├── 🎨 css/
-│   ├── styles.css               # Estilos principales + responsive
-│   └── mobile-components.css    # Componentes específicos móviles
+│   ├── styles.css                # Estilos principales + responsive
+│   └── mobile-components.css     # Componentes específicos móviles
 │
 ├── ⚙️ js/
-│   ├── main.js                  # Lógica principal
-│   ├── auth.js                  # Autenticación y usuarios
-│   ├── mobile-optimizer.js      # Optimización automática móvil
+│   ├── main.js                   # Lógica principal de la aplicación
+│   ├── auth.js                   # Autenticación y usuarios
+│   ├── token-config.js           # Configuración de tokens Supabase
+│   ├── db-operations.js          # Operaciones base de datos
+│   ├── product-operations.js     # Gestión de productos
+│   ├── tabla-productos.js        # Renderizado de tablas de productos
+│   ├── lotes-avanzado.js         # Sistema de lotes completo
+│   ├── lotes-config.js           # Configuración de lotes
+│   ├── lotes-database.js         # Operaciones BD de lotes
+│   ├── lotes-scanner.js          # Escáner específico para lotes
+│   ├── scanner.js                # Escaneo QR/códigos de barras
+│   ├── registro-entradas-operations.js # Operaciones de registro de entradas
+│   ├── relaciones-productos.js   # Gestión de productos relacionados
+│   ├── rep.js                    # Generación de reportes PDF
+│   ├── configuraciones.js        # Gestión de configuraciones
+│   ├── mobile-optimizer.js       # Optimización automática móvil
 │   ├── table-mobile-optimizer.js # Conversión tabla-a-tarjeta
-│   ├── theme-manager.js         # Sistema de temas avanzado
-│   ├── db-operations.js         # Operaciones base de datos
-│   ├── product-operations.js    # Gestión de productos
-│   ├── lotes-avanzado.js        # Sistema de lotes completo
-│   ├── scanner.js               # Escaneo QR/códigos de barras
-│   └── configuraciones.js       # Gestión de configuraciones
+│   ├── theme-manager.js          # Sistema de temas avanzado
+│   ├── theme-toggle.js           # Toggle de tema claro/oscuro
+│   ├── theme-debug.js            # Depuración del sistema de temas
+│   ├── logs.js                   # Sistema de mensajes y alertas
+│   ├── sanitizacion.js           # Funciones de sanitización de datos
+│   ├── error-checker.js          # Verificación de errores
+│   └── extension-conflict-detector.js # Detector de conflictos de extensiones
 │
 ├── 🖼️ assets/
-│   ├── favicon.ico              # Favicon del sitio
-│   └── logo.svg                 # Logo vectorial
+│   ├── favicon.ico               # Favicon del sitio
+│   └── logo.svg                  # Logo vectorial
 │
 ├── 📚 librerías/
-│   ├── tailwind.min.css         # Framework CSS responsive
-│   ├── html5-qrcode.min.js      # Biblioteca escaneo QR
-│   ├── JsBarcode.all.min.js     # Generación códigos de barras
-│   ├── jspdf.umd.min.js         # Generación PDFs
-│   └── sweetalert2@11.js        # Alertas y modales elegantes
+│   ├── tailwind.min.css          # Framework CSS responsive
+│   ├── html5-qrcode.min.js       # Biblioteca escaneo QR
+│   ├── JsBarcode.all.min.js      # Generación códigos de barras
+│   ├── jspdf.umd.min.js          # Generación PDFs
+│   └── sweetalert2@11.js         # Alertas y modales elegantes
 │
-├── 🗂️ plantillas/
-│   ├── main.html                # Dashboard principal
-│   ├── agregar.html             # Formulario agregar productos
-│   ├── consulta.html            # Búsqueda y consulta
-│   ├── editar.html              # Edición de productos
-│   ├── inventario.html          # Gestión de inventario
-│   ├── registro-entradas.html   # Registro de entradas
-│   ├── configuraciones.html     # Panel de configuraciones
-│   └── archivos.html            # Importación/exportación
-│
-└── 📖 docs/
-    ├── OPTIMIZACION_MOVIL.md    # Documentación móvil
-    ├── THEME_SYSTEM.md          # Sistema de temas
-    ├── DOCUMENTACION_LOTES_AVANZADO.md
-    └── [más documentación técnica...]
+└── 🗂️ plantillas/
+    ├── main.html                 # Dashboard principal
+    ├── agregar.html              # Formulario agregar productos
+    ├── consulta.html             # Búsqueda y consulta
+    ├── editar.html               # Edición de productos
+    ├── inventario.html           # Gestión de inventario y lotes
+    ├── registro-entradas.html    # Registro de entradas
+    ├── archivos.html             # Importación/exportación CSV
+    ├── report.html               # Generación de reportes
+    ├── configuraciones.html      # Panel de configuraciones
+    └── confirm-email.html        # Confirmación de email
+```
 ---
 
 ## 🚀 **Instalación y Configuración**

@@ -533,7 +533,7 @@ function inicializarRenovacionAutomatica() {
     });
 }
 
-// Función para detener la renovación automática
+// Función para detener la renovación automática // funcion sin uso actualmente
 function detenerRenovacionAutomatica() {
     if (tokenCheckInterval) {
         clearInterval(tokenCheckInterval);

@@ -1,11 +1,12 @@
 // Funciones específicas para el manejo de datos de lotes avanzado en Supabase
 
 // Importar configuración de Supabase
-import { supabase } from './db-operations.js';
+import { getSupabase } from './auth.js';
 
 // Función para obtener productos subproducto desde Supabase
 export async function obtenerProductosSubproducto() {
     try {
+        const supabase = await getSupabase();
         const { data, error } = await supabase
             .from('productos_subproducto')
             .select('*');
@@ -24,6 +25,7 @@ export async function obtenerProductosSubproducto() {
 // Función para buscar producto por código/PLU
 export async function buscarProductoPorCodigo(codigo) {
     try {
+        const supabase = await getSupabase();
         const { data, error } = await supabase
             .from('productos')
             .select('*')
@@ -125,6 +127,7 @@ export async function obtenerPrecioKiloLocal(plu) {
 // Función para guardar lote de inventario en Supabase
 export async function guardarLoteInventario(loteData) {
     try {
+        const supabase = await getSupabase();
         const { data, error } = await supabase
             .from('inventario')
             .insert(loteData);
@@ -143,6 +146,7 @@ export async function guardarLoteInventario(loteData) {
 // Función para obtener productos primarios relacionados
 export async function obtenerProductoPrimario(subproductoId) {
     try {
+        const supabase = await getSupabase();
         const { data, error } = await supabase
             .from('productos_subproducto')
             .select(`
@@ -236,6 +240,7 @@ export async function limpiarDatosLocalesAntiguos(diasAntiguedad = 30) {
 // Función para verificar conectividad con Supabase
 export async function verificarConectividad() {
     try {
+        const supabase = await getSupabase();
         const { data, error } = await supabase
             .from('productos')
             .select('count')
@@ -251,6 +256,7 @@ export async function verificarConectividad() {
 // Función para obtener estadísticas de lotes
 export async function obtenerEstadisticasLotes() {
     try {
+        const supabase = await getSupabase();
         const [productosCount, subproductosCount, inventarioCount] = await Promise.all([
             supabase.from('productos').select('id', { count: 'exact' }),
             supabase.from('productos_subproducto').select('id', { count: 'exact' }),
@@ -275,6 +281,7 @@ export async function obtenerEstadisticasLotes() {
 // Función para exportar datos de lotes
 export async function exportarDatosLotes(formato = 'json') {
     try {
+        const supabase = await getSupabase();
         const { data, error } = await supabase
             .from('inventario')
             .select(`

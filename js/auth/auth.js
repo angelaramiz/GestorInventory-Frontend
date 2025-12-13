@@ -257,11 +257,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.error('Supabase reset error:', error);
                     mostrarAlertaBurbuja(error.message || 'Error al solicitar recuperación de contraseña', 'error');
                 } else {
+                    // Mostrar mensaje de éxito y permanecer en la misma página (no redirigir automáticamente)
                     mostrarAlertaBurbuja('Se ha enviado un enlace de recuperación a tu correo', 'success');
-                    document.getElementById('formPasswordReset').reset();
-                    setTimeout(() => {
-                        window.location.href = '../index.html';
-                    }, 2000);
+                    const formEl = document.getElementById('formPasswordReset');
+                    if (formEl) formEl.reset();
+                    // Mantener al usuario en esta página para que siga las instrucciones del correo
                 }
             } catch (error) {
                 console.error('Error:', error);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "gestor-inventory-v1";
+const CACHE_NAME = "gestor-inventory-v2";
 
 // Detectar si estamos en localhost o en GitHub Pages
 const isLocalhost =

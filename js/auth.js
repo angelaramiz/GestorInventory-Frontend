@@ -1,4 +1,3 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { mostrarAlertaBurbuja } from './logs.js'; // Importar la nueva función
 import { resetearBaseDeDatos, db } from './db-operations.js';
 import { getTokenConfig, logTokenEvent } from './token-config.js';
@@ -12,6 +11,19 @@ const SUPABASE_CONFIG_BACKUP = {
     supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1renplaHF0dmFvcHNmanJjZ3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODMyMzE0NjQsImV4cCI6MTk5ODgwNzQ2NH0.Sa8HFh2901UiRwuCrY6dNonSs6iml5GxCACGHxILPas'
 };
 
+// Función para obtener createClient de forma segura
+function getCreateClientFn() {
+    // Supabase se carga vía script tag, está disponible en window.supabase
+    if (window.supabase && window.supabase.createClient) {
+        return window.supabase.createClient;
+    }
+    // Fallback si se cargó como módulo
+    if (window.createClient) {
+        return window.createClient;
+    }
+    return null;
+}
+
 // Función para inicializar Supabase
 async function inicializeSupabase() {
     // Si ya está inicializado o en proceso de inicialización, devolver la instancia existente
@@ -21,50 +33,74 @@ async function inicializeSupabase() {
 
     if (supabaseInitializing) {
         // Esperar a que termine la inicialización en curso
-        while (supabaseInitializing && !supabase) {
+        let attempts = 0;
+        while (supabaseInitializing && !supabase && attempts < 50) {
             await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
         }
-        return supabase;
+        if (supabase) return supabase;
+        return null;
     }
 
     supabaseInitializing = true;
 
     try {
+        // Esperar a que Supabase esté disponible globalmente
+        let attempts = 0;
+        while (!getCreateClientFn() && attempts < 50) {
+            console.log('⏳ Esperando a que Supabase se cargue...', attempts);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+
+        const createClientFn = getCreateClientFn();
+        if (!createClientFn) {
+            throw new Error('createClient no está disponible. Supabase no se cargó correctamente.');
+        }
+
+        console.log('✅ createClient disponible');
+
+        let config = null;
+        
         // Intentar obtener la configuración del servidor
-        const response = await fetch('https://gestorinventory-backend.fly.dev/api/supabase-config', {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-            // Reducir el tiempo de espera para una respuesta más rápida si hay problemas
-            signal: AbortSignal.timeout(5000) // 5 segundos de timeout
-        });
-
-        if (!response.ok) throw new Error('No se pudo obtener la configuración de Supabase');
-
-        const config = await response.json();
-
-        // Evitar múltiples instancias usando la misma key de almacenamiento
-        supabase = createClient(config.supabaseUrl, config.supabaseKey, {
-            auth: {
-                storageKey: 'gestor-inventory-auth-session',
-                autoRefreshToken: true,
-                persistSession: true,
-                detectSessionInUrl: false,
-                flowType: 'pkce'
-            },
-            global: {
-                headers: {
-                    'X-Client-Info': 'gestor-inventory@1.0.0'
-                }
-            }
-        });
-        console.log('✅ Supabase inicializado correctamente con configuración del servidor');
-    } catch (error) {
-        console.error('❌ Error al obtener configuración del servidor:', error);
-        mostrarAlertaBurbuja('Usando configuración local de respaldo para Supabase', 'warning');
-
-        // Usar configuración de respaldo
         try {
-            supabase = createClient(SUPABASE_CONFIG_BACKUP.supabaseUrl, SUPABASE_CONFIG_BACKUP.supabaseKey, {
+            console.log('📡 Intentando obtener configuración de Supabase desde el servidor...');
+            const response = await fetch('https://gestorinventory-backend.fly.dev/api/supabase-config', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                signal: AbortSignal.timeout(5000) // 5 segundos de timeout
+            });
+
+            if (response.ok) {
+                config = await response.json();
+                console.log('✅ Configuración obtenida del servidor');
+            } else {
+                throw new Error(`Status: ${response.status}`);
+            }
+        } catch (fetchError) {
+            console.warn('⚠️ No se pudo obtener config del servidor, usando respaldo:', fetchError.message);
+        }
+
+        // Si no se obtuvo del servidor, usar configuración de respaldo
+        if (!config) {
+            config = SUPABASE_CONFIG_BACKUP;
+            console.log('⚠️ Usando configuración de respaldo');
+        }
+
+        // Validar que tenemos URL y KEY
+        if (!config.supabaseUrl || !config.supabaseKey) {
+            console.error('❌ Configuración incompleta:', {
+                hasUrl: !!config.supabaseUrl,
+                hasKey: !!config.supabaseKey
+            });
+            throw new Error('Configuración de Supabase incompleta: URL y KEY requeridas');
+        }
+
+        console.log('🔧 Creando cliente Supabase con URL:', config.supabaseUrl?.substring(0, 40) + '...');
+        
+        // Crear cliente de Supabase
+        try {
+            supabase = createClientFn(config.supabaseUrl, config.supabaseKey, {
                 auth: {
                     storageKey: 'gestor-inventory-auth-session',
                     autoRefreshToken: true,
@@ -74,16 +110,35 @@ async function inicializeSupabase() {
                 },
                 global: {
                     headers: {
-                        'X-Client-Info': 'gestor-inventory-backup@1.0.0'
+                        'X-Client-Info': 'gestor-inventory@1.0.0'
                     }
                 }
             });
-            console.log('✅ Supabase inicializado con configuración de respaldo');
-        } catch (backupError) {
-            console.error('❌ Error al inicializar Supabase con configuración de respaldo:', backupError);
-            mostrarAlertaBurbuja('Error crítico al inicializar Supabase', 'error');
-            throw new Error('No se pudo inicializar Supabase');
+            
+            // Verificar que el cliente se creó correctamente
+            if (!supabase) {
+                throw new Error('createClient() devolvió null');
+            }
+            
+            // Verificar que el cliente tiene las propiedades esperadas
+            if (!supabase.auth) {
+                console.warn('⚠️ Cliente Supabase sin propiedad "auth"');
+            }
+            
+            console.log('✅ Supabase inicializado correctamente');
+            console.log('   URL:', config.supabaseUrl?.substring(0, 30) + '...');
+            console.log('   Auth disponible:', !!supabase.auth);
+        } catch (clientError) {
+            console.error('❌ Error al crear cliente Supabase:', clientError.message);
+            console.error('   Stack:', clientError.stack);
+            throw clientError;
         }
+    } catch (error) {
+        console.error('❌ Error al inicializar Supabase:', error);
+        console.error('   Detalles:', error.message);
+        console.error('   Stack:', error.stack);
+        supabase = null;
+        // No lanzar error, solo devolver null para graceful degradation
     } finally {
         supabaseInitializing = false;
     }
@@ -94,22 +149,32 @@ async function inicializeSupabase() {
 // Función para obtener el cliente de Supabase
 export async function getSupabase() {
     if (!supabase) {
-        await inicializeSupabase();
+        try {
+            await inicializeSupabase();
+        } catch (error) {
+            console.error('Error crítico al inicializar Supabase:', error);
+            return null;
+        }
     }
     return supabase;
 }
 
-// Exportar el cliente Supabase directamente
-export { supabase };
-
 // Login
 document.addEventListener('DOMContentLoaded', async () => {
-    // Inicializar Supabase al cargar la página
-    try {
-        await inicializeSupabase();
-    } catch (error) {
-        console.error('Error al inicializar Supabase en carga de página:', error);
-    }
+    // Retrasar la inicialización de Supabase para después de que todo esté listo
+    console.log('🚀 Iniciando DOMContentLoaded event listener...');
+    
+    // Usar setTimeout para retrasar la inicialización
+    setTimeout(async () => {
+        try {
+            const result = await inicializeSupabase();
+            if (!result) {
+                console.warn('⚠️ Supabase no se inicializó correctamente, continuando sin él');
+            }
+        } catch (error) {
+            console.error('Error al inicializar Supabase en carga de página:', error);
+        }
+    }, 100); // Retrasar 100ms para asegurar que otros scripts se hayan cargado
 
     const formLogin = document.getElementById('formLogin');
     if (formLogin) {
@@ -166,6 +231,43 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
+
+    // Recuperación de contraseña
+    const formPasswordReset = document.getElementById('formPasswordReset');
+    if (formPasswordReset) {
+        formPasswordReset.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+
+            if (!email) {
+                mostrarAlertaBurbuja('Por favor ingresa tu correo electrónico', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('https://gestorinventory-backend.fly.dev/productos/request-password-reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    mostrarAlertaBurbuja('Se ha enviado un enlace de recuperación a tu correo', 'success');
+                    document.getElementById('formPasswordReset').reset();
+                    setTimeout(() => {
+                        window.location.href = '../index.html';
+                    }, 2000);
+                } else {
+                    mostrarAlertaBurbuja(data.error || 'Error al solicitar recuperación de contraseña', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlertaBurbuja('Error de conexión con el servidor', 'error');
+            }
+        });
+    }
 });
 
 async function iniciarSesion(email, password) {
@@ -209,11 +311,18 @@ async function iniciarSesion(email, password) {
                 localStorage.setItem('categoria_id', user.categoria_id); // Guardar la categoría
                 localStorage.setItem('rol', user.rol); // Guardar el rol del usuario
 
-                // Configurar el token en el cliente Supabase
-                await supabase.auth.setSession({
-                    access_token: access_token,
-                    refresh_token: refresh_token
-                });
+                // Configurar el token en el cliente Supabase (si está disponible)
+                if (supabase && supabase.auth) {
+                    try {
+                        await supabase.auth.setSession({
+                            access_token: access_token,
+                            refresh_token: refresh_token
+                        });
+                    } catch (sessionError) {
+                        console.warn('No se pudo setear la sesión en Supabase:', sessionError);
+                        // Continuar sin error, el token está guardado en localStorage
+                    }
+                }
 
                 // Inicializar sistema de renovación automática de tokens
                 inicializarRenovacionAutomatica();
@@ -360,34 +469,44 @@ function debugRutas() {
 
 // Configurar interceptor para verificar el token antes de cada petición a Supabase
 export async function configurarInterceptorSupabase() {
-    if (!supabase) await inicializeSupabase();
-
-    // Configurar interceptor para las peticiones a Supabase
-    const originalFetch = window.fetch;
-    window.fetch = async function (...args) {
-        const [url, options = {}] = args;
-
-        // Solo interceptamos las peticiones a Supabase
-        if (url.includes('supabase') || (options.headers && options.headers['apikey'])) {
-            const token = localStorage.getItem('supabase.auth.token');
-
-            // Verificar si el token está expirado
-            if (token && isTokenExpired(token)) {
-                console.log("Token expirado detectado antes de una petición a Supabase");
-                // Solo mostrar alerta una vez por sesión
-                if (!window.tokenExpirationNotified) {
-                    mostrarAlertaBurbuja('Tu sesión ha expirado. Algunas funciones pueden no estar disponibles.', 'warning');
-                    window.tokenExpirationNotified = true;
-                }
-
-                // No rechazamos la petición, dejamos que continúe aunque fallará
-                // De esta manera la aplicación sigue funcionando sin interrupciones
+    try {
+        if (!supabase) {
+            const result = await inicializeSupabase();
+            if (!result) {
+                console.warn('⚠️ No se pudo inicializar Supabase en configurarInterceptorSupabase');
+                return;
             }
         }
 
-        // Continuar con la petición original
-        return originalFetch.apply(this, args);
-    };
+        // Configurar interceptor para las peticiones a Supabase
+        const originalFetch = window.fetch;
+        window.fetch = async function (...args) {
+            const [url, options = {}] = args;
+
+            // Solo interceptamos las peticiones a Supabase
+            if (url.includes('supabase') || (options.headers && options.headers['apikey'])) {
+                const token = localStorage.getItem('supabase.auth.token');
+
+                // Verificar si el token está expirado
+                if (token && isTokenExpired(token)) {
+                    console.log("Token expirado detectado antes de una petición a Supabase");
+                    // Solo mostrar alerta una vez por sesión
+                    if (!window.tokenExpirationNotified) {
+                        mostrarAlertaBurbuja('Tu sesión ha expirado. Algunas funciones pueden no estar disponibles.', 'warning');
+                        window.tokenExpirationNotified = true;
+                    }
+
+                    // No rechazamos la petición, dejamos que continúe aunque fallará
+                    // De esta manera la aplicación sigue funcionando sin interrupciones
+                }
+            }
+
+            // Continuar con la petición original
+            return originalFetch.apply(this, args);
+        };
+    } catch (error) {
+        console.error('Error al configurar interceptor Supabase:', error);
+    }
 }
 
 export function getToken() {
@@ -546,7 +665,16 @@ function detenerRenovacionAutomatica() {
 export async function verificarSesionValida() {
     try {
         if (!supabase) {
-            await inicializeSupabase();
+            const result = await inicializeSupabase();
+            if (!result) {
+                console.warn('No se pudo inicializar Supabase');
+                return false;
+            }
+        }
+
+        if (!supabase.auth) {
+            console.error('Supabase.auth no disponible');
+            return false;
         }
 
         const { data: session, error } = await supabase.auth.getSession();
@@ -583,17 +711,33 @@ export async function verificarSesionValida() {
 // Función para inicializar el sistema de renovación en páginas del sistema
 export async function inicializarSistemaPagina() {
     try {
-        // Verificar si no estamos en la página de login/registro
+        // Verificar si estamos en una página pública (sin autenticación requerida)
         const currentPath = window.location.pathname;
-        const isLoginPage = currentPath.includes('index.html') || 
-                           currentPath.includes('register.html') || 
-                           currentPath === '/' ||
-                           currentPath.endsWith('/GestorInventory-Frontend/');
+        
+        // Páginas públicas que no requieren autenticación
+        const publicPages = [
+            'index.html',
+            'register.html',
+            'request-password-reset.html',
+            'reset-password.html',
+            'confirm-email.html',
+            '/'
+        ];
+        
+        // Verificar si la ruta actual coincide con alguna página pública
+        const isPublicPage = publicPages.some(page => {
+            if (page === '/') {
+                return currentPath === '/' || currentPath.endsWith('/GestorInventory-Frontend/');
+            }
+            return currentPath.includes(page);
+        });
 
-        if (isLoginPage) {
-            console.log('En página de login/registro, no inicializar renovación automática');
+        if (isPublicPage) {
+            console.log('🔓 Página pública detectada, no requiere autenticación:', currentPath);
             return;
         }
+
+        console.log('🔒 Página protegida detectada, verificando autenticación:', currentPath);
 
         // Verificar si hay una sesión válida
         if (!supabase) {
@@ -603,7 +747,7 @@ export async function inicializarSistemaPagina() {
         const { data: session, error } = await supabase.auth.getSession();
         
         if (error || !session?.session) {
-            console.warn('No hay sesión válida, redirigiendo al login');
+            console.warn('❌ No hay sesión válida, redirigiendo al login');
             window.location.href = getLoginRedirectPath();
             return;
         }

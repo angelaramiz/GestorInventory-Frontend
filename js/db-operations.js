@@ -44,7 +44,22 @@ export async function procesarColaSincronizacion() {
     while (syncQueue.length > 0) {
         const item = syncQueue.shift();
         try {
-            const supabase = await getSupabase();
+            let supabase = null;
+            try {
+                supabase = await getSupabase();
+            } catch (error) {
+                console.error("Error al obtener cliente Supabase:", error);
+                syncQueue.unshift(item); // Reintentar después
+                mostrarAlertaBurbuja("Error de conexión con el servidor", "error");
+                break;
+            }
+
+            if (!supabase) {
+                console.error("Cliente Supabase no disponible");
+                syncQueue.unshift(item);
+                mostrarAlertaBurbuja("Error: Supabase no inicializado", "error");
+                break;
+            }
 
             // Verificar que el ítem tenga área_id
             if (!item.area_id) {

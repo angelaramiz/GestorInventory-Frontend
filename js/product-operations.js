@@ -2,7 +2,7 @@ import { db, dbInventario, agregarAColaSincronizacion } from './db-operations.js
 import { mostrarMensaje } from './logs.js';
 import { cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, guardarAreaIdPersistente } from './db-operations.js';
 import { sanitizarProducto, sanitizarEntrada, sanitizarNumeroEntero } from './sanitizacion.js';
-import { supabase } from './auth.js';
+import { getSupabase } from './auth.js';
 import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm'; // Usar UUID para IDs únicos
 import { mostrarUbicacionActual } from './main.js';
 // Función para generar un ID temporal si estás offline

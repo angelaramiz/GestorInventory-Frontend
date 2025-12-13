@@ -599,7 +599,7 @@ async function crearRelacionesProductos(codigoPrimario, codigosSubproductos) {
 async function sincronizarConSupabase() {
     try {
         // Importar funciones de sincronización si existen
-        const { sincronizarProductosDesdeBackend } = await import('./db-operations.js');
+        const { sincronizarProductosDesdeBackend } = await import('../db/db-operations.js');
         
         if (sincronizarProductosDesdeBackend) {
             await sincronizarProductosDesdeBackend();

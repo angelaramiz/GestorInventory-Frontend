@@ -205,7 +205,7 @@ async function init() {
 
         if (esPaginaInventario) {
             // Obtener áreas por categoría al inicializar solo en la página de inventario
-            const { obtenerAreasPorCategoria } = await import('./db-operations.js');
+            const { obtenerAreasPorCategoria } = await import('../db/db-operations.js');
             await obtenerAreasPorCategoria();
 
             await inicializarSuscripciones();
@@ -220,7 +220,7 @@ async function init() {
 
             // Inicializar sistema de lotes
             try {
-                const { inicializarSistemaLotes } = await import('./lotes-scanner.js');
+                const { inicializarSistemaLotes } = await import('./scanner/lotes-scanner.js');
                 if (inicializarSistemaLotes) {
                     inicializarSistemaLotes();
                                     }
@@ -230,7 +230,7 @@ async function init() {
 
             // Inicializar sistema de lotes avanzado
             try {
-                const { inicializarSistemaLotesAvanzado } = await import('./lotes-avanzado.js');
+                const { inicializarSistemaLotesAvanzado } = await import('./scanner/lotes-avanzado.js');
                 if (inicializarSistemaLotesAvanzado) {
                     inicializarSistemaLotesAvanzado();
                                     }
@@ -249,7 +249,7 @@ async function init() {
             // Botón temporal para testing de pestañas lotes
             document.getElementById('testPestanasLotes')?.addEventListener('click', async () => {
                                 try {
-                    const { manejarTipoProducto, establecerProductoActual } = await import('./lotes-scanner.js');
+                    const { manejarTipoProducto, establecerProductoActual } = await import('./scanner/lotes-scanner.js');
                     
                     // Crear producto de prueba tipo Kg
                     const productoTest = {
@@ -285,7 +285,7 @@ async function init() {
             document.getElementById('testExtraccionCodigos')?.addEventListener('click', async () => {
                                 try {
                     // Importar función de prueba
-                    const moduloLotes = await import('./lotes-scanner.js');
+                    const moduloLotes = await import('./scanner/lotes-scanner.js');
                     
                     if (moduloLotes.probarExtraccionPrecio) {
                                                 moduloLotes.probarExtraccionPrecio();

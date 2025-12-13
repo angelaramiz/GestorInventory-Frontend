@@ -1669,7 +1669,7 @@ async function guardarInventarioLotesAvanzado() {
             // PASO 4: Actualizar tabla de inventario si existe
             try {
                                 // Importar y ejecutar sincronización desde Supabase
-                const { sincronizarInventarioDesdeSupabase } = await import('./db-operations.js');
+                const { sincronizarInventarioDesdeSupabase } = await import('../db/db-operations.js');
                 await sincronizarInventarioDesdeSupabase();
 
                             } catch (e) {

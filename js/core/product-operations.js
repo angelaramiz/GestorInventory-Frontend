@@ -140,7 +140,7 @@ export function mostrarFormularioInventario(producto) {
 
     // Verificar si es un producto tipo Kg y manejar las pestañas
     const unidad = producto.unidad || "";
-        import('./lotes-scanner.js').then(module => {
+        import('./scanner/lotes-scanner.js').then(module => {
                 if (module.manejarTipoProducto) {
                         module.manejarTipoProducto(unidad);
         } else {
@@ -1507,7 +1507,7 @@ function mostrarFormularioModificacion(productoInventario) {
 // Función para solicitar al usuario la selección de ubicación
 export async function seleccionarUbicacionAlmacen() {
     try {
-        const { obtenerAreasPorCategoria, guardarAreaIdPersistente } = await import('./db-operations.js');
+        const { obtenerAreasPorCategoria, guardarAreaIdPersistente } = await import('../db/db-operations.js');
         const areas = await obtenerAreasPorCategoria();
 
         if (!areas || areas.length === 0) {
@@ -1557,13 +1557,13 @@ export async function seleccionarUbicacionAlmacen() {
 }
 
 export async function verificarYSeleccionarUbicacion() {
-    const { obtenerUbicacionEnUso, obtenerAreaId, guardarAreaIdPersistente } = await import('./db-operations.js');
+    const { obtenerUbicacionEnUso, obtenerAreaId, guardarAreaIdPersistente } = await import('../db/db-operations.js');
     const ubicacionGuardada = await obtenerUbicacionEnUso();
     const areaIdGuardado = obtenerAreaId();
 
     if (!ubicacionGuardada || !areaIdGuardado) {
                 try {
-            const { obtenerAreasPorCategoria } = await import('./db-operations.js');
+            const { obtenerAreasPorCategoria } = await import('../db/db-operations.js');
             const areas = await obtenerAreasPorCategoria();
 
             if (!areas || areas.length === 0) {

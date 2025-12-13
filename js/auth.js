@@ -51,7 +51,6 @@ async function inicializeSupabase() {
         // Esperar a que Supabase esté disponible globalmente
         let attempts = 0;
         while (!getCreateClientFn() && attempts < 50) {
-            console.log('⏳ Esperando a que Supabase se cargue...', attempts);
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
         }
@@ -61,12 +60,9 @@ async function inicializeSupabase() {
             throw new Error('createClient no está disponible. Supabase no se cargó correctamente.');
         }
 
-        console.log('✅ createClient disponible');
-
         let config = null;
         
         // Verificar disponibilidad del backend ANTES de intentar fetch
-        console.log('🔍 Verificando disponibilidad del backend...');
         const backendAvailable = await backendStatusMonitor.checkBackendAvailability(2);
         
         // Intentar obtener la configuración del servidor si está disponible

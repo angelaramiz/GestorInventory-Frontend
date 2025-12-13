@@ -15,8 +15,8 @@
     <script src="./librerías/sweetalert2@11.js"></script>
     <link rel="stylesheet" href="./css/styles.css">
     <link rel="stylesheet" href="./css/mobile-components.css">
-    <script src="./js/theme-manager.js"></script>
-    <script src="./js/theme-toggle.js"></script>
+    <script src="./js/utils/theme-manager.js"></script>
+    <script src="./js/ui/theme-toggle.js"></script>
     <link rel="manifest" href="./manifest.json">
 </head>
 
@@ -91,10 +91,10 @@
         </div>
     </div>
 
-    <script src="./js/mobile-optimizer.js"></script>
+    <script src="./js/ui/mobile-optimizer.js"></script>
     <!-- Cargar Supabase como script tradicional antes de auth.js -->
     <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
-    <script type="module" src="./js/auth.js"></script>
+    <script type="module" src="./js/auth/auth.js"></script>
     <script>
         // Registrar Service Worker de manera más robusta
         if ('serviceWorker' in navigator) {
@@ -125,7 +125,7 @@
         }
     </script>
     <script type="module">
-        import { sessionManager } from './js/session-manager.js';
+        import { sessionManager } from './js/auth/session-manager.js';
         
         // Auto-llenar email desde usuario recordado
         document.addEventListener('DOMContentLoaded', () => {

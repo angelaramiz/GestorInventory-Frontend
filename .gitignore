@@ -1,7 +1,7 @@
 .vscode
 
 # Documentación de desarrollo y archivos temporales
-docs/
+docs-desarrollo/
 test/
 funciones-js.txt
 GestorInventory-Backend/

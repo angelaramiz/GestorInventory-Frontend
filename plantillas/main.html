@@ -15,8 +15,8 @@
     <script src="../librerías/sweetalert2@11.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
-    <script src="../js/theme-manager.js"></script>
-    <script src="../js/theme-toggle.js"></script>
+    <script src="../js/utils/theme-manager.js"></script>
+    <script src="../js/ui/theme-toggle.js"></script>
     
     <!-- Cargar Supabase como script tradicional -->
     <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
@@ -132,9 +132,9 @@
             reservados.</p>
     </footer>
 
-    <script src="../js/mobile-optimizer.js"></script>
-    <script type="module" src="../js/main.js"></script>    <script type="module">
-        import { backendStatusMonitor } from '../js/backend-status.js';
+    <script src="../js/ui/mobile-optimizer.js"></script>
+    <script type="module" src="../js/core/main.js"></script>    <script type="module">
+        import { backendStatusMonitor } from '../js/utils/backend-status.js';
         
         // Monitorear estado del backend
         document.addEventListener('DOMContentLoaded', () => {
@@ -179,7 +179,7 @@
         });
     </script>
     <script type="module">
-        import { cerrarSesion } from '../js/auth.js';
+        import { cerrarSesion } from '../js/auth/auth.js';
         
         // Manejar botón de logout
         document.addEventListener('DOMContentLoaded', () => {
@@ -242,3 +242,4 @@
 </body>
 
 </html>
+

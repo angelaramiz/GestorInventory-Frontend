@@ -21,8 +21,8 @@
     <script src="../librerías/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
-    <script src="../js/theme-manager.js"></script>
-    <script src="../js/theme-toggle.js"></script>
+    <script src="../js/utils/theme-manager.js"></script>
+    <script src="../js/ui/theme-toggle.js"></script>
     
     <!-- Cargar Supabase como script tradicional -->
     <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
@@ -107,8 +107,8 @@
         <div id="barcodeContainer" class="mt-4"></div>
     </div>
 
-    <script src="../js/mobile-optimizer.js"></script>
-    <script type="module" src="../js/main.js"></script>
+    <script src="../js/ui/mobile-optimizer.js"></script>
+    <script type="module" src="../js/core/main.js"></script>
     <script>
         // Función para convertir guión a 6 ceros
         function convertirGuionACeros(valor) {
@@ -364,3 +364,4 @@
 </body>
 
 </html>
+

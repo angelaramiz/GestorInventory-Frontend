@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -12,21 +12,352 @@
     <link rel="apple-touch-icon" href="../assets/logo.svg">
     
     <!-- Cambiamos Quagga por Html5QrCode -->
-    <link rel="stylesheet" href="../js/lib/tailwind.min.css">
-    <script src="../js/lib/html5-qrcode.min.js"></script>
-    <script src="../js/lib/sweetalert2@11.js"></script>
+    <link rel="stylesheet" href="../librerías/tailwind.min.css">
+    <script src="../librerías/html5-qrcode.min.js"></script>
+    <script src="../librerías/sweetalert2@11.js"></script>
     <!-- Añadir JsBarcode para códigos de barra -->
-    <script src="../js/lib/JsBarcode.all.min.js"></script>
+    <script src="../librerías/JsBarcode.all.min.js"></script>
     <!-- Añadir jsPDF para generación de PDFs -->
-    <script src="../js/lib/jspdf.umd.min.js"></script>
+    <script src="../librerías/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
-    <script src="../js/utils/theme-manager.js"></script>
-    <script src="../js/ui/theme-toggle.js"></script>
-    
-    <!-- Cargar Supabase como script tradicional -->
-    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
+    <script src="../js/theme-manager.js"></script>
+    <script src="../js/theme-toggle.js"></script>
 </head>
 
 <body class="bg-gray-100">
-    
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-3xl font-bold">Consulta de Producto</h1>
+
+    </header>
+
+    <div id="sideMenu"
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-bold">Menú de Navegación</h2>
+            <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
+        </div>
+        <ul id="menuRoutes" class="p-4 space-y-2">
+            <!-- Las rutas se generarán dinámicamente -->
+        </ul>
+    </div>
+
+    <div id="consulta" class="container mx-auto mt-8 p-4">
+        <h1 class="text-3xl font-bold mb-6">Consulta de Producto</h1>
+        <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
+        <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">Menú</button>
+
+        <!-- Sistema de pestañas -->
+        <div class="mb-4 mt-4">
+            <nav class="flex border-b">
+                <button id="tab-busqueda" class="tab-button border-b-2 border-blue-500 text-blue-600 px-4 py-2 font-semibold">Búsqueda</button>
+                <button id="tab-relaciones" class="tab-button border-b-2 border-transparent text-gray-500 px-4 py-2 font-semibold">Relaciones</button>
+            </nav>
+        </div>
+
+        <!-- Contenido de pestañas -->
+        <div id="content-busqueda" class="tab-content">
+            <form id="formConsultaProducto" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="codigoConsulta">Código/PLU:</label>
+                    <div class="flex">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="codigoConsulta" type="text">
+                        <button type="button" id="escanearBtnConsulta" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">Escanear Código de Barras</button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="nombreConsulta">Nombre:</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="nombreConsulta" type="text">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="categoriaConsulta">Categoría:</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="categoriaConsulta" type="text">
+                </div>
+                <div class="flex items-center justify-between">
+                    <button id="buscarConsulta" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">Buscar Producto</button>
+                </div>
+            </form>
+            <div id="resultados" class="mt-4"></div>
+        </div>
+        <div id="content-relaciones" class="tab-content" style="display:none;">
+            <form id="formRelaciones" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="codigoRelacion">Código del producto:</label>
+                    <div class="flex">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="codigoRelacion" type="text" placeholder="Escanea o ingresa el código o últimos 4 dígitos">
+                        <button type="button" id="escanearBtnRelacion" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2">Escanear</button>
+                        <button type="button" id="buscarRelacion" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">Buscar Relación</button>
+                    </div>
+                </div>
+            </form>
+            <div id="relaciones" class="mt-4"></div>
+        </div>
+
+        <!-- Modificamos el contenedor del escáner -->
+        <!-- En plantillas/consulta.html -->
+        <div id="scanner-container-consulta" class="mt-4" style="display: none;">
+            <div id="reader-consulta" class="w-full max-w-lg mx-auto"></div>
+            <button id="cerrarEscanerConsulta" class="...">Cerrar Escáner</button>
+        </div>
+
+        <!-- Div to hold the barcode -->
+        <div id="barcodeContainer" class="mt-4"></div>
+    </div>
+
+    <script src="../js/mobile-optimizer.js"></script>
+    <script type="module" src="../js/main.js"></script>
+    <script>
+        // Función para convertir guión a 6 ceros
+        function convertirGuionACeros(valor) {
+            return valor.replace(/-/g, '000000');
+        }
+
+        // Función para aplicar la conversión a un input
+        function aplicarConversionCodigo(input) {
+            if (!input) return;
+            input.addEventListener('input', function(e) {
+                const valorOriginal = e.target.value;
+                const valorConvertido = convertirGuionACeros(valorOriginal);
+                if (valorOriginal !== valorConvertido) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = valorConvertido;
+                    const diferencia = valorConvertido.length - valorOriginal.length;
+                    const nuevaPosicion = Math.min(cursorPos + diferencia, valorConvertido.length);
+                    e.target.setSelectionRange(nuevaPosicion, nuevaPosicion);
+                }
+            });
+            input.addEventListener('blur', function(e) {
+                e.target.value = convertirGuionACeros(e.target.value);
+            });
+        }
+
+        // Búsqueda relacional de productos con pestañas
+        document.addEventListener('DOMContentLoaded', function() {
+            const codigoConsulta = document.getElementById('codigoConsulta');
+            aplicarConversionCodigo(codigoConsulta);
+            // Para la pestaña de relaciones
+            const codigoRelacion = document.getElementById('codigoRelacion');
+            if (codigoRelacion) aplicarConversionCodigo(codigoRelacion);
+
+            // Tabs
+            const tabBusqueda = document.getElementById('tab-busqueda');
+            const tabRelaciones = document.getElementById('tab-relaciones');
+            const contentBusqueda = document.getElementById('content-busqueda');
+            const contentRelaciones = document.getElementById('content-relaciones');
+            const relacionesDiv = document.getElementById('relaciones');
+            let ultimoProducto = null;
+
+            function switchTab(tab) {
+                if (tab === 'busqueda') {
+                    tabBusqueda.classList.add('border-blue-500', 'text-blue-600');
+                    tabBusqueda.classList.remove('border-transparent', 'text-gray-500');
+                    tabRelaciones.classList.remove('border-blue-500', 'text-blue-600');
+                    tabRelaciones.classList.add('border-transparent', 'text-gray-500');
+                    contentBusqueda.style.display = 'block';
+                    contentRelaciones.style.display = 'none';
+                } else {
+                    if (tabRelaciones.disabled) return; // No cambiar si está deshabilitada
+                    tabRelaciones.classList.add('border-blue-500', 'text-blue-600');
+                    tabRelaciones.classList.remove('border-transparent', 'text-gray-500');
+                    tabBusqueda.classList.remove('border-blue-500', 'text-blue-600');
+                    tabBusqueda.classList.add('border-transparent', 'text-gray-500');
+                    contentBusqueda.style.display = 'none';
+                    contentRelaciones.style.display = 'block';
+                }
+            }
+            tabBusqueda.addEventListener('click', () => switchTab('busqueda'));
+            tabRelaciones.addEventListener('click', () => switchTab('relaciones'));
+            switchTab('busqueda');
+
+            const buscarBtn = document.getElementById('buscarConsulta');
+            const resultadosDiv = document.getElementById('resultados');
+
+            buscarBtn.addEventListener('click', async function() {
+                resultadosDiv.innerHTML = '';
+                ultimoProducto = null;
+                const codigoInput = document.getElementById('codigoConsulta').value.trim();
+                const nombre = document.getElementById('nombreConsulta').value.trim();
+                const categoria = document.getElementById('categoriaConsulta').value.trim();
+
+                // Buscar primero en IndexedDB para obtener el código completo
+                function buscarEnIndexedDB(codigo, nombre, categoria) {
+                    return new Promise((resolve, reject) => {
+                        if (!window.indexedDB) {
+                            resolve(null);
+                            return;
+                        }
+                        const request = window.indexedDB.open('InventarioDB', 1);
+                        request.onerror = function() { resolve(null); };
+                        request.onsuccess = function(event) {
+                            const db = event.target.result;
+                            const tx = db.transaction(['productos'], 'readonly');
+                            const store = tx.objectStore('productos');
+                            const allReq = store.getAll();
+                            allReq.onsuccess = function(e) {
+                                const productos = e.target.result || [];
+                                let encontrados = [];
+                                if (codigo) {
+                                    if (codigo.length === 4) {
+                                        encontrados = productos.filter(p => p.codigo && p.codigo.endsWith(codigo));
+                                    } else if (codigo.length === 13) {
+                                        encontrados = productos.filter(p => p.codigo && p.codigo === codigo);
+                                    } else {
+                                        encontrados = productos.filter(p => p.codigo && p.codigo === codigo);
+                                    }
+                                } else if (nombre || categoria) {
+                                    encontrados = productos.filter(p => {
+                                        let match = true;
+                                        if (nombre) match = match && p.nombre && p.nombre.toLowerCase().includes(nombre.toLowerCase());
+                                        if (categoria) match = match && p.categoria && p.categoria.toLowerCase().includes(categoria.toLowerCase());
+                                        return match;
+                                    });
+                                }
+                                resolve(encontrados);
+                            };
+                            allReq.onerror = function() { resolve(null); };
+                        };
+                    });
+                }
+
+                const productosLocal = await buscarEnIndexedDB(codigoInput, nombre, categoria);
+                if (!productosLocal || productosLocal.length === 0) {
+                    resultadosDiv.innerHTML = '<div class="text-red-600 font-semibold">No se encontraron productos en el dispositivo.</div>';
+                    return;
+                }
+
+                // Mostrar resultados principales
+                productosLocal.forEach((producto, idx) => {
+                    let html = `<div class="bg-white rounded shadow p-4 mb-4">
+                        <h3 class="text-xl font-bold mb-2">${producto.nombre}</h3>
+                        <div><b>Código:</b> ${producto.codigo}</div>
+                        <div><b>Categoría:</b> ${producto.categoria}</div>
+                        <div><b>Marca:</b> ${producto.marca}</div>
+                        <div><b>Unidad:</b> ${producto.unidad}</div>
+                    </div>`;
+                    resultadosDiv.innerHTML += html;
+                    if (idx === 0) ultimoProducto = producto;
+                });
+            });
+
+            // Lógica independiente para la pestaña de relaciones
+            const buscarRelacionBtn = document.getElementById('buscarRelacion');
+            if (buscarRelacionBtn) {
+                buscarRelacionBtn.addEventListener('click', async function() {
+                    relacionesDiv.innerHTML = '';
+                    let codigo = document.getElementById('codigoRelacion').value.trim();
+                    if (!codigo) {
+                        relacionesDiv.innerHTML = '<div class="text-red-600">Ingresa un código para buscar relaciones.</div>';
+                        return;
+                    }
+                    // Permitir búsqueda por últimos 4 dígitos
+                    if (codigo.length === 4) {
+                        // Buscar en Supabase todos los productos cuyo substring(2,5) sea igual a esos 4 dígitos
+                        let supabase;
+                        if (window.getSupabase) {
+                            supabase = await window.getSupabase();
+                        } else if (window.supabase) {
+                            supabase = window.supabase;
+                        }
+                        // Traer todos los códigos y filtrar en JS (por compatibilidad universal)
+                        const { data: productosTodos } = await supabase.from('productos').select('codigo');
+                        const productos4 = (productosTodos || []).filter(p => typeof p.codigo === 'string' && p.codigo.length >= 5 && p.codigo.substring(1,5) === codigo);
+                        if (productos4.length > 0) {
+                            if (productos4.length > 1) {
+                                relacionesDiv.innerHTML = `<div class='mb-2'>Se encontraron varios productos con los dígitos 2-5 <b>${codigo}</b>:</div>`;
+                                productos4.forEach(p => {
+                                    relacionesDiv.innerHTML += `<button class='bg-blue-100 hover:bg-blue-300 text-blue-800 px-2 py-1 rounded m-1' onclick='document.getElementById("codigoRelacion").value="${p.codigo}";document.getElementById("buscarRelacion").click();return false;'>${p.codigo}</button>`;
+                                });
+                                return;
+                            } else {
+                                codigo = productos4[0].codigo;
+                                document.getElementById('codigoRelacion').value = codigo;
+                            }
+                        } else {
+                            relacionesDiv.innerHTML = `<div class='text-red-600'>No se encontró ningún producto con los dígitos 2-5 igual a <b>${codigo}</b>.</div>`;
+                            return;
+                        }
+                    }
+                    relacionesDiv.innerHTML = '<div class="text-gray-500">Buscando relaciones...</div>';
+                    try {
+                        const { obtenerRelacionesProductosSupabase, buscarRelacionProducto } = await import('../js/relaciones-productos.js');
+                        let supabase;
+                        if (window.getSupabase) {
+                            supabase = await window.getSupabase();
+                        } else if (window.supabase) {
+                            supabase = window.supabase;
+                        }
+                        const relaciones = await obtenerRelacionesProductosSupabase();
+                        const resultado = buscarRelacionProducto(codigo, relaciones);
+                        // Buscar info del producto consultado
+                        let relHtml = `<div class="bg-white rounded shadow p-4 mb-4">
+                            <h3 class="text-lg font-bold mb-2">Relaciones para: <span class='font-mono'>${codigo}</span></h3>`;
+                        const { data: productoInfo } = await supabase.from('productos').select('*').eq('codigo', codigo);
+                        if (productoInfo && productoInfo.length > 0) {
+                            const p = productoInfo[0];
+                            relHtml += `<div class='mb-2 text-sm text-gray-700'>${p.nombre} | ${p.unidad || ''} | ${p.categoria || ''} | ${p.marca || ''}</div>`;
+                        }
+                        // Si es principal, mostrar subproductos
+                        if (resultado.tipo === 'principal' && resultado.subproductos.length > 0) {
+                            // Buscar info de subproductos
+                            const { data: subproductosInfo } = await supabase.from('productos').select('*').in('codigo', resultado.subproductos);
+                            relHtml += `<div class="mt-2"><b>Subproductos relacionados:</b>
+                            <table class="min-w-full mt-2 border"><thead><tr><th class="border px-2">Código</th><th class="border px-2">Nombre</th><th class="border px-2">Unidad</th></tr></thead><tbody>`;
+                            resultado.subproductos.forEach(subCodigo => {
+                                const sub = subproductosInfo ? subproductosInfo.find(p => p.codigo === subCodigo) : null;
+                                if (sub) {
+                                    relHtml += `<tr><td class="border px-2">${sub.codigo}</td><td class="border px-2">${sub.nombre}</td><td class="border px-2">${sub.unidad}</td></tr>`;
+                                } else {
+                                    relHtml += `<tr><td class="border px-2">${subCodigo}</td><td class="border px-2 text-gray-400" colspan="2">No encontrado</td></tr>`;
+                                }
+                            });
+                            relHtml += '</tbody></table></div>';
+                        }
+                        // Si es subproducto, mostrar principal y hermanos
+                        if (resultado.tipo === 'subproducto' && resultado.principal) {
+                            // Buscar info del principal
+                            const { data: principalArr } = await supabase.from('productos').select('*').eq('codigo', resultado.principal);
+                            if (principalArr && principalArr.length > 0) {
+                                const principal = principalArr[0];
+                                relHtml += `<div class="mt-4"><b>Producto principal:</b>
+                                    <div class="bg-gray-50 rounded p-2 mt-1">
+                                        <b>${principal.nombre}</b> (Código: ${principal.codigo})<br>
+                                        Categoría: ${principal.categoria} | Marca: ${principal.marca} | Unidad: ${principal.unidad}
+                                    </div>
+                                </div>`;
+                            } else {
+                                relHtml += `<div class="mt-4"><b>Producto principal:</b> <span class='text-gray-400'>${resultado.principal} (No encontrado)</span></div>`;
+                            }
+                            // Mostrar hermanos (otros subproductos)
+                            if (resultado.subproductos.length > 1) {
+                                const { data: hermanosInfo } = await supabase.from('productos').select('*').in('codigo', resultado.subproductos.filter(c => c !== codigo));
+                                relHtml += `<div class="mt-2"><b>Otros subproductos relacionados:</b>
+                                <table class="min-w-full mt-2 border"><thead><tr><th class="border px-2">Código</th><th class="border px-2">Nombre</th><th class="border px-2">Unidad</th></tr></thead><tbody>`;
+                                resultado.subproductos.forEach(subCodigo => {
+                                    if (subCodigo === codigo) return;
+                                    const sub = hermanosInfo ? hermanosInfo.find(p => p.codigo === subCodigo) : null;
+                                    if (sub) {
+                                        relHtml += `<tr><td class="border px-2">${sub.codigo}</td><td class="border px-2">${sub.nombre}</td><td class="border px-2">${sub.unidad}</td></tr>`;
+                                    } else {
+                                        relHtml += `<tr><td class="border px-2">${subCodigo}</td><td class="border px-2 text-gray-400" colspan="2">No encontrado</td></tr>`;
+                                    }
+                                });
+                                relHtml += '</tbody></table></div>';
+                            }
+                        }
+                        if (resultado.tipo === 'ninguno') {
+                            relHtml += '<div class="mt-2 text-gray-400">Este producto no tiene relaciones registradas.</div>';
+                        }
+                        relHtml += '</div>';
+                        relacionesDiv.innerHTML = relHtml;
+                    } catch (e) {
+                        relacionesDiv.innerHTML = '<div class="text-red-600">Error al consultar relaciones: ' + (e.message || e) + '</div>';
+                    }
+                });
+            }
+
+            // El manejo del botón de escanear ya lo realiza `main.js` (evitamos listeners duplicados).
+        });
+    </script>
+</body>
+
+</html>

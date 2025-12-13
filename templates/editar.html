@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -12,18 +12,386 @@
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/logo.svg">
 
-    <script src="../js/lib/html5-qrcode.min.js"></script>
-    <link rel="stylesheet" href="../js/lib/tailwind.min.css" />
-    <script src="../js/lib/sweetalert2@11.js"></script>
+    <script src="../librerías/html5-qrcode.min.js"></script>
+    <link rel="stylesheet" href="../librerías/tailwind.min.css" />
+    <script src="../librerías/sweetalert2@11.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
-    <script src="../js/utils/theme-manager.js"></script>
-    <script src="../js/ui/theme-toggle.js"></script>
-    
-    <!-- Cargar Supabase como script tradicional -->
-    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
+    <script src="../js/theme-manager.js"></script>
+    <script src="../js/theme-toggle.js"></script>
 </head>
 
 <body class="bg-gray-100">
 
-    
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-3xl font-bold">Editar Producto</h1>
+    </header>
+
+    <div id="sideMenu"
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-bold">Menú de Navegación</h2>
+            <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
+        </div>
+        <ul id="menuRoutes" class="p-4 space-y-2">
+            <!-- Las rutas se generarán dinámicamente -->
+        </ul>
+    </div>
+
+    <div class="container mx-auto mt-8 p-4">
+        <h1 class="text-3xl font-bold mb-6">Editar Producto</h1>
+        <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">← Regresar</a>
+        <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">
+            Menú
+        </button>
+
+        <!-- Pestañas -->
+        <div class="mb-6 mt-4">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button id="tab-editar-individual"
+                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button active">
+                        Edición Individual
+                    </button>
+                    <button id="tab-editar-tabla"
+                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm tab-button">
+                        Edición por Tabla
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Contenido de pestañas -->
+        <div id="content-editar-individual" class="tab-content">
+            <form id="formEditarProducto" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="codigoEditar">
+                        Código/PLU:
+                    </label>
+                    <div class="flex">
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="codigoEditar" type="text" required />
+                        <button type="button" id="escanearBtnEditar"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
+                            Escanear Código de Barras
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <button id="buscarEditar"
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        type="button">
+                        Buscar
+                    </button>
+                </div>
+                <div id="formularioEdicion" style="display: none">
+                    <!-- Campo de código editable -->
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="codigo">
+                            Código
+                        </label>
+                        <input type="text" id="codigoEditado"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="nombreEditar">
+                            Nombre:
+                        </label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="nombreEditar" type="text" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="categoriaEditar">
+                            Categoría:
+                        </label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="categoriaEditar" type="text" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="marcaEditar">
+                            Marca/Proveedor:
+                        </label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="marcaEditar" type="text" required />
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="unidadEditar">
+                            Unidad:
+                        </label>
+                        <input type="text" id="unidadEditar"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            required />
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button id="guardarCambios"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            type="button">
+                            Guardar Cambios
+                        </button>
+                        <button id="eliminarProducto"
+                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            type="button">
+                            Eliminar Producto
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div id="resultados" class="mt-4"></div>
+            <div id="scanner-container-editar" class="mt-4" style="display: none">
+                <div id="reader-consulta" class="w-full max-w-lg mx-auto"></div>
+                <button id="cerrarEscanerConsulta" class="...">Cerrar Escáner</button>
+            </div>
+        </div>
+
+        <!-- Pestaña Edición por Tabla -->
+        <div id="content-editar-tabla" class="tab-content" style="display: none;">
+            <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Edición por Tabla</h3>
+                <form id="formBuscarTabla" class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="codigoBuscarTabla">
+                        Buscar por Código de Producto Primario o Subproducto:
+                    </label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="codigoBuscarTabla" type="text" placeholder="Ej: 1234 o 201670000004" required />
+                    <button type="submit"
+                        class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Buscar</button>
+                </form>
+                <div id="tabla-edicion-resultados"></div>
+                <div id="tabla-edicion-resultados"></div>
+                <script type="module">
+                    import { db, inicializarDB } from '../js/db-operations.js';
+                    import { obtenerRelacionesProductosSupabase, buscarRelacionProducto } from '../js/relaciones-productos.js';
+                    // Exponer para main.js si se requiere (opcional)
+                    window.obtenerRelacionesProductosSupabase = obtenerRelacionesProductosSupabase;
+                    window.buscarRelacionProducto = buscarRelacionProducto;
+
+                    // Lógica de búsqueda y edición en tabla
+                    document.getElementById('formBuscarTabla').addEventListener('submit', function (e) {
+                        e.preventDefault();
+                        const codigo = document.getElementById('codigoBuscarTabla').value.trim();
+                        const resultadosDiv = document.getElementById('tabla-edicion-resultados');
+                        resultadosDiv.innerHTML = `<div class='text-gray-600'>Sincronizando productos y relaciones...</div>`;
+
+                        (async () => {
+                            console.log('[DEBUG] db antes de inicializar:', db);
+                            let dbReady = db;
+                            if (!dbReady) {
+                                resultadosDiv.innerHTML = `<div class='text-gray-600'>Inicializando base de datos local...</div>`;
+                                try {
+                                    await inicializarDB();
+                                } catch (err) {
+                                    console.error('[DEBUG] Error al inicializarDB:', err);
+                                }
+                                dbReady = db;
+                                console.log('[DEBUG] db después de inicializar:', dbReady);
+                            }
+                            if (!dbReady) {
+                                console.error('[DEBUG] IndexedDB sigue sin inicializar tras inicializarDB.');
+                                resultadosDiv.innerHTML = `<div class='text-red-600'>IndexedDB no inicializado.</div>`;
+                                return;
+                            }
+                            // 1. Sincronizar productos desde Supabase a IndexedDB y obtener relaciones
+                            Promise.all([
+                                importarProductosSupabaseAIndexedDB(dbReady),
+                                obtenerRelacionesProductosSupabase()
+                            ]).then(([_, relaciones]) => {
+                                // 2. Buscar relación en el Map
+                                const relacion = buscarRelacionProducto(codigo, relaciones);
+                                // 3. Buscar detalles de productos en IndexedDB
+                                buscarProductosRelacionadosConMap(dbReady, codigo, relacion, resultadosDiv);
+                            }).catch(err => {
+                                resultadosDiv.innerHTML = `<div class='text-red-600'>Error al sincronizar: ${err.message || err}`;
+                            });
+                        })();
+
+                        // --- Función para importar productos de Supabase a IndexedDB ---
+                        async function importarProductosSupabaseAIndexedDB(dbInstance) {
+                            if (!window.getSupabase) throw new Error('No se encontró getSupabase.');
+                            const supabase = await window.getSupabase();
+                            const { data: productos, error } = await supabase.from('productos').select('*');
+                            if (error) throw error;
+                            if (!dbInstance) throw new Error('IndexedDB no inicializado');
+                            return new Promise((resolve, reject) => {
+                                const transaction = dbInstance.transaction(['productos'], 'readwrite');
+                                const objectStore = transaction.objectStore('productos');
+                                const clearReq = objectStore.clear();
+                                clearReq.onsuccess = function () {
+                                    productos.forEach(prod => {
+                                        const p = {
+                                            codigo: prod.codigo,
+                                            nombre: prod.nombre,
+                                            categoria: prod.categoria,
+                                            marca: prod.marca,
+                                            unidad: prod.unidad
+                                        };
+                                        objectStore.put(p);
+                                    });
+                                    transaction.oncomplete = resolve;
+                                    transaction.onerror = reject;
+                                };
+                                clearReq.onerror = reject;
+                            });
+                        }
+
+                        // --- Función para buscar productos relacionados usando el Map de relaciones ---
+                        function buscarProductosRelacionadosConMap(dbInstance, codigo, relacion, resultadosDiv) {
+                            const transaction = dbInstance.transaction(['productos'], 'readonly');
+                            const objectStore = transaction.objectStore('productos');
+                            const getAllReq = objectStore.getAll();
+                            getAllReq.onsuccess = function (e) {
+                                const productos = e.target.result;
+                                // Buscar producto exacto (por código completo o 4 dígitos)
+                                let producto = productos.find(p => p.codigo === codigo || p.codigo.endsWith(codigo));
+                                if (!producto) {
+                                    resultadosDiv.innerHTML = `<div class='text-red-600'>No se encontró el producto <b>${codigo}</b>.</div>`;
+                                    return;
+                                }
+                                // Buscar principal y subproductos según el Map
+                                let productoPrincipal = null;
+                                let subproductos = [];
+                                if (relacion.tipo === 'principal') {
+                                    productoPrincipal = producto;
+                                    subproductos = relacion.subproductos.map(cod => productos.find(p => p.codigo === cod)).filter(Boolean);
+                                } else if (relacion.tipo === 'subproducto') {
+                                    productoPrincipal = productos.find(p => p.codigo === relacion.principal);
+                                    subproductos = relacion.subproductos.map(cod => productos.find(p => p.codigo === cod)).filter(Boolean);
+                                }
+                                // Mostrar resultados
+                                let html = '';
+                                // Producto encontrado (si es principal, mostrar botón editar principal)
+                                html += `<div class='mb-4'><b>Producto encontrado:</b><br>${producto.codigo} - ${producto.nombre} (${producto.categoria})<br>Marca: ${producto.marca} | Unidad: ${producto.unidad} <button class='ml-2 px-2 py-1 bg-yellow-200 rounded edit-btn' data-codigo='${producto.codigo}'>Editar</button></div>`;
+                                // Si hay producto principal distinto, mostrarlo con botón editar
+                                if (productoPrincipal && productoPrincipal.codigo !== producto.codigo) {
+                                    html += `<div class='mb-4'><b>Producto Principal:</b><br>${productoPrincipal.codigo} - ${productoPrincipal.nombre} (${productoPrincipal.categoria})<br>Marca: ${productoPrincipal.marca} | Unidad: ${productoPrincipal.unidad} <button class='ml-2 px-2 py-1 bg-yellow-200 rounded edit-btn' data-codigo='${productoPrincipal.codigo}'>Editar</button></div>`;
+                                }
+                                if (subproductos.length > 0) {
+                                    html += `<div class='mb-2'><b>Subproductos relacionados:</b> <button id='expand-relacionados' class='ml-2 px-2 py-1 bg-blue-200 rounded'>Ver relacionados</button></div><ul class='mb-4' id='lista-relacionados' style='display:none;'>`;
+                                    subproductos.forEach(sp => {
+                                        html += `<li class='mb-1'>${sp.codigo} - ${sp.nombre} <button class='ml-2 px-2 py-1 bg-yellow-200 rounded edit-btn' data-codigo='${sp.codigo}'>Editar</button></li>`;
+                                    });
+                                    html += '</ul>';
+                                }
+                                resultadosDiv.innerHTML = html;
+                                // Botón para expandir/collapse relacionados
+                                const expandBtn = resultadosDiv.querySelector('#expand-relacionados');
+                                const listaRelacionados = resultadosDiv.querySelector('#lista-relacionados');
+                                if (expandBtn && listaRelacionados) {
+                                    expandBtn.addEventListener('click', () => {
+                                        listaRelacionados.style.display = listaRelacionados.style.display === 'none' ? 'block' : 'none';
+                                        expandBtn.textContent = listaRelacionados.style.display === 'none' ? 'Ver relacionados' : 'Ocultar relacionados';
+                                    });
+                                }
+                                // Agregar listeners a los botones de edición
+                                resultadosDiv.querySelectorAll('.edit-btn').forEach(btn => {
+                                    btn.addEventListener('click', function () {
+                                        const codigoEditar = btn.dataset.codigo;
+                                        // Buscar el producto en la lista de productos
+                                        const prod = productos.find(p => p.codigo === codigoEditar);
+                                        if (!prod) {
+                                            Swal.fire('Error', 'No se encontró el producto en la base local.', 'error');
+                                            return;
+                                        }
+                                        // Rellenar el formulario de edición individual
+                                        document.getElementById('codigoEditar').value = prod.codigo;
+                                        document.getElementById('codigoEditado').value = prod.codigo;
+                                        document.getElementById('nombreEditar').value = prod.nombre;
+                                        document.getElementById('categoriaEditar').value = prod.categoria;
+                                        document.getElementById('marcaEditar').value = prod.marca;
+                                        document.getElementById('unidadEditar').value = prod.unidad;
+                                        // Mostrar el formulario de edición si está oculto
+                                        document.getElementById('formularioEdicion').style.display = '';
+                                        // Cambiar a la pestaña de Edición Individual
+                                        const tabButtons = document.querySelectorAll('.tab-button');
+                                        const tabContents = document.querySelectorAll('.tab-content');
+                                        tabButtons.forEach(btn => {
+                                            btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                                            btn.classList.add('border-transparent', 'text-gray-500');
+                                        });
+                                        tabContents.forEach(content => {
+                                            content.style.display = 'none';
+                                        });
+                                        document.getElementById('tab-editar-individual').classList.add('active', 'border-blue-500', 'text-blue-600');
+                                        document.getElementById('tab-editar-individual').classList.remove('border-transparent', 'text-gray-500');
+                                        document.getElementById('content-editar-individual').style.display = 'block';
+                                        // Scroll al formulario de edición
+                                        document.getElementById('formEditarProducto').scrollIntoView({ behavior: 'smooth' });
+                                    });
+                                });
+                            };
+                            getAllReq.onerror = function () {
+                                resultadosDiv.innerHTML = `<div class='text-red-600'>Error al buscar productos en IndexedDB.</div>`;
+                            };
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/mobile-optimizer.js"></script>
+    <script type="module" src="../js/main.js"></script>
+    <script>
+        // Función para convertir guión a 6 ceros
+        function convertirGuionACeros(valor) {
+            return valor.replace(/-/g, '000000');
+        }
+
+        // Función para aplicar la conversión a un input
+        function aplicarConversionCodigo(input) {
+            if (!input) return;
+            input.addEventListener('input', function (e) {
+                const valorOriginal = e.target.value;
+                const valorConvertido = convertirGuionACeros(valorOriginal);
+                if (valorOriginal !== valorConvertido) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = valorConvertido;
+                    const diferencia = valorConvertido.length - valorOriginal.length;
+                    const nuevaPosicion = Math.min(cursorPos + diferencia, valorConvertido.length);
+                    e.target.setSelectionRange(nuevaPosicion, nuevaPosicion);
+                }
+            });
+            input.addEventListener('blur', function (e) {
+                e.target.value = convertirGuionACeros(e.target.value);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Pestañas
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            function switchTab(targetTab) {
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                    btn.classList.add('border-transparent', 'text-gray-500');
+                });
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                const activeButton = document.getElementById(`tab-${targetTab}`);
+                activeButton.classList.add('active', 'border-blue-500', 'text-blue-600');
+                activeButton.classList.remove('border-transparent', 'text-gray-500');
+                document.getElementById(`content-${targetTab}`).style.display = 'block';
+            }
+            document.getElementById('tab-editar-individual').addEventListener('click', () => switchTab('editar-individual'));
+            document.getElementById('tab-editar-tabla').addEventListener('click', () => switchTab('editar-tabla'));
+
+            // Aplicar conversión de guión a ceros en campos de código
+            const codigoEditar = document.getElementById('codigoEditar');
+            const codigoEditado = document.getElementById('codigoEditado');
+            const codigoBuscarTabla = document.getElementById('codigoBuscarTabla');
+            aplicarConversionCodigo(codigoEditar);
+            aplicarConversionCodigo(codigoEditado);
+            aplicarConversionCodigo(codigoBuscarTabla);
+
+
+        });
+    </script>
+</body>
+
+</html>

@@ -4,24 +4,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agregar Nuevo Producto - Sistema de Gestión de Productos</title>
-
+    <title>Configuraciones - Sistema de Gestión de Productos</title>    
     <!-- Favicon y iconos -->
     <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/logo.svg">
-
-    <link rel="stylesheet" href="../js/lib/tailwind.min.css">
-    <script src="../js/lib/html5-qrcode.min.js"></script>
-    <script src="../js/lib/sweetalert2@11.js"></script>
+    
+    <link rel="stylesheet" href="../librerías/tailwind.min.css">
+    <script src="../librerías/sweetalert2@11.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
-    <script src="../js/utils/theme-manager.js"></script>
-    <script src="../js/ui/theme-toggle.js"></script>
-    
-    <!-- Cargar Supabase como script tradicional -->
-    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
+    <script src="../js/theme-manager.js"></script>
+    <script src="../js/theme-toggle.js"></script>
+    <script src="../js/theme-debug.js"></script>
 </head>
 
 <body class="bg-gray-100">
-    
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-3xl font-bold">Configuraciones del Sistema</h1>
+        <div class="flex items-center space-x-4">
+            <span id="userInfo" class="text-sm font-medium"></span>
+        </div>
+    </header>
+
+    <div class="container mx-auto mt-8 p-4">
+        <a href="./main.html" class="text-blue-500 hover:underline mb-4 inline-block">â† Regresar al Dashboard</a>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Configuraciones de Usuario -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    Configuraciones de Usuario
+                </h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cambiar Contraseña</label>
+                        <button id="changePasswordBtn"
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                            Cambiar Contraseña
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Información del Perfil</label>
+                        <div id="profileInfo" class="bg-gray-50 p-4 rounded border">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuraciones del Sistema -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Configuraciones del Sistema
+                </h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tema de la Aplicación</label>
+                        <select id="themeSelect" class="border border-gray-300 rounded px-3 py-2 w-full">
+                            <option value="light">Claro</option>
+                            <option value="dark">Oscuro</option>
+                            <option value="auto">Automático</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Idioma</label>
+                        <select id="languageSelect" class="border border-gray-300 rounded px-3 py-2 w-full">
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuraciones de Google Services -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                        </path>
+                    </svg>
+                    Credenciales de Google
+                </h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Google Drive API Key</label>
+                        <div class="relative">
+                            <input type="password" id="googleDriveApiKey"
+                                class="w-full border border-gray-300 rounded px-3 py-2 pr-12"
+                                placeholder="Ingresa tu API Key de Google Drive">
+                            <button type="button" id="toggleDriveKey"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Necesaria para acceder a Google Drive desde la aplicación
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Google Sheets API Key</label>
+                        <div class="relative">
+                            <input type="password" id="googleSheetsApiKey"
+                                class="w-full border border-gray-300 rounded px-3 py-2 pr-12"
+                                placeholder="Ingresa tu API Key de Google Sheets">
+                            <button type="button" id="toggleSheetsKey"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Necesaria para integración con Google Sheets</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">ID de Google Sheets</label>
+                        <input type="text" id="googleSheetsId" class="w-full border border-gray-300 rounded px-3 py-2"
+                            placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms">
+                        <p class="text-xs text-gray-500 mt-1">ID de la hoja de cálculo de Google donde se sincronizarán
+                            los datos</p>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <button id="testGoogleConnection"
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                            Probar Conexión
+                        </button>
+                        <button id="saveGoogleCredentials"
+                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                            Guardar Credenciales
+                        </button>
+                        <button id="clearGoogleCredentials"
+                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                            Limpiar
+                        </button>
+                    </div>
+
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mt-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    <strong>Información:</strong> Para obtener las API Keys, visita la
+                                    <a href="https://console.developers.google.com/" target="_blank"
+                                        class="underline hover:text-blue-800">
+                                        Google Cloud Console
+                                    </a> y habilita las APIs de Google Drive y Google Sheets.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuraciones de Sincronización -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                        </path>
+                    </svg>
+                    Sincronización
+                </h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sincronización Automática</label>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="autoSyncEnabled" class="mr-2">
+                            <span>Habilitar sincronización automática</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Intervalo de Sincronización
+                            (minutos)</label>
+                        <input type="number" id="syncInterval" class="border border-gray-300 rounded px-3 py-2 w-full"
+                            min="1" max="60" value="5">
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <button id="manualSyncBtn"
+                            class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
+                            Sincronizar Ahora
+                        </button>
+                        <button id="resetSyncBtn"
+                            class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded">
+                            Resetear Configuración
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuraciones de Notificaciones -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-5 5v-5zM7 7h10v10H7V7z"></path>
+                    </svg>
+                    Notificaciones
+                </h2>
+
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="browserNotifications" class="mr-2">
+                        <span>Notificaciones del navegador</span>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="soundNotifications" class="mr-2">
+                        <span>Notificaciones sonoras</span>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="lowStockAlerts" class="mr-2">
+                        <span>Alertas de stock bajo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Sistema -->
+            <div class="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Información del Sistema
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-gray-50 p-4 rounded border">
+                        <h3 class="font-semibold text-gray-700">Versión de la Aplicación</h3>
+                        <p id="appVersion" class="text-lg">1.0.0</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded border">
+                        <h3 class="font-semibold text-gray-700">Estado de Conexión</h3>
+                        <p id="connectionStatus" class="text-lg">Conectado</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded border">
+                        <h3 class="font-semibold text-gray-700">Última Sincronización</h3>
+                        <p id="lastSync" class="text-lg">--</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex space-x-2">
+                    <button id="exportConfigBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                        Exportar Configuración
+                    </button>
+                    <button id="importConfigBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                        Importar Configuración
+                    </button>
+                    <input type="file" id="importConfigFile" accept=".json" class="hidden">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/mobile-optimizer.js"></script>
+    <script type="module" src="../js/configuraciones.js"></script>
+</body>
+
+</html>

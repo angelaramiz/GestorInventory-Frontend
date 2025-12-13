@@ -4,24 +4,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agregar Nuevo Producto - Sistema de Gestión de Productos</title>
-
+    <title>Reporte de Preconteo</title>    
     <!-- Favicon y iconos -->
     <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/logo.svg">
-
-    <link rel="stylesheet" href="../js/lib/tailwind.min.css">
-    <script src="../js/lib/html5-qrcode.min.js"></script>
-    <script src="../js/lib/sweetalert2@11.js"></script>
+    
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
-    <script src="../js/utils/theme-manager.js"></script>
-    <script src="../js/ui/theme-toggle.js"></script>
-    
-    <!-- Cargar Supabase como script tradicional -->
-    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
+    <link href="../librerías/tailwind.min.css" rel="stylesheet">
+    <script src="../librerías/sweetalert2@11.js"></script>
+    <script src="../librerías/jspdf.umd.min.js"></script>
+    <script src="../librerías/JsBarcode.all.min.js"></script>
+    <script src="../js/theme-manager.js"></script>
+    <script src="../js/theme-toggle.js"></script>
+
+    <!-- Agregar Supabase desde CDN (necesario para el módulo) -->
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        window.supabaseCreateClient = createClient;
+    </script>
 </head>
 
 <body class="bg-gray-100">
-    
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">Reporte de Preconteo</h1>
+    </header>
+
+    <div id="sideMenu"
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-bold">Menú de Navegación</h2>
+            <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
+        </div>
+        <ul id="menuRoutes" class="p-4 space-y-2">
+            <!-- Las rutas se generarán dinámicamente -->
+        </ul>
+    </div>
+
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-bold">GestorInventory</h1>
+            <a href="./main.html" class="hover:underline">Regresar</a>
+            <button id="menuToggle" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-200">
+                Menú
+            </button>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold text-center mb-6">Generador de Reportes de Preconteo</h1>
+
+        <div class="mb-6 bg-white p-4 rounded shadow">
+            <div class="mb-4">
+                <label class="block font-semibold mb-2">Selecciona una o varias áreas:</label>
+                <div id="areasContainer" class="grid grid-cols-2 md:grid-cols-3 gap-2 border rounded p-3">
+                    <!-- Las áreas se cargarán dinámicamente como checkboxes -->
+                    <div class="flex items-center">
+                        <input type="checkbox" id="area-todas" value="todas" class="areaCheckbox mr-2" checked>
+                        <label for="area-todas">Todas las áreas</label>
+                    </div>
+                </div>
+                <div class="mt-2 text-right">
+                    <button id="aplicarFiltroBtn" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">
+                        Aplicar filtro
+                    </button>
+                </div>
+            </div>
+
+            <div id="loadingIndicator" class="hidden">
+                <div class="flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span class="ml-2">Cargando productos...</span>
+                </div>
+            </div>
+
+            <div id="productosList" class="mt-4">
+                <h2 class="text-xl font-semibold mb-2">Lista de productos:</h2>
+                <ul id="productosContainer" class="list-decimal pl-6 space-y-1">
+                    <!-- Los productos se cargarán dinámicamente -->
+                </ul>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button id="generarReporteBtn"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
+                GENERAR REPORTE DE PRECONTEO
+            </button>
+        </div>
+
+        <!-- Contenedor invisible para generar códigos de barras -->
+        <div id="barcodeContainer" class="hidden"></div>
+    </div>
+
+    <!-- Cargar nuestro script principal después de asegurarnos que las dependencias estén cargadas -->
+    <script src="../js/mobile-optimizer.js"></script>
+    <script type="module" src="../js/rep.js"></script>
+</body>
+
+</html>

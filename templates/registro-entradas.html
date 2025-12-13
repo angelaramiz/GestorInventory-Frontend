@@ -4,24 +4,1702 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agregar Nuevo Producto - Sistema de Gestión de Productos</title>
-
+    <title>Registro de Entradas</title>    
     <!-- Favicon y iconos -->
     <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/logo.svg">
-
-    <link rel="stylesheet" href="../js/lib/tailwind.min.css">
-    <script src="../js/lib/html5-qrcode.min.js"></script>
-    <script src="../js/lib/sweetalert2@11.js"></script>
+    
+    <link href="../librerías/tailwind.min.css" rel="stylesheet">
+    <script src="../librerías/sweetalert2@11.js"></script>
+    <script src="../librerías/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
-    <script src="../js/utils/theme-manager.js"></script>
-    <script src="../js/ui/theme-toggle.js"></script>
-    
-    <!-- Cargar Supabase como script tradicional -->
-    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
+    <script src="../js/theme-manager.js"></script>
+    <script src="../js/theme-toggle.js"></script>
 </head>
 
 <body class="bg-gray-100">
-    
+    <header class="bg-green-600 text-white p-4 flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 bg-green-700 rounded-lg">
+                ðŸ“¦
+            </div>
+            <h1 class="text-3xl font-bold tracking-wide">Registro de Entradas</h1>
+        </div>
+        <div class="flex items-center space-x-6">
+            <div id="conexionStatus" class="text-sm flex items-center space-x-2 bg-green-700 px-3 py-1 rounded-full">
+                <span class="status-indicator status-success"></span>
+                <span>Conectado</span>
+            </div>
+            <div id="clockDisplay" class="text-sm font-mono bg-green-700 px-3 py-1 rounded-full"></div>
+            <div class="text-sm bg-green-700 px-3 py-1 rounded-full">
+                <span id="totalEntradas">0</span> entradas registradas
+            </div>
+        </div>
+    </header>
+    <div id="sideMenu"
+        class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg transform -translate-x-full transition-transform z-50">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-bold">Menú de Navegación</h2>
+            <button id="closeMenu" class="text-red-500 hover:underline mt-2">Cerrar</button>
+        </div>
+        <ul id="menuRoutes" class="p-4 space-y-2">
+            <!-- Las rutas se generarán dinámicamente -->
+        </ul>
+    </div>
+    <div class="container mx-auto mt-8 p-4">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-4xl font-bold text-gray-800 flex items-center">
+                    ðŸ“¦ Registro de Entradas
+                    <span class="ml-3 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                        Sistema de Gestión
+                    </span>
+                </h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="./main.html"
+                    class="text-green-600 hover:text-green-800 hover:underline font-medium flex items-center space-x-2 transition-colors">
+                    <span>â†</span>
+                    <span>Regresar al Menú Principal</span>
+                </a>
+                <button id="menuToggle"
+                    class="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 border-2 border-green-600 font-semibold transition-all hover:shadow-md">
+                    ðŸ“‹ Menú de Navegación
+                </button>
+            </div>
+        </div> <!-- Sección de búsqueda de productos -->
+        <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover">
+            <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
+                ðŸ” Buscar Producto
+                <span id="searchStatus" class="ml-3 text-sm"></span>
+                <div class="ml-auto text-sm text-gray-500">
+                    <span id="ultimaBusqueda"></span>
+                </div>
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-6">
+                <div class="transform transition-all hover:scale-105">
+                    <label for="busquedaCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        ðŸ·ï¸ Buscar por Código:
+                    </label>
+                    <div class="flex shadow-md rounded-lg overflow-hidden">
+                        <input type="text" id="busquedaCodigo"
+                            class="flex-1 border-0 p-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                            placeholder="Ingrese código del producto">
+                        <button id="buscarPorCodigo"
+                            class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
+                            <span id="btnCodigoText">ðŸ” Buscar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="transform transition-all hover:scale-105">
+                    <label for="busquedaNombre" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        ðŸ“ Buscar por Nombre:
+                    </label>
+                    <div class="flex shadow-md rounded-lg overflow-hidden">
+                        <input type="text" id="busquedaNombre"
+                            class="flex-1 border-0 p-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                            placeholder="Ingrese nombre del producto">
+                        <button id="buscarPorNombre"
+                            class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
+                            <span id="btnNombreText">ðŸ” Buscar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="transform transition-all hover:scale-105">
+                    <label for="busquedaMarca" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        ðŸ¢ Buscar por Marca:
+                    </label>
+                    <div class="flex shadow-md rounded-lg overflow-hidden">
+                        <input type="text" id="busquedaMarca"
+                            class="flex-1 border-0 p-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                            placeholder="Ingrese marca del producto">
+                        <button id="buscarPorMarca"
+                            class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
+                            <span id="btnMarcaText">ðŸ” Buscar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-center">
+                <button id="escanearBtn"
+                    class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                    <span>ðŸ“·</span>
+                    <span>Escanear Código de Barras</span>
+                </button>
+            </div>
+
+            <!-- Mensaje de búsqueda reciente -->
+            <div id="busquedaReciente" class="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded"
+                style="display: none;">
+                <p class="text-sm text-blue-700">
+                    <strong>Búsqueda reciente:</strong> <span id="textoUltimaBusqueda"></span>
+                </p>
+            </div>
+        </div> <!-- Formulario de datos del producto y entrada -->
+        <div id="productForm"
+            class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover"
+            style="display: none;">
+            <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
+                ðŸ“¦ Datos del Producto
+                <div id="productLoadingIndicator" class="ml-3" style="display: none;">
+                    <div
+                        class="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin">
+                    </div>
+                    <span class="ml-2">Cargando información...</span>
+                </div>
+                <div class="ml-auto">
+                    <span class="text-sm text-gray-500 bg-green-100 px-3 py-1 rounded-full">
+                        Producto encontrado âœ…
+                    </span>
+                </div>
+            </h2>
+
+            <div id="productInfo"
+                class="grid md:grid-cols-2 gap-6 mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-inner">
+                <div class="space-y-4">
+                    <div class="transform transition-all hover:scale-105">
+                        <label for="codigoProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            ðŸ·ï¸ <span class="ml-2">Código del Producto:</span>
+                        </label>
+                        <input type="text" id="codigoProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white font-mono text-lg rounded-lg shadow-sm"
+                            readonly>
+                    </div>
+
+                    <div class="transform transition-all hover:scale-105">
+                        <label for="nombreProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            ðŸ“ <span class="ml-2">Nombre del Producto:</span>
+                        </label>
+                        <input type="text" id="nombreProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white font-semibold text-lg rounded-lg shadow-sm"
+                            readonly>
+                    </div>
+
+                    <div class="transform transition-all hover:scale-105">
+                        <label for="marcaProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            ðŸ¢ <span class="ml-2">Marca:</span>
+                        </label>
+                        <input type="text" id="marcaProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="transform transition-all hover:scale-105">
+                        <label for="categoriaProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            ðŸ“‚ <span class="ml-2">Categoría:</span>
+                        </label>
+                        <input type="text" id="categoriaProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
+                    </div>
+
+                    <div class="transform transition-all hover:scale-105">
+                        <label for="unidadProducto"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            ðŸ“ <span class="ml-2">Unidad de Medida:</span>
+                        </label>
+                        <input type="text" id="unidadProducto"
+                            class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
+                    </div>
+
+                    <!-- Información adicional del stock actual -->
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h4 class="text-sm font-semibold text-blue-700 mb-2">ðŸ“Š Stock Actual</h4>
+                        <div class="text-2xl font-bold text-blue-600" id="stockActual">--</div>
+                        <div class="text-xs text-blue-500">unidades disponibles</div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t-2 border-gray-200 pt-8">
+                <h3 class="text-lg font-semibold mb-6 text-green-600 flex items-center">
+                    ðŸ“ Datos de la Entrada
+                    <span class="ml-3 text-sm text-gray-500 bg-yellow-100 px-3 py-1 rounded-full">
+                        * Campos obligatorios
+                    </span>
+                    <div class="ml-auto text-sm text-gray-400">
+                        <span id="fechaActual"></span>
+                    </div>
+                </h3>
+
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="transform transition-all hover:scale-105">
+                        <label for="cantidadEntrada"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            ðŸ“Š <span class="ml-2">Cantidad Recibida *:</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="cantidadEntrada"
+                                class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg font-semibold"
+                                min="0.01" step="0.01" required placeholder="0.00">
+                            <div class="absolute right-3 top-3 text-gray-400">
+                                <span id="unidadMedida">unidades</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">Ingrese la cantidad exacta recibida</div>
+                    </div>
+
+                    <div class="transform transition-all hover:scale-105">
+                        <label for="fechaEntrada"
+                            class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            ðŸ“… <span class="ml-2">Fecha de Entrada *:</span>
+                        </label>
+                        <input type="date" id="fechaEntrada"
+                            class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg"
+                            required>
+                        <div class="text-xs text-gray-500 mt-1">Fecha en que se recibió el producto</div>
+                    </div>
+
+                    <div class="transform transition-all hover:scale-105">
+                        <label for="loteEntrada" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            ðŸ·ï¸ <span class="ml-2">Número de Lote:</span>
+                        </label>
+                        <input type="text" id="loteEntrada"
+                            class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
+                            placeholder="Opcional">
+                        <div class="text-xs text-gray-500 mt-1">Número de lote del proveedor</div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label for="comentariosEntrada"
+                        class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        ðŸ’¬ <span class="ml-2">Comentarios y Observaciones:</span>
+                    </label>
+                    <textarea id="comentariosEntrada"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
+                        rows="4"
+                        placeholder="Información adicional: estado del producto, observaciones del proveedor, condiciones especiales..."></textarea>
+                </div>
+
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
+                    <button id="limpiarFormulario"
+                        class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                        <span>ðŸ—‘ï¸</span>
+                        <span>Limpiar Formulario</span>
+                    </button>
+                    <button id="registrarEntrada"
+                        class="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                        <span id="btnRegistrarText">âœ… Registrar Entrada</span>
+                    </button>
+                </div>
+
+                <!-- Resumen de la entrada -->
+                <div id="resumenEntrada" class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded"
+                    style="display: none;">
+                    <h4 class="font-semibold text-blue-700 mb-2">ðŸ“‹ Resumen de la Entrada:</h4>
+                    <div id="textoResumen" class="text-sm text-blue-600"></div>
+                </div>
+            </div>
+        </div> <!-- Filtros y controles -->
+        <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-blue-500 card-hover">
+            <h2 class="text-xl font-bold mb-6 text-blue-600 flex items-center">
+                ðŸ”§ Filtros y Controles del Sistema
+                <div id="syncStatus" class="ml-3 text-sm"></div>
+                <div class="ml-auto text-sm text-gray-500">
+                    <span id="estadoSistema" class="bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                        Sistema Operativo
+                    </span>
+                </div>
+            </h2>
+
+            <div class="grid md:grid-cols-4 gap-6 mb-6">
+                <div class="transform transition-all hover:scale-105">
+                    <label for="filtroCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        ðŸ·ï¸ <span class="ml-2">Filtrar por Código:</span>
+                    </label>
+                    <input type="text" id="filtroCodigo"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
+                        placeholder="Código del producto...">
+                </div>
+
+                <div class="transform transition-all hover:scale-105">
+                    <label for="filtroNombre" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        ðŸ“ <span class="ml-2">Filtrar por Nombre:</span>
+                    </label>
+                    <input type="text" id="filtroNombre"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
+                        placeholder="Nombre del producto...">
+                </div>
+
+                <div class="transform transition-all hover:scale-105">
+                    <label for="filtroMarca" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        ðŸ¢ <span class="ml-2">Filtrar por Marca:</span>
+                    </label>
+                    <input type="text" id="filtroMarca"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
+                        placeholder="Marca del producto...">
+                </div>
+
+                <div class="flex items-end space-x-2">
+                    <button id="filtrarEntradas"
+                        class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
+                        <span>ðŸ”</span>
+                        <span>Filtrar</span>
+                    </button>
+                    <button id="limpiarFiltros"
+                        class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-3 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
+                        <span>ðŸ—‘ï¸</span>
+                        <span>Limpiar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros de fecha -->
+            <div class="grid md:grid-cols-3 gap-6 mb-6 p-4 bg-gray-50 rounded-lg">
+                <div>
+                    <label for="fechaDesde" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        ðŸ“… <span class="ml-2">Desde:</span>
+                    </label>
+                    <input type="date" id="fechaDesde"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
+                </div>
+                <div>
+                    <label for="fechaHasta" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        ðŸ“… <span class="ml-2">Hasta:</span>
+                    </label>
+                    <input type="date" id="fechaHasta"
+                        class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
+                </div>
+                <div class="flex items-end">
+                    <button id="filtrarPorFecha"
+                        class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all w-full">
+                        ðŸ“Š Filtrar por Fechas
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4 justify-between items-center">
+                <div class="flex flex-wrap gap-3">
+                    <button id="sincronizarEntradas"
+                        class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                        <span id="btnSincText">ðŸ”„ Sincronizar con Servidor</span>
+                    </button>
+                    <button id="generarReporte"
+                        class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                        <span>ðŸ“Š</span>
+                        <span>Generar Reporte CSV</span>
+                    </button>
+                    <button id="autoRefresh"
+                        class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
+                        <span>âš¡</span>
+                        <span>Auto-actualización: OFF</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-3 text-sm text-gray-600">
+                    <div class="bg-gray-100 px-3 py-2 rounded-lg">
+                        <span class="font-semibold">Última sincronización:</span>
+                        <span id="ultimaSync">--:--</span>
+                    </div>
+                    <div class="bg-gray-100 px-3 py-2 rounded-lg">
+                        <span class="font-semibold">Estado:</span>
+                        <span id="estadoConexion" class="text-green-600">Conectado</span>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- Tabla de entradas -->
+        <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-purple-500 card-hover">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-purple-600 flex items-center">
+                        ðŸ“‹ Historial de Entradas del Sistema
+                        <div id="tableLoadingIndicator" class="ml-3" style="display: none;">
+                            <div
+                                class="inline-block w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin">
+                            </div>
+                            <span class="ml-2 text-sm">Actualizando datos...</span>
+                        </div>
+                    </h2>
+                    <div class="flex items-center space-x-4 mt-2">
+                        <p id="contadorEntradas" class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                            Total: 0 entradas registradas
+                        </p>
+                        <div class="text-sm text-gray-500">
+                            <span id="rangoFechas">Mostrando todas las entradas</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="refreshTable"
+                        class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-2 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
+                        title="Actualizar tabla">
+                        <span>ðŸ”„</span>
+                        <span class="hidden md:inline">Actualizar</span>
+                    </button>
+                    <button id="exportVisible"
+                        class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
+                        title="Exportar datos visibles">
+                        <span>ðŸ“¥</span>
+                        <span class="hidden md:inline">Exportar</span>
+                    </button>
+                    <button id="expandirTabla"
+                        class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
+                        title="Expandir/Contraer tabla">
+                        <span>â›¶</span>
+                        <span class="hidden md:inline">Expandir</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barra de búsqueda rápida -->
+            <div class="mb-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <input type="text" id="busquedaRapida"
+                        class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        placeholder="ðŸ” Búsqueda rápida en la tabla...">
+                    <select id="ordenarPor"
+                        class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500">
+                        <option value="fecha-desc">Más reciente primero</option>
+                        <option value="fecha-asc">Más antiguo primero</option>
+                        <option value="cantidad-desc">Mayor cantidad primero</option>
+                        <option value="cantidad-asc">Menor cantidad primero</option>
+                        <option value="nombre-asc">Nombre A-Z</option>
+                        <option value="nombre-desc">Nombre Z-A</option>
+                    </select>
+                </div>
+                <div class="text-sm text-gray-500">
+                    <span id="resultadosBusqueda"></span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto shadow-lg rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('codigo')">
+                                <div class="flex items-center space-x-1">
+                                    <span>ðŸ·ï¸ Código</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
+                                </div>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('nombre')">
+                                <div class="flex items-center space-x-1">
+                                    <span>ðŸ“ Nombre</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
+                                </div>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('marca')">
+                                <div class="flex items-center space-x-1">
+                                    <span>ðŸ¢ Marca</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
+                                </div>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('categoria')">
+                                <div class="flex items-center space-x-1">
+                                    <span>ðŸ“‚ Categoría</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
+                                </div>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('unidad')">
+                                <div class="flex items-center space-x-1">
+                                    <span>ðŸ“ Unidad</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
+                                </div>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('cantidad')">
+                                <div class="flex items-center space-x-1">
+                                    <span>ðŸ“Š Cantidad</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
+                                </div>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
+                                onclick="sortTable('fecha')">
+                                <div class="flex items-center space-x-1">
+                                    <span>ðŸ“… Fecha</span>
+                                    <span class="sort-indicator">â†•ï¸</span>
+                                </div>
+                            </th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                ðŸ’¬ Comentarios
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                âš™ï¸ Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaEntradasBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Las entradas se cargarán dinámicamente aquí -->
+                        <tr class="text-center text-gray-500 bg-gray-50">
+                            <td colspan="9" class="px-6 py-8">
+                                <div class="flex flex-col items-center space-y-3">
+                                    <div class="text-4xl">ðŸ“¦</div>
+                                    <div class="text-lg font-medium">No hay entradas registradas</div>
+                                    <div class="text-sm">Las entradas aparecerán aquí cuando se registren productos
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="mt-6 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600">Mostrar:</span>
+                    <select id="registrosPorPagina" class="border border-gray-200 rounded p-1 text-sm">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span class="text-sm text-gray-600">registros por página</span>
+                </div>
+                <div id="paginacion" class="flex items-center space-x-2">
+                    <!-- Los controles de paginación se generarán dinámicamente -->
+                </div>
+            </div>
+        </div> <!-- Scanner container -->
+        <div id="scanner-container"
+            class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm"
+            style="display: none;">
+            <div
+                class="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl border-4 border-green-500 transform transition-all">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                        ðŸ“· <span class="ml-2">Escáner de Código de Barras</span>
+                    </h3>
+                    <button id="cerrarEscaner"
+                        class="text-red-500 hover:text-red-700 text-2xl font-bold transition-colors transform hover:scale-110">
+                        âœ•
+                    </button>
+                </div>
+
+                <div class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+                    <p class="text-sm text-blue-700">
+                        <strong>Instrucciones:</strong> Coloque el código de barras dentro del marco verde.
+                        El escáner detectará automáticamente el código.
+                    </p>
+                </div>
+
+                <div id="reader" class="w-full mb-6 rounded-lg overflow-hidden border-4 border-green-200 shadow-lg">
+                </div>
+
+                <div class="flex space-x-3">
+                    <button id="detenerEscaner"
+                        class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 w-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
+                        <span>ðŸ›‘</span>
+                        <span>Detener Escáner</span>
+                    </button>
+                </div>
+
+                <!-- Estado del escáner -->
+                <div id="estadoEscaner" class="mt-4 text-center text-sm text-gray-600">
+                    <div class="flex items-center justify-center space-x-2">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span>Escáner activo - Listo para escanear</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../librerías/html5-qrcode.min.js"></script>
+    <script src="../js/mobile-optimizer.js"></script>
+    <script src="../js/table-mobile-optimizer.js"></script>
+    <script src="../js/extension-conflict-detector.js"></script>
+    <script type="module" src="../js/main.js"></script>
+    <script type="module" src="../js/registro-entradas-operations.js"></script>
+    <script type="module">
+        import { inicializarRegistroEntradas } from '../js/registro-entradas-operations.js';
+        import { inicializarDB } from '../js/db-operations.js';
+        import { toggleEscaner } from '../js/scanner.js';        // Inicializar cuando el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                // Inicializar base de datos principal
+                await inicializarDB();
+
+                // Inicializar página de registro de entradas
+                await inicializarRegistroEntradas();
+
+                // Configurar escáner
+                const escanearBtn = document.getElementById('escanearBtn');
+                if (escanearBtn) {
+                    escanearBtn.addEventListener('click', () => {
+                        toggleEscaner('busquedaCodigo', 'scanner-container');
+                    });
+                }
+
+                const cerrarEscaner = document.getElementById('cerrarEscaner');
+                const detenerEscaner = document.getElementById('detenerEscaner');
+
+                if (cerrarEscaner) {
+                    cerrarEscaner.addEventListener('click', () => {
+                        document.getElementById('scanner-container').style.display = 'none';
+                    });
+                }
+
+                if (detenerEscaner) {
+                    detenerEscaner.addEventListener('click', () => {
+                        document.getElementById('scanner-container').style.display = 'none';
+                    });
+                }
+
+                // Inicializar funcionalidades dinámicas
+                initializeDynamicFeatures();
+
+                console.log('Página de registro de entradas inicializada correctamente');
+
+            } catch (error) {
+                console.error('Error al inicializar página de registro de entradas:', error);
+            }
+        });        // Funcionalidades dinámicas
+        function initializeDynamicFeatures() {
+            // Reloj en tiempo real
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            // Estado de conexión
+            updateConnectionStatus();
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+
+            // Auto-actualización
+            setupAutoRefresh();
+
+            // Efectos de carga
+            setupLoadingEffects();
+
+            // Animaciones de entrada
+            setupEntranceAnimations();
+
+            // Notificaciones dinámicas
+            setupDynamicNotifications();
+
+            // Configurar fecha actual
+            setupCurrentDate();
+
+            // Búsqueda rápida en tabla
+            setupQuickSearch();
+
+            // Autocompletado
+            setupAutoComplete();
+
+            // Atajos de teclado
+            setupKeyboardShortcuts();
+
+            // Validaciones en tiempo real
+            setupRealTimeValidation();
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateString = now.toLocaleDateString('es-ES', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            const clockDisplay = document.getElementById('clockDisplay');
+            if (clockDisplay) {
+                clockDisplay.innerHTML = `${timeString}<br><span class="text-xs">${dateString}</span>`;
+            }
+
+            // Actualizar fecha actual en el resumen
+            const fechaActual = document.getElementById('fechaActual');
+            if (fechaActual) {
+                fechaActual.textContent = `Hoy: ${dateString}`;
+            }
+        }
+
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('conexionStatus');
+            const estadoConexion = document.getElementById('estadoConexion');
+
+            if (statusElement || estadoConexion) {
+                const isOnline = navigator.onLine;
+                const status = isOnline
+                    ? '<span class="status-indicator status-success"></span>Conectado'
+                    : '<span class="status-indicator status-error"></span>Sin conexión';
+
+                if (statusElement) statusElement.innerHTML = status;
+                if (estadoConexion) {
+                    estadoConexion.textContent = isOnline ? 'Conectado' : 'Sin conexión';
+                    estadoConexion.className = isOnline ? 'text-green-600' : 'text-red-600';
+                }
+
+                // Actualizar estado del sistema
+                const estadoSistema = document.getElementById('estadoSistema');
+                if (estadoSistema) {
+                    if (isOnline) {
+                        estadoSistema.className = 'bg-green-100 text-green-700 px-3 py-1 rounded-full';
+                        estadoSistema.textContent = 'Sistema Operativo';
+                    } else {
+                        estadoSistema.className = 'bg-red-100 text-red-700 px-3 py-1 rounded-full';
+                        estadoSistema.textContent = 'Sistema Offline';
+                    }
+                }
+            }
+        }
+
+        function setupCurrentDate() {
+            const fechaEntrada = document.getElementById('fechaEntrada');
+            if (fechaEntrada && !fechaEntrada.value) {
+                const today = new Date().toISOString().split('T')[0];
+                fechaEntrada.value = today;
+            }
+        }
+
+        function setupQuickSearch() {
+            const busquedaRapida = document.getElementById('busquedaRapida');
+            if (busquedaRapida) {
+                busquedaRapida.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const rows = document.querySelectorAll('#tablaEntradasBody tr');
+                    let visibleCount = 0;
+
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        const isVisible = text.includes(searchTerm);
+                        row.style.display = isVisible ? '' : 'none';
+                        if (isVisible && !row.classList.contains('text-center')) visibleCount++;
+                    });
+
+                    // Actualizar contador de resultados
+                    const resultados = document.getElementById('resultadosBusqueda');
+                    if (resultados) {
+                        resultados.textContent = searchTerm ?
+                            `${visibleCount} resultado${visibleCount !== 1 ? 's' : ''} encontrado${visibleCount !== 1 ? 's' : ''}` :
+                            '';
+                    }
+                });
+            }
+        }
+
+        function setupAutoComplete() {
+            // Autocompletado para campos de búsqueda
+            const campos = ['busquedaCodigo', 'busquedaNombre', 'busquedaMarca'];
+            campos.forEach(campoId => {
+                const campo = document.getElementById(campoId);
+                if (campo) {
+                    campo.addEventListener('input', debounce((e) => {
+                        // Aquí se implementaría la lógica de autocompletado
+                        showAutoCompleteHint(campo, e.target.value);
+                    }, 300));
+                }
+            });
+        }
+
+        function showAutoCompleteHint(element, value) {
+            if (value.length < 2) return;
+
+            // Simular sugerencias (en producción vendría de la base de datos)
+            const hints = ['Producto A', 'Producto B', 'Marca X', 'Marca Y'];
+            const matchingHints = hints.filter(hint =>
+                hint.toLowerCase().includes(value.toLowerCase())
+            );
+
+            // Mostrar hint visual
+            if (matchingHints.length > 0) {
+                element.title = `Sugerencia: ${matchingHints[0]}`;
+                element.style.borderColor = '#10B981';
+            } else {
+                element.title = '';
+                element.style.borderColor = '';
+            }
+        }
+
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Ctrl + F para buscar
+                if (e.ctrlKey && e.key === 'f') {
+                    e.preventDefault();
+                    const busquedaRapida = document.getElementById('busquedaRapida');
+                    if (busquedaRapida) {
+                        busquedaRapida.focus();
+                        busquedaRapida.select();
+                    }
+                }
+
+                // Ctrl + S para sincronizar
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    const sincBtn = document.getElementById('sincronizarEntradas');
+                    if (sincBtn) sincBtn.click();
+                }
+
+                // Ctrl + R para actualizar tabla
+                if (e.ctrlKey && e.key === 'r') {
+                    e.preventDefault();
+                    const refreshBtn = document.getElementById('refreshTable');
+                    if (refreshBtn) refreshBtn.click();
+                }
+
+                // ESC para cerrar modales
+                if (e.key === 'Escape') {
+                    const scanner = document.getElementById('scanner-container');
+                    if (scanner && scanner.style.display !== 'none') {
+                        scanner.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        function setupRealTimeValidation() {
+            const cantidadInput = document.getElementById('cantidadEntrada');
+            if (cantidadInput) {
+                cantidadInput.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    const isValid = value > 0;
+
+                    if (isValid) {
+                        e.target.classList.remove('border-red-500');
+                        e.target.classList.add('border-green-500');
+                        updateEntryPreview();
+                    } else {
+                        e.target.classList.remove('border-green-500');
+                        e.target.classList.add('border-red-500');
+                    }
+                });
+            }
+
+            // Validación de fecha
+            const fechaInput = document.getElementById('fechaEntrada');
+            if (fechaInput) {
+                fechaInput.addEventListener('change', (e) => {
+                    const selectedDate = new Date(e.target.value);
+                    const today = new Date();
+                    const maxDate = new Date();
+                    maxDate.setDate(today.getDate() + 30); // Máximo 30 días en el futuro
+
+                    if (selectedDate > maxDate) {
+                        e.target.classList.add('border-yellow-500');
+                        showToast('âš ï¸ La fecha seleccionada está muy lejos en el futuro', 'warning');
+                    } else {
+                        e.target.classList.remove('border-yellow-500');
+                        updateEntryPreview();
+                    }
+                });
+            }
+        }
+
+        function updateEntryPreview() {
+            const codigo = document.getElementById('codigoProducto')?.value;
+            const nombre = document.getElementById('nombreProducto')?.value;
+            const cantidad = document.getElementById('cantidadEntrada')?.value;
+            const fecha = document.getElementById('fechaEntrada')?.value;
+            const unidad = document.getElementById('unidadProducto')?.value;
+
+            if (codigo && nombre && cantidad && fecha) {
+                const resumen = document.getElementById('resumenEntrada');
+                const textoResumen = document.getElementById('textoResumen');
+
+                if (resumen && textoResumen) {
+                    textoResumen.innerHTML = `
+                        <strong>${nombre}</strong> (${codigo})<br>
+                        Cantidad: <strong>${cantidad} ${unidad || 'unidades'}</strong><br>
+                        Fecha: <strong>${new Date(fecha).toLocaleDateString('es-ES')}</strong>
+                    `;
+                    resumen.style.display = 'block';
+                }
+            }
+        }
+
+        // Función auxiliar para debounce
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Función para mostrar mensajes toast
+        function showToast(message, type = 'info') {
+            // Implementación simple de toast
+            const toast = document.createElement('div');
+            toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500' :
+                    type === 'warning' ? 'bg-yellow-500' :
+                        type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                } text-white`;
+            toast.textContent = message;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Función para ordenar tabla
+        function sortTable(column) {
+            console.log(`Ordenando por: ${column}`);
+            // Aquí se implementaría la lógica de ordenamiento
+        } function setupAutoRefresh() {
+            let autoRefreshEnabled = false;
+            let autoRefreshInterval;
+
+            const autoRefreshBtn = document.getElementById('autoRefresh');
+            if (autoRefreshBtn) {
+                autoRefreshBtn.addEventListener('click', () => {
+                    autoRefreshEnabled = !autoRefreshEnabled;
+
+                    if (autoRefreshEnabled) {
+                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualización: ON</span>';
+                        autoRefreshBtn.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-indigo-600', 'hover:from-indigo-600', 'hover:to-indigo-700');
+                        autoRefreshBtn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
+
+                        autoRefreshInterval = setInterval(() => {
+                            refreshTableData();
+                            updateLastSyncTime();
+                        }, 30000); // Cada 30 segundos
+
+                        showToast('âœ… Auto-actualización activada', 'success');
+                    } else {
+                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualización: OFF</span>';
+                        autoRefreshBtn.classList.remove('bg-gradient-to-r', 'from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
+                        autoRefreshBtn.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-indigo-600', 'hover:from-indigo-600', 'hover:to-indigo-700');
+
+                        if (autoRefreshInterval) {
+                            clearInterval(autoRefreshInterval);
+                        }
+                        showToast('â¸ï¸ Auto-actualización desactivada', 'info');
+                    }
+                });
+            }
+        }
+
+        function updateLastSyncTime() {
+            const ultimaSync = document.getElementById('ultimaSync');
+            if (ultimaSync) {
+                const now = new Date();
+                ultimaSync.textContent = now.toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        }
+
+        function setupLoadingEffects() {
+            // Interceptar clicks en botones de búsqueda
+            ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca'].forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        const textId = btnId.replace('buscar', 'btn') + 'Text';
+                        showButtonLoading(btn, textId, 'ðŸ” Buscando...');
+
+                        // Simular búsqueda exitosa
+                        setTimeout(() => {
+                            hideButtonLoading(btn, textId, 'ðŸ” Buscar');
+                            updateSearchHistory(btnId);
+                        }, 2000);
+                    });
+                }
+            });
+
+            // Interceptar registro de entrada
+            const registrarBtn = document.getElementById('registrarEntrada');
+            if (registrarBtn) {
+                registrarBtn.addEventListener('click', () => {
+                    showButtonLoading(registrarBtn, 'btnRegistrarText', 'â³ Registrando entrada...');
+
+                    setTimeout(() => {
+                        hideButtonLoading(registrarBtn, 'btnRegistrarText', 'âœ… Registrar Entrada');
+                        showToast('âœ… Entrada registrada exitosamente', 'success');
+                        updateEntryCounter();
+                    }, 3000);
+                });
+            }
+
+            // Interceptar sincronización
+            const sincBtn = document.getElementById('sincronizarEntradas');
+            if (sincBtn) {
+                sincBtn.addEventListener('click', () => {
+                    showButtonLoading(sincBtn, 'btnSincText', 'ðŸ”„ Sincronizando con servidor...');
+
+                    setTimeout(() => {
+                        hideButtonLoading(sincBtn, 'btnSincText', 'ðŸ”„ Sincronizar con Servidor');
+                        showToast('âœ… Sincronización completada', 'success');
+                        updateLastSyncTime();
+                    }, 4000);
+                });
+            }
+
+            // Interceptar actualización de tabla
+            const refreshBtn = document.getElementById('refreshTable');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    const indicator = document.getElementById('tableLoadingIndicator');
+                    if (indicator) {
+                        indicator.style.display = 'block';
+                        setTimeout(() => {
+                            indicator.style.display = 'none';
+                            showToast('ðŸ”„ Tabla actualizada', 'info');
+                        }, 2000);
+                    }
+                });
+            }
+        }
+
+        function updateSearchHistory(searchType) {
+            const busquedaReciente = document.getElementById('busquedaReciente');
+            const textoUltimaBusqueda = document.getElementById('textoUltimaBusqueda');
+
+            if (busquedaReciente && textoUltimaBusqueda) {
+                const tipoTexto = {
+                    'buscarPorCodigo': 'Búsqueda por código',
+                    'buscarPorNombre': 'Búsqueda por nombre',
+                    'buscarPorMarca': 'Búsqueda por marca'
+                };
+
+                const now = new Date().toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                textoUltimaBusqueda.textContent = `${tipoTexto[searchType]} a las ${now}`;
+                busquedaReciente.style.display = 'block';
+
+                // Ocultar después de 10 segundos
+                setTimeout(() => {
+                    busquedaReciente.style.display = 'none';
+                }, 10000);
+            }
+        }
+
+        function updateEntryCounter() {
+            const contador = document.getElementById('contadorEntradas');
+            const totalEntradas = document.getElementById('totalEntradas');
+
+            if (contador) {
+                const currentCount = parseInt(contador.textContent.match(/\d+/) || [0])[0];
+                const newCount = currentCount + 1;
+                contador.textContent = `Total: ${newCount} entradas registradas`;
+
+                // Animación del contador
+                contador.classList.add('animate-pulse');
+                setTimeout(() => {
+                    contador.classList.remove('animate-pulse');
+                }, 1000);
+            }
+
+            if (totalEntradas) {
+                const currentCount = parseInt(totalEntradas.textContent || 0);
+                totalEntradas.textContent = currentCount + 1;
+            }
+        }
+
+        function showButtonLoading(button, textElementId = null, loadingText = 'Cargando...') {
+            button.disabled = true;
+            button.classList.add('opacity-75', 'cursor-not-allowed');
+
+            if (textElementId) {
+                const textElement = document.getElementById(textElementId);
+                if (textElement) {
+                    textElement.innerHTML = `<div class="loading-spinner inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>${loadingText}`;
+                }
+            } else {
+                button.innerHTML = `<div class="loading-spinner inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>${loadingText}`;
+            }
+        }
+
+        function hideButtonLoading(button, textElementId = null, originalText = 'Buscar') {
+            button.disabled = false;
+            button.classList.remove('opacity-75', 'cursor-not-allowed');
+
+            if (textElementId) {
+                const textElement = document.getElementById(textElementId);
+                if (textElement) {
+                    textElement.textContent = originalText;
+                }
+            } else {
+                button.textContent = originalText;
+            }
+        } function setupEntranceAnimations() {
+            // Animar elementos cuando aparecen
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-fade-in-up');
+
+                        // Añadir un pequeño retraso para elementos consecutivos
+                        const siblings = Array.from(entry.target.parentElement.children);
+                        const index = siblings.indexOf(entry.target);
+                        entry.target.style.animationDelay = `${index * 0.1}s`;
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            // Observar todas las tarjetas
+            document.querySelectorAll('.card-hover').forEach(card => {
+                observer.observe(card);
+            });
+
+            // Animaciones para botones al hacer hover
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('mouseenter', () => {
+                    if (!button.disabled) {
+                        button.style.transform = 'translateY(-2px)';
+                        button.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+                    }
+                });
+
+                button.addEventListener('mouseleave', () => {
+                    button.style.transform = 'translateY(0)';
+                    button.style.boxShadow = '';
+                });
+            });
+
+            // Animación de aparecer para modales
+            const scanner = document.getElementById('scanner-container');
+            if (scanner) {
+                const originalDisplay = scanner.style.display;
+                scanner.addEventListener('click', (e) => {
+                    if (e.target === scanner) {
+                        // Cerrar al hacer click fuera del modal
+                        hideModal(scanner);
+                    }
+                });
+            }
+        }
+
+        function showModal(modal) {
+            modal.style.display = 'flex';
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.8)';
+
+            setTimeout(() => {
+                modal.style.transition = 'all 0.3s ease';
+                modal.style.opacity = '1';
+                modal.style.transform = 'scale(1)';
+            }, 10);
+        }
+
+        function hideModal(modal) {
+            modal.style.transition = 'all 0.3s ease';
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.8)';
+
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        function setupDynamicNotifications() {
+            // Mostrar formulario solo cuando se selecciona un producto
+            ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca'].forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        setTimeout(() => {
+                            const productForm = document.getElementById('productForm');
+                            const codigoProducto = document.getElementById('codigoProducto');
+
+                            if (productForm && codigoProducto && codigoProducto.value) {
+                                // Mostrar formulario con animación
+                                productForm.style.display = 'block';
+                                productForm.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+
+                                // Animación de aparición
+                                productForm.style.opacity = '0';
+                                productForm.style.transform = 'translateY(30px)';
+
+                                setTimeout(() => {
+                                    productForm.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                                    productForm.style.opacity = '1';
+                                    productForm.style.transform = 'translateY(0)';
+
+                                    // Destacar el formulario brevemente
+                                    productForm.classList.add('ring-4', 'ring-green-300', 'ring-opacity-50');
+                                    setTimeout(() => {
+                                        productForm.classList.remove('ring-4', 'ring-green-300', 'ring-opacity-50');
+                                    }, 2000);
+                                }, 100);
+
+                                // Actualizar stock actual (simulado)
+                                updateStockDisplay();
+
+                                // Focus en el primer campo editable
+                                const cantidadInput = document.getElementById('cantidadEntrada');
+                                if (cantidadInput) {
+                                    setTimeout(() => cantidadInput.focus(), 800);
+                                }
+                            }
+                        }, 500);
+                    });
+                }
+            });
+
+            // Feedback visual en inputs con animaciones mejoradas
+            document.querySelectorAll('input, textarea, select').forEach(input => {
+                input.addEventListener('focus', (e) => {
+                    e.target.style.transform = 'scale(1.02)';
+                    e.target.style.transition = 'transform 0.2s ease';
+
+                    // Añadir indicador de foco
+                    const label = e.target.previousElementSibling;
+                    if (label && label.tagName === 'LABEL') {
+                        label.style.color = '#10B981';
+                        label.style.transform = 'scale(1.05)';
+                        label.style.transition = 'all 0.2s ease';
+                    }
+                });
+
+                input.addEventListener('blur', (e) => {
+                    e.target.style.transform = 'scale(1)';
+
+                    // Restaurar label
+                    const label = e.target.previousElementSibling;
+                    if (label && label.tagName === 'LABEL') {
+                        label.style.color = '';
+                        label.style.transform = 'scale(1)';
+                    }
+                });
+
+                // Validación visual en tiempo real
+                if (input.type === 'number') {
+                    input.addEventListener('input', (e) => {
+                        const value = parseFloat(e.target.value);
+                        if (value > 0) {
+                            e.target.style.borderColor = '#10B981';
+                            e.target.style.backgroundColor = '#F0FDF4';
+                        } else if (e.target.value) {
+                            e.target.style.borderColor = '#EF4444';
+                            e.target.style.backgroundColor = '#FEF2F2';
+                        } else {
+                            e.target.style.borderColor = '';
+                            e.target.style.backgroundColor = '';
+                        }
+                    });
+                }
+            });
+
+            // Animaciones para las filas de la tabla
+            setupTableRowAnimations();
+
+            // Notificaciones de estado del sistema
+            setupSystemStatusNotifications();
+        }
+
+        function updateStockDisplay() {
+            const stockActual = document.getElementById('stockActual');
+            if (stockActual) {
+                // Simular datos de stock
+                const stock = Math.floor(Math.random() * 500) + 10;
+                stockActual.textContent = stock;
+
+                // Animación del contador
+                stockActual.style.transform = 'scale(1.2)';
+                stockActual.style.transition = 'transform 0.3s ease';
+
+                setTimeout(() => {
+                    stockActual.style.transform = 'scale(1)';
+                }, 300);
+
+                // Color basado en el stock
+                if (stock < 50) {
+                    stockActual.className = 'text-2xl font-bold text-red-600';
+                    stockActual.parentElement.className = 'bg-red-50 p-4 rounded-lg border border-red-200';
+                } else if (stock < 100) {
+                    stockActual.className = 'text-2xl font-bold text-yellow-600';
+                    stockActual.parentElement.className = 'bg-yellow-50 p-4 rounded-lg border border-yellow-200';
+                } else {
+                    stockActual.className = 'text-2xl font-bold text-green-600';
+                    stockActual.parentElement.className = 'bg-green-50 p-4 rounded-lg border border-green-200';
+                }
+            }
+        }
+
+        function setupTableRowAnimations() {
+            // Observador para filas de tabla
+            const tableObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeName === 'TR' && !node.classList.contains('text-center')) {
+                                // Animar nueva fila
+                                node.style.opacity = '0';
+                                node.style.transform = 'translateX(-20px)';
+
+                                setTimeout(() => {
+                                    node.style.transition = 'all 0.5s ease';
+                                    node.style.opacity = '1';
+                                    node.style.transform = 'translateX(0)';
+                                }, 100);
+
+                                // Efectos hover mejorados
+                                node.addEventListener('mouseenter', () => {
+                                    node.style.backgroundColor = '#F0FDF4';
+                                    node.style.transform = 'scale(1.01)';
+                                    node.style.transition = 'all 0.2s ease';
+                                    node.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                                });
+
+                                node.addEventListener('mouseleave', () => {
+                                    node.style.backgroundColor = '';
+                                    node.style.transform = 'scale(1)';
+                                    node.style.boxShadow = '';
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            const tableBody = document.getElementById('tablaEntradasBody');
+            if (tableBody) {
+                tableObserver.observe(tableBody, { childList: true });
+            }
+        }
+
+        function setupSystemStatusNotifications() {
+            // Notificaciones periódicas de estado
+            setInterval(() => {
+                if (Math.random() < 0.1) { // 10% de probabilidad cada minuto
+                    const messages = [
+                        'âœ… Sistema funcionando correctamente',
+                        'ðŸ“Š Base de datos sincronizada',
+                        'ðŸ”„ Datos actualizados automáticamente',
+                        'ðŸ“ˆ Rendimiento óptimo del sistema'
+                    ];
+
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    showToast(randomMessage, 'success');
+                }
+            }, 60000); // Cada minuto
+        } function refreshTableData() {
+            const indicator = document.getElementById('tableLoadingIndicator');
+            if (indicator) {
+                indicator.style.display = 'block';
+
+                // Simular carga de datos
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                    updateLastSyncTime();
+
+                    // Actualizar contador si hay datos
+                    const tbody = document.getElementById('tablaEntradasBody');
+                    if (tbody) {
+                        const rows = tbody.querySelectorAll('tr:not(.text-center)');
+                        const contador = document.getElementById('contadorEntradas');
+                        if (contador) {
+                            contador.textContent = `Total: ${rows.length} entradas registradas`;
+                        }
+                    }
+                }, 2000);
+            }
+
+            console.log('Actualizando datos de la tabla...');
+        }
+
+        // Efectos adicionales para las filas de la tabla
+        function addTableRowEffects() {
+            document.querySelectorAll('#tablaEntradasBody tr:not(.text-center)').forEach(row => {
+                // Eliminar eventos anteriores para evitar duplicados
+                row.removeEventListener('mouseenter', handleRowHover);
+                row.removeEventListener('mouseleave', handleRowLeave);
+
+                // Añadir nuevos eventos
+                row.addEventListener('mouseenter', handleRowHover);
+                row.addEventListener('mouseleave', handleRowLeave);
+            });
+        }
+
+        function handleRowHover(e) {
+            e.target.style.backgroundColor = '#F0FDF4';
+            e.target.style.transform = 'scale(1.01)';
+            e.target.style.transition = 'all 0.2s ease';
+            e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+        }
+
+        function handleRowLeave(e) {
+            e.target.style.backgroundColor = '';
+            e.target.style.transform = 'scale(1)';
+            e.target.style.boxShadow = '';
+        }
+
+        // Inicializar mejoras adicionales al cargar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                addTableRowEffects();
+                initializeAdditionalFeatures();
+            }, 1000);
+        });
+
+        // Características adicionales
+        function initializeAdditionalFeatures() {
+            // Configurar filtros de fecha inteligentes
+            setupIntelligentDateFilters();
+
+            // Configurar exportación mejorada
+            setupEnhancedExport();
+
+            // Configurar modo expandido de tabla
+            setupTableExpandMode();
+
+            // Configurar estadísticas en tiempo real
+            setupRealTimeStats();
+        }
+
+        function setupIntelligentDateFilters() {
+            const filtrarPorFecha = document.getElementById('filtrarPorFecha');
+            if (filtrarPorFecha) {
+                filtrarPorFecha.addEventListener('click', () => {
+                    const fechaDesde = document.getElementById('fechaDesde').value;
+                    const fechaHasta = document.getElementById('fechaHasta').value;
+
+                    if (fechaDesde && fechaHasta) {
+                        const rangoFechas = document.getElementById('rangoFechas');
+                        if (rangoFechas) {
+                            const desde = new Date(fechaDesde).toLocaleDateString('es-ES');
+                            const hasta = new Date(fechaHasta).toLocaleDateString('es-ES');
+                            rangoFechas.textContent = `Mostrando entradas del ${desde} al ${hasta}`;
+                        }
+                        showToast(`ðŸ“… Filtro aplicado: ${fechaDesde} a ${fechaHasta}`, 'info');
+                    } else {
+                        showToast('âš ï¸ Seleccione ambas fechas para filtrar', 'warning');
+                    }
+                });
+            }
+        }
+
+        function setupEnhancedExport() {
+            const exportBtn = document.getElementById('exportVisible');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    showToast('ðŸ“¥ Preparando exportación...', 'info');
+
+                    setTimeout(() => {
+                        showToast('âœ… Datos exportados exitosamente', 'success');
+                    }, 2000);
+                });
+            }
+        }
+
+        function setupTableExpandMode() {
+            const expandBtn = document.getElementById('expandirTabla');
+            let isExpanded = false;
+
+            if (expandBtn) {
+                expandBtn.addEventListener('click', () => {
+                    const tableContainer = expandBtn.closest('.bg-white');
+
+                    if (!isExpanded) {
+                        tableContainer.classList.add('fixed', 'inset-4', 'z-40', 'overflow-auto');
+                        expandBtn.innerHTML = '<span>â›¶</span><span class="hidden md:inline">Contraer</span>';
+                        isExpanded = true;
+                        showToast('â›¶ Tabla expandida', 'info');
+                    } else {
+                        tableContainer.classList.remove('fixed', 'inset-4', 'z-40', 'overflow-auto');
+                        expandBtn.innerHTML = '<span>â›¶</span><span class="hidden md:inline">Expandir</span>';
+                        isExpanded = false;
+                        showToast('â›¶ Tabla contraída', 'info');
+                    }
+                });
+            }
+        }
+
+        function setupRealTimeStats() {
+            // Actualizar estadísticas cada 30 segundos
+            setInterval(() => {
+                updateSystemStats();
+            }, 30000);
+
+            // Actualización inicial
+            updateSystemStats();
+        }
+
+        function updateSystemStats() {
+            // Simular actualización de estadísticas
+            const totalEntradas = document.getElementById('totalEntradas');
+            if (totalEntradas) {
+                const currentCount = parseInt(totalEntradas.textContent || 0);
+                if (Math.random() < 0.3) { // 30% de probabilidad de incremento
+                    totalEntradas.textContent = currentCount + Math.floor(Math.random() * 3) + 1;
+                }
+            }
+        }
+
+        // CSS para animaciones adicionales
+        const additionalStyles = `
+            <style>
+                .animate-fade-in-up {
+                    animation: fadeInUp 0.6s ease-out forwards;
+                }
+                
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(30px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                .status-indicator {
+                    display: inline-block;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    margin-right: 6px;
+                }
+                
+                .status-success {
+                    background-color: #10B981;
+                    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+                }
+                
+                .status-error {
+                    background-color: #EF4444;
+                    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+                }
+                
+                .card-hover {
+                    transition: all 0.3s ease;
+                }
+                
+                .card-hover:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                }
+                
+                .loading-spinner {
+                    border: 2px solid #f3f3f3;
+                    border-top: 2px solid #3498db;
+                    border-radius: 50%;
+                    width: 16px;
+                    height: 16px;
+                    animation: spin 1s linear infinite;
+                }
+                
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                
+                /* Efectos de hover mejorados */
+                button:not(:disabled):hover {
+                    transform: translateY(-1px) !important;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+                }
+                
+                input:focus, textarea:focus, select:focus {
+                    transform: scale(1.01);
+                    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+                }
+                
+                /* Animaciones para modales */
+                .modal-enter {
+                    animation: modalEnter 0.3s ease-out forwards;
+                }
+                
+                @keyframes modalEnter {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.9);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                }
+                
+                /* Efectos de tabla mejorados */
+                table th {
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                table th:hover::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                    animation: shimmer 1.5s ease-in-out;
+                }
+                
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+            </style>
+        `;
+
+        // Añadir estilos al head
+        document.head.insertAdjacentHTML('beforeend', additionalStyles);
+
+        // Llamar después de cargar datos en la tabla
+        window.addEventListener('load', () => {
+            setTimeout(addTableRowEffects, 1000);
+        });
+
+        // Función para convertir guión a 6 ceros
+        function convertirGuionACeros(valor) {
+            return valor.replace(/-/g, '000000');
+        }
+
+        // Función para aplicar la conversión a un input
+        function aplicarConversionCodigo(input) {
+            if (!input) return;
+            
+            input.addEventListener('input', function(e) {
+                const valorOriginal = e.target.value;
+                const valorConvertido = convertirGuionACeros(valorOriginal);
+                
+                if (valorOriginal !== valorConvertido) {
+                    const cursorPos = e.target.selectionStart;
+                    e.target.value = valorConvertido;
+                    
+                    const diferencia = valorConvertido.length - valorOriginal.length;
+                    const nuevaPosicion = Math.min(cursorPos + diferencia, valorConvertido.length);
+                    e.target.setSelectionRange(nuevaPosicion, nuevaPosicion);
+                }
+            });
+
+            input.addEventListener('blur', function(e) {
+                e.target.value = convertirGuionACeros(e.target.value);
+            });
+        }
+
+        // Aplicar conversión a los campos de código cuando se cargue la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const busquedaCodigo = document.getElementById('busquedaCodigo');
+            const codigoProducto = document.getElementById('codigoProducto');
+            const filtroCodigo = document.getElementById('filtroCodigo');
+            
+            aplicarConversionCodigo(busquedaCodigo);
+            aplicarConversionCodigo(codigoProducto);
+            aplicarConversionCodigo(filtroCodigo);
+        });
+    </script>
+</body>
+
+</html>

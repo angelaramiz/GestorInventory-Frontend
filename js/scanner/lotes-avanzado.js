@@ -119,8 +119,7 @@ function inicializarSistemaLotesAvanzado() {
             } catch (err) {
                 console.warn('No se pudo persistir la opción relacionarProductos en localStorage', err);
             }
-            console.log('Configuración relacionarProductos cambiada:', configuracionEscaneo.relacionarProductos);
-        });
+                    });
     }
 
     // Event listeners para las pestañas principales
@@ -135,18 +134,15 @@ function inicializarSistemaLotesAvanzado() {
     // Event listeners para configuración
     document.getElementById('confirmarProductosSimilares')?.addEventListener('change', function () {
         configuracionEscaneo.confirmarProductosSimilares = this.checked;
-        console.log('Configuración confirmación cambiada:', this.checked);
-    });
+            });
 
     document.getElementById('agruparAutomaticamente')?.addEventListener('change', function () {
         configuracionEscaneo.agruparAutomaticamente = this.checked;
-        console.log('Configuración agrupación cambiada:', this.checked);
-    });
+            });
 
     document.getElementById('sonidoConfirmacion')?.addEventListener('change', function () {
         configuracionEscaneo.sonidoConfirmacion = this.checked;
-        console.log('Configuración sonido cambiada:', this.checked);
-    });
+            });
 
     // (Ya se registró listener arriba cuando existe el elemento)
 
@@ -238,8 +234,7 @@ function cambiarTabModalAvanzado(tab) {
 
         // SIEMPRE pausar escáner cuando se cambia a listado
         if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
-            console.log('Pausando escáner al cambiar a pestaña Listado');
-            pausarEscaneoLotesAvanzado();
+                        pausarEscaneoLotesAvanzado();
         }
 
         // Limpiar variables de debounce al cambiar a listado
@@ -254,15 +249,12 @@ function cambiarTabModalAvanzado(tab) {
 function limpiarDebounce() {
     ultimoCodigoEscaneado = null;
     tiempoUltimoEscaneo = 0;
-    console.log('Variables de debounce limpiadas');
-}
+    }
 
 // Función para cargar diccionario de subproductos desde Supabase
 async function cargarDiccionarioSubproductos() {
     try {
-        console.log('Cargando diccionario de subproductos desde Supabase...');
-
-        // Obtener instancia de Supabase
+                // Obtener instancia de Supabase
         const supabase = await getSupabase();
 
         // Consultar productos_subproducto desde Supabase
@@ -289,14 +281,10 @@ async function cargarDiccionarioSubproductos() {
                     item.subproductid.toString(),
                     item.principalproductid.toString()
                 );
-                console.log(`Relación cargada: ${item.subproductid} -> ${item.principalproductid}`);
-            });
+                            });
 
-            console.log(`Diccionario cargado desde Supabase con ${diccionarioSubproductos.size} relaciones`);
-            console.log('Diccionario completo:', Array.from(diccionarioSubproductos.entries()));
-        } else {
-            console.log('No se encontraron relaciones de subproductos en Supabase');
-        }
+                                } else {
+                    }
 
     } catch (error) {
         console.error('Error al cargar diccionario de subproductos desde Supabase:', error);
@@ -409,8 +397,7 @@ function iniciarEscanerLotesAvanzadoHtml5Qrcode() {
     ).then(() => {
         isEscaneoLotesAvanzadoActivo = true;
         isScannerTransitioning = false;
-        console.log("Escáner de lotes avanzado ACTIVADO");
-    }).catch(err => {
+            }).catch(err => {
         isScannerTransitioning = false;
         console.error("Error al activar escáner de lotes avanzado:", err);
         mostrarMensaje('Error al activar el escáner', 'error');
@@ -424,8 +411,7 @@ function pausarEscanerLotesAvanzado() {
         scannerLotesAvanzado.stop().then(() => {
             isEscaneoLotesAvanzadoActivo = false;
             isScannerTransitioning = false;
-            console.log("Escáner de lotes avanzado DETENIDO (pausar)");
-        }).catch(err => {
+                    }).catch(err => {
             isScannerTransitioning = false;
             console.warn("No se pudo detener el escáner al pausar:", err);
         });
@@ -434,18 +420,14 @@ function pausarEscanerLotesAvanzado() {
 
 // Función cuando el escaneo es exitoso
 function onEscaneoExitosoLotesAvanzado(decodedText, decodedResult) {
-    console.log(`Código escaneado en lotes avanzado: ${decodedText}`);
-
-    // Sanitizar el código escaneado
+        // Sanitizar el código escaneado
     const codigoLimpio = sanitizarEntrada(decodedText);
 
     // Implementar debounce - prevenir registro duplicado de códigos
     const tiempoActual = Date.now();
     if (ultimoCodigoEscaneado === codigoLimpio &&
         (tiempoActual - tiempoUltimoEscaneo) < TIEMPO_DEBOUNCE) {
-        console.log(`Código ${codigoLimpio} ignorado por debounce (${tiempoActual - tiempoUltimoEscaneo}ms desde el último escaneo)`);
-
-        // Reanudar el escáner sin procesar
+                // Reanudar el escáner sin procesar
         setTimeout(() => {
             reanudarEscannerDespuesDeProcesamiento();
         }, 300); // Reducido de 500ms a 300ms para mayor rapidez
@@ -460,8 +442,7 @@ function onEscaneoExitosoLotesAvanzado(decodedText, decodedResult) {
     if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
         scannerLotesAvanzado.stop().then(() => {
             isEscaneoLotesAvanzadoActivo = false;
-            console.log("Escáner de lotes avanzado DETENIDO tras escaneo exitoso");
-        }).catch(err => {
+                    }).catch(err => {
             console.warn("No se pudo detener el escáner tras escaneo exitoso:", err);
         });
     }
@@ -503,9 +484,7 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
         // 3. Verificar si el producto ya fue registrado recientemente con el mismo precio
         if (verificarRegistroReciente(datosExtraidos.plu, datosExtraidos.precioPorcion)) {
             mostrarAnimacionProcesamiento('Producto ya registrado recientemente', 'error');
-            console.log('Producto ya registrado recientemente, pausando escáner temporalmente');
-
-            // Pausar escáner para evitar bucle infinito
+                        // Pausar escáner para evitar bucle infinito
             if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
                 scannerLotesAvanzado.pause(true);
                 isEscaneoLotesAvanzadoActivo = false;
@@ -527,37 +506,28 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
 
         if (productoExistente && productoExistente.nombre) {
             // Producto completo ya fue escaneado anteriormente
-            console.log(`Producto existente encontrado. Configuración confirmación: ${configuracionEscaneo.confirmarProductosSimilares}`);
-
-            if (configuracionEscaneo.confirmarProductosSimilares) {
+                        if (configuracionEscaneo.confirmarProductosSimilares) {
                 // Mostrar ventana de confirmación
-                console.log('Mostrando ventana de confirmación');
-                mostrarVentanaConfirmacionProducto(producto, datosExtraidos, productoExistente);
+                                mostrarVentanaConfirmacionProducto(producto, datosExtraidos, productoExistente);
             } else {
                 // Procesar directamente con el precio existente
-                console.log('Procesando directamente sin confirmación');
-                procesarProductoExistente(producto, datosExtraidos, productoExistente);
+                                procesarProductoExistente(producto, datosExtraidos, productoExistente);
             }
         } else if (productoExistente && productoExistente.precioKilo) {
             // Solo tenemos precio por kilo guardado, procesar directamente
-            console.log(`Usando precio por kilo guardado: $${productoExistente.precioKilo.toFixed(2)}`);
-
-            // Determinar tipo y producto primario usando el código del producto encontrado
+                        // Determinar tipo y producto primario usando el código del producto encontrado
             let infoPrimario = null;
             let tipo = 'primario';
 
             if (configuracionEscaneo.relacionarProductos) {
                 const productoPrimarioId = diccionarioSubproductos.get(producto.codigo);
                 if (productoPrimarioId) {
-                    console.log(`✅ Subproducto detectado con precio guardado, código ${producto.codigo} -> primario: ${productoPrimarioId}`);
-                    infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
+                                        infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
                     tipo = 'subproducto';
                 } else {
-                    console.log(`📦 Producto primario detectado con precio guardado: ${producto.codigo}`);
-                }
+                                    }
             } else {
-                console.log('Relacionar productos DESACTIVADO - saltando búsqueda de relaciones');
-            }
+                            }
 
             // Crear objeto producto existente completo
             const productoCompleto = {
@@ -569,25 +539,20 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
             procesarProductoExistente(producto, datosExtraidos, productoCompleto);
         } else {
             // 5. Verificar si es subproducto o producto primario usando el código del producto encontrado
-            console.log(`🔍 Verificando relación de subproducto para código: ${producto.codigo}`);
-
-            // Si la configuración indica saltar relaciones, tratar como primario
+                        // Si la configuración indica saltar relaciones, tratar como primario
             if (!configuracionEscaneo.relacionarProductos) {
-                console.log('Relacionar productos DESACTIVADO - tratar como primario');
-                mostrarModalInformacionProducto(producto, datosExtraidos, null, 'primario');
+                                mostrarModalInformacionProducto(producto, datosExtraidos, null, 'primario');
             } else {
                 // Buscar directamente en el diccionario usando el código del producto encontrado
                 const productoPrimarioId = diccionarioSubproductos.get(producto.codigo);
 
                 if (productoPrimarioId) {
                     // Es un subproducto
-                    console.log(`✅ Subproducto detectado, código ${producto.codigo} -> producto primario: ${productoPrimarioId}`);
-                    const infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
+                                        const infoPrimario = await buscarProductoPorPLU(productoPrimarioId);
                     mostrarModalInformacionProducto(producto, datosExtraidos, infoPrimario, 'subproducto');
                 } else {
                     // Es un producto primario
-                    console.log(`📦 Producto primario detectado: ${producto.codigo}`);
-                    mostrarModalInformacionProducto(producto, datosExtraidos, null, 'primario');
+                                        mostrarModalInformacionProducto(producto, datosExtraidos, null, 'primario');
                 }
             }
         }
@@ -603,9 +568,7 @@ async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
 // Función para buscar producto por PLU usando IndexedDB primero, luego Supabase
 async function buscarProductoPorPLU(plu) {
     try {
-        console.log(`Buscando producto con PLU: ${plu}`);
-
-        // Primero buscar en IndexedDB usando buscarPorCodigoParcial
+                // Primero buscar en IndexedDB usando buscarPorCodigoParcial
         const resultadoIndexedDB = await new Promise((resolve, reject) => {
             buscarPorCodigoParcial(plu, "Lotes", (resultados) => {
                 if (resultados && resultados.length > 0) {
@@ -633,8 +596,7 @@ async function buscarProductoPorPLU(plu) {
         });
 
         if (resultadoIndexedDB) {
-            console.log(`Producto encontrado en IndexedDB:`, resultadoIndexedDB);
-            return {
+                        return {
                 codigo: resultadoIndexedDB.codigo,
                 nombre: resultadoIndexedDB.nombre,
                 marca: resultadoIndexedDB.marca || 'Sin marca',
@@ -644,9 +606,7 @@ async function buscarProductoPorPLU(plu) {
         }
 
         // Si no se encuentra en IndexedDB, buscar en Supabase
-        console.log(`Producto no encontrado en IndexedDB, buscando en Supabase...`);
-
-        // Obtener instancia de Supabase
+                // Obtener instancia de Supabase
         const supabase = await getSupabase();
 
         // Primero intentar buscar con el PLU tal como viene (4 dígitos)
@@ -664,11 +624,8 @@ async function buscarProductoPorPLU(plu) {
 
         // Si no se encuentra, intentar con código completo de 12 dígitos (rellenando con ceros)
         if (error && error.code === 'PGRST116') {
-            console.log(`Producto no encontrado con PLU ${plu}, intentando con código completo...`);
-            const codigoCompleto = plu.padStart(12, '0');
-            console.log(`Buscando con código completo: ${codigoCompleto}`);
-
-            ({ data, error } = await supabase
+                        const codigoCompleto = plu.padStart(12, '0');
+                        ({ data, error } = await supabase
                 .from('productos')
                 .select(`
                     codigo,
@@ -684,8 +641,7 @@ async function buscarProductoPorPLU(plu) {
         if (error) {
             if (error.code === 'PGRST116') {
                 // No se encontró el producto
-                console.log(`Producto con PLU ${plu} no encontrado en Supabase`);
-                return null;
+                                return null;
             }
             throw error;
         }
@@ -700,8 +656,7 @@ async function buscarProductoPorPLU(plu) {
                 categoria: data.categoria?.nombre || 'Sin categoría'
             };
 
-            console.log(`Producto encontrado en Supabase:`, producto);
-            return producto;
+                        return producto;
         }
 
         return null;
@@ -720,15 +675,13 @@ function verificarProductoExistente(plu) {
     const productoExistente = productosEscaneados.find(p => p.plu === plu);
 
     if (productoExistente) {
-        console.log(`Producto con PLU ${plu} ya fue escaneado anteriormente`);
-        return productoExistente;
+                return productoExistente;
     }
 
     // Si no fue escaneado, verificar si tenemos precio por kilo guardado
     const precioKiloGuardado = preciosPorKiloGuardados.get(plu);
     if (precioKiloGuardado) {
-        console.log(`Precio por kilo guardado para PLU ${plu}: $${precioKiloGuardado.toFixed(2)}`);
-        return { plu: plu, precioKilo: precioKiloGuardado };
+                return { plu: plu, precioKilo: precioKiloGuardado };
     }
 
     return null;
@@ -746,8 +699,7 @@ function verificarRegistroReciente(plu, precioPorcion) {
     );
 
     if (registroReciente) {
-        console.log(`Producto con PLU ${plu} y precio ${precioPorcion} ya fue registrado recientemente`);
-        return true;
+                return true;
     }
 
     return false;
@@ -878,9 +830,7 @@ function guardarInfoProducto() {
 
     // Guardar precio por kilo temporalmente para futuros escaneos del mismo PLU
     preciosPorKiloGuardados.set(datosExtraidos.plu, precioKilo);
-    console.log(`Precio por kilo guardado para PLU ${datosExtraidos.plu}: $${precioKilo.toFixed(2)}`);
-
-    // Recalcular peso con el precio por kilo ingresado
+        // Recalcular peso con el precio por kilo ingresado
     const pesoCalculadoRaw = datosExtraidos.precioPorcion / precioKilo;
     // Truncar a 3 decimales (recortar sin redondear)
     const pesoCalculado = Math.floor(pesoCalculadoRaw * 1000) / 1000;
@@ -1095,19 +1045,14 @@ function actualizarListadoProductosAvanzado() {
 
 // Función para eliminar un producto escaneado
 window.eliminarProductoEscaneado = function (id) {
-    console.log(`Eliminando producto con ID: ${id}`);
-    console.log('Productos antes de eliminar:', productosEscaneados);
-
-    // Encontrar el índice del producto a eliminar
+            // Encontrar el índice del producto a eliminar
     const index = productosEscaneados.findIndex(item => item.id === id);
 
     if (index !== -1) {
         // Eliminar del array
         productosEscaneados.splice(index, 1);
 
-        console.log('Productos después de eliminar:', productosEscaneados);
-
-        // Actualizar el listado inmediatamente
+                // Actualizar el listado inmediatamente
         actualizarListadoProductosAvanzado();
 
         // Actualizar contadores
@@ -1123,9 +1068,7 @@ window.eliminarProductoEscaneado = function (id) {
 
 // Función para editar un producto escaneado
 window.editarProductoEscaneado = function (id) {
-    console.log(`Editando producto con ID: ${id}`);
-    
-    // Encontrar el producto
+        // Encontrar el producto
     const producto = productosEscaneados.find(item => item.id === id);
     
     if (!producto) {
@@ -1228,9 +1171,7 @@ window.guardarEdicionProducto = function () {
         producto.peso = Math.round(nuevoPeso * 1000) / 1000; // Redondear a 3 decimales
         producto.precioPorcion = Math.round(nuevoPrecioPorcion * 100) / 100; // Redondear a 2 decimales
         
-        console.log('Producto actualizado:', producto);
-        
-        // Actualizar la tabla
+                // Actualizar la tabla
         actualizarListadoProductosAvanzado();
         
         // Actualizar contadores
@@ -1289,10 +1230,8 @@ function pausarEscaneoLotesAvanzado() {
             // Limpiar variables de debounce al pausar
             limpiarDebounce();
 
-            console.log('Escáner pausado y variables de debounce limpiadas');
-        } else {
-            console.log('pausarEscaneoLotesAvanzado: el escáner no está activo, no hay acción');
-        }
+                    } else {
+                    }
     } catch (err) {
         console.warn('Error al pausar el escáner:', err);
         if (btn) {
@@ -1323,8 +1262,7 @@ function reanudarEscaneoLotesAvanzado() {
             // Limpiar variables de debounce al reanudar
             limpiarDebounce();
 
-            console.log('Escáner reanudado y variables de debounce limpiadas');
-        } catch (err) {
+                    } catch (err) {
             console.warn('No se pudo resumir el escáner con resume():', err, 'Intentando iniciar el escáner...');
             // Intentar iniciar el escáner si resume no funciona
             try {
@@ -1356,8 +1294,7 @@ function reanudarEscannerSinLimpiarDebounce() {
             }
 
             // NO limpiar debounce para mantener el control
-            console.log('Escáner reanudado sin limpiar debounce');
-        } catch (err) {
+                    } catch (err) {
             console.warn('resume() falló en reanudarEscannerSinLimpiarDebounce():', err, 'Intentando iniciar...');
             try {
                 iniciarEscanerLotesAvanzadoHtml5Qrcode();
@@ -1677,9 +1614,7 @@ async function guardarInventarioLotesAvanzado() {
                     usuario_id: usuario_id
                 };
 
-                console.log('Guardando en Supabase:', inventarioData);
-
-                // PASO 1: Guardar en Supabase
+                                // PASO 1: Guardar en Supabase
                 const { data: supabaseData, error: supabaseError } = await supabase
                     .from('inventario')
                     .insert([inventarioData])
@@ -1691,9 +1626,7 @@ async function guardarInventarioLotesAvanzado() {
                     continue;
                 }
 
-                console.log('Guardado exitoso en Supabase:', supabaseData);
-
-                // PASO 2: Sincronizar con IndexedDB
+                                // PASO 2: Sincronizar con IndexedDB
                 const inventarioDataLocal = {
                     ...inventarioData,
                     areaName: ubicacionNombre // Agregar nombre del área para visualización local
@@ -1722,9 +1655,7 @@ async function guardarInventarioLotesAvanzado() {
                 }
 
                 productosGuardados++;
-                console.log(`Producto ${index + 1} guardado correctamente`);
-
-            } catch (error) {
+                            } catch (error) {
                 console.error('Error al procesar grupo:', error);
                 errores.push(`Error en ${grupo.productoPrimario.nombre}: ${error.message}`);
             }
@@ -1737,14 +1668,11 @@ async function guardarInventarioLotesAvanzado() {
         if (productosGuardados > 0) {
             // PASO 4: Actualizar tabla de inventario si existe
             try {
-                console.log('Actualizando tabla de inventario...');
-
-                // Importar y ejecutar sincronización desde Supabase
+                                // Importar y ejecutar sincronización desde Supabase
                 const { sincronizarInventarioDesdeSupabase } = await import('./db-operations.js');
                 await sincronizarInventarioDesdeSupabase();
 
-                console.log('Tabla de inventario actualizada exitosamente');
-            } catch (e) {
+                            } catch (e) {
                 console.warn('No se pudo actualizar la tabla automáticamente:', e);
             }
 
@@ -1939,8 +1867,7 @@ function ocultarAnimacionProcesamiento() {
 
 // F// Función para extraer datos CODE128 usando regex
 function extraerDatosCodeCODE128(codigo) {
-    console.log(`Extrayendo datos de código: ${codigo}`);
-    // Sanitizar entrada
+        // Sanitizar entrada
     codigo = sanitizarEntrada(codigo);
     codigo = codigo.replace(/^0+/, ''); // Eliminar ceros a la izquierda
 
@@ -1950,9 +1877,7 @@ function extraerDatosCodeCODE128(codigo) {
     const match = codigo.match(regexExtraccion);
 
     if (!match) {
-        console.log(`Formato de código no reconocido con regex: ${codigo}`);
-        console.log(`Código analizado: ${codigo} (longitud: ${codigo.length})`);
-        return null;
+                        return null;
     }
 
     const plu = match[1];                    // PLU de 4 dígitos
@@ -1960,27 +1885,15 @@ function extraerDatosCodeCODE128(codigo) {
     const centavosStr = match[3];            // Centavos de 2 dígitos
     const digitoControl = match[4];          // Dígito de control (variable)
 
-    console.log(`Debug - PLU extraído: "${plu}"`);
-    console.log(`Debug - Pesos string extraído: "${pesosStr}"`);
-    console.log(`Debug - Centavos string extraído: "${centavosStr}"`);
-    console.log(`Debug - Dígito control: "${digitoControl}"`);
-
-    // Convertir pesos y centavos a números
+                    // Convertir pesos y centavos a números
     const pesos = parseInt(pesosStr, 10);
     const centavos = parseInt(centavosStr, 10);
-    console.log(`Debug - Pesos como número: ${pesos}`);
-    console.log(`Debug - Centavos como número: ${centavos}`);
-
-    // Calcular precio por porción: pesos + centavos/100
+            // Calcular precio por porción: pesos + centavos/100
     const precioPorcion = pesos + (centavos / 100);
-    console.log(`Debug - Precio final: $${precioPorcion.toFixed(2)}`);
-
-    // Calcular peso temporal para mostrar en el modal (se recalculará con precio real)
+        // Calcular peso temporal para mostrar en el modal (se recalculará con precio real)
     const pesoTemporal = precioPorcion / precioKiloTemporal;
 
-    console.log(`Datos extraídos - PLU: ${plu}, Precio: $${precioPorcion.toFixed(2)}, Peso temporal: ${pesoTemporal.toFixed(3)}kg, Centavos: ${centavos}, Dígito Control: ${digitoControl}`);
-
-    return {
+        return {
         plu: plu,
         precioPorcion: precioPorcion,
         pesoTemporal: pesoTemporal,
@@ -2006,8 +1919,7 @@ function reproducirSonidoConfirmacion() {
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.1);
     } catch (error) {
-        console.log('No se puede reproducir sonido:', error);
-    }
+            }
 }
 
 // Función para sanitizar entrada
@@ -2032,8 +1944,7 @@ async function guardarEnIndexedDBConReintento(inventarioData, maxReintentos = 3)
                     // Usar put en lugar de add para permitir actualizaciones/reemplazos
                     const putRequest = objectStore.put(inventarioData);
                     putRequest.onsuccess = () => {
-                        console.log(`Guardado exitoso en IndexedDB (intento ${intento}):`, inventarioData.id);
-                        resolve();
+                                                resolve();
                     };
                     putRequest.onerror = (e) => {
                         console.error(`Error al guardar en IndexedDB (intento ${intento}):`, {
@@ -2095,3 +2006,5 @@ export {
     cambiarPestanaPrincipal,
     cargarDiccionarioSubproductos
 };
+
+

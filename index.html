@@ -11,8 +11,8 @@
     <link rel="icon" type="image/x-icon" href="./assets/favicon.ico">
     <link rel="apple-touch-icon" href="./assets/logo.svg">
     
-    <link rel="stylesheet" href="./librerías/tailwind.min.css">
-    <script src="./librerías/sweetalert2@11.js"></script>
+    <link rel="stylesheet" href="./js/lib/tailwind.min.css">
+    <script src="./js/lib/sweetalert2@11.js"></script>
     <link rel="stylesheet" href="./css/styles.css">
     <link rel="stylesheet" href="./css/mobile-components.css">
     <script src="./js/utils/theme-manager.js"></script>
@@ -73,7 +73,7 @@
                 <a href="./register.html" class="text-blue-500 hover:underline dark-theme-link text-sm">¿No tienes una cuenta? Regístrate</a>
             </div>
             <div class="mt-4 text-center">
-                <a href="plantillas/request-password-reset.html"
+                <a href="templates/request-password-reset.html"
                     class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800 dark-theme-link">
                     ¿Olvidaste tu contraseña?
                 </a>
@@ -108,20 +108,15 @@
                         scope: isLocalhost ? './' : '/GestorInventory-Frontend/'
                     });
 
-                    console.log('✅ Service Worker registrado exitosamente');
-                    console.log('📂 Scope:', registration.scope);
-
                     // Manejar actualizaciones del service worker
                     registration.addEventListener('updatefound', () => {
-                        console.log('🔄 Nueva versión del Service Worker disponible');
+                        // Actualización disponible
                     });
 
                 } catch (error) {
                     console.error('❌ Error registrando Service Worker:', error);
                 }
             });
-        } else {
-            console.warn('⚠️ Service Workers no son compatibles con este navegador');
         }
     </script>
     <script type="module">
@@ -184,7 +179,6 @@
                     alert('Autenticación biométrica fallida o no disponible');
                 }
             } catch (error) {
-                console.error('Error en autenticación biométrica:', error);
                 alert('Error en autenticación biométrica: ' + error.message);
             } finally {
                 biometricBtn.disabled = false;

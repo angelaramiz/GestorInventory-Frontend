@@ -41,9 +41,7 @@ function aplicarConversionCodigoAInput(input) {
 
 // Función de inicialización que será llamada después de que se carguen todos los módulos
 function inicializarTablaProductos() {
-    console.log('Configurando event listeners para tabla de productos');
-    
-    // Event listeners para la funcionalidad de tabla
+        // Event listeners para la funcionalidad de tabla
     const agregarFilaBtn = document.getElementById('agregar-fila-btn');
     const limpiarTablaBtn = document.getElementById('limpiar-tabla-btn');
     const guardarTablaBtn = document.getElementById('guardar-tabla-btn');
@@ -51,18 +49,15 @@ function inicializarTablaProductos() {
 
     if (agregarFilaBtn) {
         agregarFilaBtn.addEventListener('click', agregarFilaSubproducto);
-        console.log('Event listener agregado a agregar-fila-btn');
-    }
+            }
 
     if (limpiarTablaBtn) {
         limpiarTablaBtn.addEventListener('click', limpiarTodo);
-        console.log('Event listener agregado a limpiar-tabla-btn');
-    }
+            }
 
     if (guardarTablaBtn) {
         guardarTablaBtn.addEventListener('click', guardarTablaProductos);
-        console.log('Event listener agregado a guardar-tabla-btn');
-    }
+            }
 
     // Búsqueda automática cuando el usuario termine de escribir (al quitar el foco)
     if (codigoPrimarioInput) {
@@ -86,8 +81,7 @@ function inicializarTablaProductos() {
             e.target.value = valorConvertido;
             
             if (valorConvertido && valorConvertido.length >= 2) {
-                console.log('Búsqueda automática para código (blur):', valorConvertido);
-                buscarProductoPrimarioAutomatico();
+                                buscarProductoPrimarioAutomatico();
             }
         });
         
@@ -100,17 +94,14 @@ function inicializarTablaProductos() {
                 e.target.value = valorConvertido;
                 
                 if (valorConvertido && valorConvertido.length >= 2) {
-                    console.log('Búsqueda inmediata con Enter:', valorConvertido);
-                    buscarProductoPrimarioAutomatico();
+                                        buscarProductoPrimarioAutomatico();
                 }
             }
         });
         
-        console.log('Event listeners de búsqueda automática agregados a codigo-primario');
-    }
+            }
     
-    console.log('Inicialización de tabla-productos completada');
-}
+    }
 
 // Intentar inicializar cuando se cargue el DOM
 if (document.readyState === 'loading') {
@@ -242,8 +233,7 @@ function agregarFilaSubproducto() {
         const numeroFila = contadorFilas;
         
         if (valorConvertido && valorConvertido.length >= 2) {
-            console.log(`Búsqueda automática subproducto ${numeroFila} (blur):`, valorConvertido);
-            buscarSubproductoAutomatico(numeroFila);
+                        buscarSubproductoAutomatico(numeroFila);
         }
     });
     
@@ -257,8 +247,7 @@ function agregarFilaSubproducto() {
             const numeroFila = contadorFilas;
             
             if (valorConvertido && valorConvertido.length >= 2) {
-                console.log(`Búsqueda inmediata subproducto ${numeroFila} (Enter):`, valorConvertido);
-                buscarSubproductoAutomatico(numeroFila);
+                                buscarSubproductoAutomatico(numeroFila);
             }
         }
     });
@@ -598,9 +587,7 @@ async function crearRelacionesProductos(codigoPrimario, codigosSubproductos) {
             throw error;
         }
 
-        console.log('Relaciones creadas exitosamente:', data);
-        
-        // También guardar en IndexedDB local si es necesario
+                // También guardar en IndexedDB local si es necesario
         // (implementar según tu estructura de base de datos local)
         
     } catch (error) {
@@ -657,8 +644,6 @@ export {
 };
 
 // Auto-inicializar
-console.log('Cargando tabla-productos.js...');
-
 async function buscarProductoPrimarioAutomatico() {
     const inputCodigo = document.getElementById('codigo-primario');
     const codigoPrimario = convertirGuionACeros(inputCodigo.value.trim());
@@ -876,3 +861,5 @@ function limpiarInformacionSubproducto(numeroFila) {
         }
     }
 }
+
+

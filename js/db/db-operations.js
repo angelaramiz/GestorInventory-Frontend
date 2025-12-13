@@ -156,8 +156,7 @@ export function inicializarDB() {
 
         request.onsuccess = event => {
             db = event.target.result;
-            console.log("Base de datos abierta exitosamente");
-            resolve(db);
+                        resolve(db);
         };
 
         request.onupgradeneeded = event => {
@@ -170,8 +169,7 @@ export function inicializarDB() {
             objectStore.createIndex("categoria", "categoria", { unique: false });
             objectStore.createIndex("marca", "marca", { unique: false });
             objectStore.createIndex("unidad", "unidad", { unique: false });
-            console.log("Base de datos creada/actualizada");
-        };
+                    };
     });
 }
 
@@ -190,8 +188,7 @@ export function inicializarDBInventario() {
 
         request.onsuccess = event => {
             dbInventario = event.target.result;
-            console.log("Base de datos de inventario abierta exitosamente");
-            resolve(dbInventario);
+                        resolve(dbInventario);
         };
 
         request.onupgradeneeded = event => {
@@ -222,8 +219,7 @@ export function inicializarDBInventario() {
             // Crear índice compuesto para código y lote (no único para permitir actualizaciones)
             objectStore.createIndex("codigo_lote", ["codigo", "lote"], { unique: false });
 
-            console.log("Base de datos de inventario creada/actualizada con nuevo esquema");
-        };
+                    };
     });
 }
 
@@ -278,8 +274,7 @@ export async function inicializarSuscripciones() {
                 actualizarInventarioDesdeServidor(payload);
             })
             .subscribe((status, err) => {
-                if (status === 'SUBSCRIBED') console.log("Suscripción activa");
-                if (err) console.error("Error en suscripción:", err);
+                if (status === 'SUBSCRIBED')                 if (err) console.error("Error en suscripción:", err);
             });
         return channel;
     } catch (error) {
@@ -294,8 +289,7 @@ export function resetearBaseDeDatos(database, storeName) {
     const request = objectStore.clear();
 
     request.onsuccess = function (event) {
-        console.log(`Base de datos de ${storeName} limpiada correctamente`);
-        mostrarMensaje(
+                mostrarMensaje(
             `Base de datos de ${storeName} reseteada correctamente`,
             "success"
         );
@@ -1366,9 +1360,7 @@ export async function obtenerUbicacionEnUso() {
 export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null, forzarAreaId = null) {
     try {
         mostrarAlertaBurbuja("Sincronizando inventario...", "info");
-        console.log("Iniciando sincronización de inventario desde Supabase");
-
-        // Obtener instancia de Supabase
+                // Obtener instancia de Supabase
         const supabase = await getSupabase();
         if (!supabase) {
             throw new Error("No se pudo obtener la instancia de Supabase");
@@ -1388,18 +1380,14 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
         // Guardar nombre de ubicación si se proporciona
         if (ubicacionNombre) {
             localStorage.setItem('ubicacion_almacen', ubicacionNombre);
-            console.log(`Cambio de ubicación a: ${ubicacionNombre} (ID: ${areaId})`);
-
-            // Si forzamos un area_id, asegurarse de que también se guarde en localStorage
+                        // Si forzamos un area_id, asegurarse de que también se guarde en localStorage
             if (forzarAreaId) {
                 localStorage.setItem('area_id', forzarAreaId);
-                console.log(`Guardado forzado de area_id en localStorage: ${forzarAreaId}`);
-            }
+                            }
         }
 
         // IMPORTANTE: Consultar SOLO los productos que pertenecen a esta área específica
-        console.log(`Consultando inventario específico del área ID: ${areaId}`);
-        const { data: inventario, error } = await supabase
+                const { data: inventario, error } = await supabase
             .from('inventario')
             .select('*')
             .eq('area_id', areaId);
@@ -1409,9 +1397,7 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
             throw error;
         }
 
-        console.log(`Encontrados ${inventario ? inventario.length : 0} elementos en Supabase para área ID ${areaId}`);
-
-        // Actualizar la base de datos local (primero borrar todo)
+                // Actualizar la base de datos local (primero borrar todo)
         const transaction = dbInventario.transaction(["inventario"], "readwrite");
         const objectStore = transaction.objectStore("inventario");
 
@@ -1419,8 +1405,7 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
         await new Promise((resolve, reject) => {
             const clearRequest = objectStore.clear();
             clearRequest.onsuccess = () => {
-                console.log("Base de datos local limpiada correctamente");
-                resolve();
+                                resolve();
             };
             clearRequest.onerror = (e) => {
                 console.error("Error al limpiar la base de datos local:", e.target.error);
@@ -1441,9 +1426,7 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
 
         // Añadir los productos del inventario con el nombre del área
         const nombreArea = localStorage.getItem('ubicacion_almacen') || ubicacionNombre || "Área desconocida";
-        console.log(`Agregando ${inventario.length} elementos a la base de datos local con ubicación: ${nombreArea}`);
-
-        let contadorExito = 0;
+                let contadorExito = 0;
         let errores = [];
 
         // Agregar cada ítem a IndexedDB con manejo de errores mejorado
@@ -1480,9 +1463,7 @@ export async function sincronizarInventarioDesdeSupabase(ubicacionNombre = null,
             }
         }
 
-        console.log(`Sincronización completada - Agregados ${contadorExito} de ${inventario.length} elementos. Errores: ${errores.length}`);
-
-        // Actualizar la visualización si estamos en la página de inventario
+                // Actualizar la visualización si estamos en la página de inventario
         if (window.location.pathname.includes('inventario.html')) {
             cargarDatosInventarioEnTablaPlantilla();
         }
@@ -1511,15 +1492,12 @@ export async function obtenerAreasPorCategoria() {
         const areasGuardadas = localStorage.getItem('areas_disponibles');
         if (areasGuardadas) {
             // Si tenemos áreas guardadas, mostrar mensaje de que estamos usando datos en caché
-            console.log("Usando áreas desde caché local");
-            mostrarAlertaBurbuja("Usando datos de áreas almacenados localmente", "info");
+                        mostrarAlertaBurbuja("Usando datos de áreas almacenados localmente", "info");
             return JSON.parse(areasGuardadas);
         }
 
         // Si no hay áreas guardadas, intentar obtenerlas de Supabase
-        console.log("Intentando obtener áreas desde Supabase...");
-
-        // Obtener instancia de Supabase
+                // Obtener instancia de Supabase
         const supabase = await getSupabase();
         if (!supabase) {
             throw new Error("No se pudo obtener la instancia de Supabase");
@@ -1551,8 +1529,7 @@ export async function obtenerAreasPorCategoria() {
 
         // Almacenar las áreas en localStorage para uso futuro
         localStorage.setItem('areas_disponibles', JSON.stringify(areas));
-        console.log("Áreas cargadas correctamente desde Supabase:", areas.length);
-        return areas;
+                return areas;
     } catch (error) {
         console.error("Error al obtener áreas:", error);
         mostrarAlertaBurbuja("Usando configuración local para áreas", "warning");
@@ -1598,9 +1575,7 @@ export function guardarAreaIdPersistente(areaId, nombreArea) {
     }
 
     try {
-        console.log(`Guardando area_id: ${areaId} (${nombreArea || 'sin nombre'}) de manera persistente`);
-
-        // Guardar en localStorage
+                // Guardar en localStorage
         localStorage.setItem('area_id', areaId);
 
         // Guardar también en sessionStorage como respaldo
@@ -1619,8 +1594,7 @@ export function guardarAreaIdPersistente(areaId, nombreArea) {
             return false;
         }
 
-        console.log("area_id guardado correctamente en localStorage y sessionStorage");
-        return true;
+                return true;
     } catch (error) {
         console.error("Error al guardar area_id:", error);
         return false;
@@ -1638,8 +1612,7 @@ export function obtenerAreaId() {
 
         // Si se encontró en sessionStorage pero no en localStorage, restaurarlo en localStorage
         if (areaId) {
-            console.log(`Restaurando area_id (${areaId}) desde sessionStorage a localStorage`);
-            localStorage.setItem('area_id', areaId);
+                        localStorage.setItem('area_id', areaId);
         } else {
             console.warn("No se encontró area_id en localStorage ni sessionStorage");
         }
@@ -1664,8 +1637,7 @@ export function inicializarDBEntradas() {
 
         request.onsuccess = function (event) {
             dbEntradas = event.target.result;
-            console.log("Base de datos de entradas inicializada correctamente");
-            resolve(dbEntradas);
+                        resolve(dbEntradas);
         };
 
         request.onupgradeneeded = function (event) {
@@ -1683,8 +1655,7 @@ export function inicializarDBEntradas() {
                 objectStore.createIndex("fecha_entrada", "fecha_entrada", { unique: false });
                 objectStore.createIndex("area_id", "area_id", { unique: false });
 
-                console.log("Object store 'registro_entradas' creado con índices");
-            }
+                            }
         };
     });
 }
@@ -1718,9 +1689,7 @@ export async function agregarRegistroEntrada(entradaData) {
                 const entradaId = event.target.result;
                 entrada.id = entradaId;
 
-                console.log("Entrada registrada en IndexedDB:", entrada);
-
-                // Agregar a la cola de sincronización
+                                // Agregar a la cola de sincronización
                 agregarAColaSincronizacionEntradas(entrada);
 
                 resolve(entrada);
@@ -1879,9 +1848,7 @@ export async function procesarColaSincronizacionEntradas() {
                 request.onerror = () => reject(request.error);
             });
 
-            console.log("Entrada sincronizada correctamente:", data[0]);
-
-        } catch (error) {
+                    } catch (error) {
             console.error("Error al procesar cola de sincronización de entradas:", error);
             syncQueueEntradas.unshift(item);
             break;
@@ -1959,8 +1926,7 @@ export async function sincronizarEntradasDesdeSupabase() {
             });
         }
 
-        console.log(`${entradas.length} entradas sincronizadas desde Supabase`);
-        mostrarAlertaBurbuja(`${entradas.length} entradas sincronizadas correctamente`, "success");
+                mostrarAlertaBurbuja(`${entradas.length} entradas sincronizadas correctamente`, "success");
 
         return entradas;
 
@@ -1985,9 +1951,7 @@ export async function eliminarRegistroEntrada(entradaId) {
             const request = objectStore.delete(entradaId);
 
             request.onsuccess = function () {
-                console.log("Entrada eliminada de IndexedDB:", entradaId);
-
-                // También eliminar de Supabase si no es un ID temporal
+                                // También eliminar de Supabase si no es un ID temporal
                 eliminarEntradaDeSupabase(entradaId);
 
                 resolve();
@@ -2017,8 +1981,7 @@ async function eliminarEntradaDeSupabase(entradaId) {
         if (error) {
             console.error("Error al eliminar entrada de Supabase:", error);
         } else {
-            console.log("Entrada eliminada de Supabase:", entradaId);
-        }
+                    }
 
     } catch (error) {
         console.error("Error al conectar con Supabase para eliminar entrada:", error);
@@ -2062,4 +2025,6 @@ export async function generarReporteEntradas(filtros = {}) {
         throw error;
     }
 }
+
+
 

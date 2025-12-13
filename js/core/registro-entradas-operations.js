@@ -353,9 +353,7 @@ export async function inicializarRegistroEntradas() {
         // Configurar event listeners
         configurarEventListeners();
 
-        console.log("Página de registro de entradas inicializada correctamente");
-
-    } catch (error) {
+            } catch (error) {
         console.error("Error al inicializar registro de entradas:", error);
         mostrarAlertaBurbuja("Error al inicializar la página", "error");
     }
@@ -463,3 +461,5 @@ async function buscarProducto(tipo) {
         mostrarAlertaBurbuja("Error al buscar producto", "error");
     }
 }
+
+

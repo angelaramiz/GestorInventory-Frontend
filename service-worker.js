@@ -12,26 +12,21 @@ const ASSETS = [
     `${BASE_PATH}/css/styles.css`,
     `${BASE_PATH}/js/core/main.js`,
     `${BASE_PATH}/js/auth/auth.js`,
-    `${BASE_PATH}/librerías/tailwind.min.css`,
-    `${BASE_PATH}/librerías/sweetalert2@11.js`,
+    `${BASE_PATH}/js/lib/tailwind.min.css`,
+    `${BASE_PATH}/js/lib/sweetalert2@11.js`,
     `${BASE_PATH}/register.html`,
     `${BASE_PATH}/manifest.json`
     // Añade más recursos estáticos aquí
 ];
 
 self.addEventListener("install", event => {
-    console.log("🔧 Service Worker: Instalando...");
     event.waitUntil(
         caches
             .open(CACHE_NAME)
             .then(cache => {
-                console.log("📦 Service Worker: Cacheando archivos principales");
                 return cache.addAll(
                     ASSETS.map(asset => new Request(asset, { mode: "no-cors" }))
                 );
-            })
-            .then(() => {
-                console.log("✅ Service Worker: Archivos cacheados exitosamente");
             })
             .catch(error => {
                 console.error("❌ Service Worker: Error al cachear archivos:", error);
@@ -41,7 +36,6 @@ self.addEventListener("install", event => {
 });
 
 self.addEventListener("activate", event => {
-    console.log("🚀 Service Worker: Activando...");
     event.waitUntil(
         caches
             .keys()
@@ -49,17 +43,10 @@ self.addEventListener("activate", event => {
                 return Promise.all(
                     cacheNames.map(cacheName => {
                         if (cacheName !== CACHE_NAME) {
-                            console.log(
-                                "🗑️ Service Worker: Eliminando caché antigua:",
-                                cacheName
-                            );
                             return caches.delete(cacheName);
                         }
                     })
                 );
-            })
-            .then(() => {
-                console.log("✅ Service Worker: Activado correctamente");
             })
     );
     self.clients.claim();
@@ -91,30 +78,7 @@ self.addEventListener("fetch", event => {
     event.respondWith(
         caches.match(event.request).then(response => {
             if (response) {
-                // Solo loggear archivos importantes, no todos
-                if (
-                    event.request.url.includes(".js") ||
-                    event.request.url.includes(".css") ||
-                    event.request.url.includes(".html")
-                ) {
-                    console.log(
-                        "📄 SW: Cache hit ->",
-                        event.request.url.split("/").pop()
-                    );
-                }
                 return response;
-            }
-
-            // Solo loggear descargas importantes
-            if (
-                event.request.url.includes(".js") ||
-                event.request.url.includes(".css") ||
-                event.request.url.includes(".html")
-            ) {
-                console.log(
-                    "⬇️ SW: Downloading ->",
-                    event.request.url.split("/").pop()
-                );
             }
 
             return fetch(event.request)
@@ -132,15 +96,12 @@ self.addEventListener("fetch", event => {
                                 try {
                                     cache.put(event.request, responseClone);
                                 } catch (error) {
-                                    console.warn(
-                                        "⚠️ SW: No se pudo cachear:",
-                                        event.request.url.split("/").pop()
-                                    );
+                                    // Error silencioso
                                 }
                             })
-                            .catch(error =>
-                                console.warn("⚠️ SW: Error al abrir caché:", error)
-                            );
+                            .catch(error => {
+                                // Error silencioso
+                            });
                     }
                     return response;
                 })

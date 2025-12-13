@@ -1054,8 +1054,7 @@ class ConfiguracionesManager {
     async verificarStockBajo() {
         // Aquí implementarías la lógica real para verificar stock
         // Por ahora es solo una simulación
-        console.log('Verificando stock bajo...');
-    }
+            }
 }
 
 // Verificar autenticación al cargar la página
@@ -1076,8 +1075,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Inicializar gestor de configuraciones
         window.configuracionesManager = new ConfiguracionesManager();
 
-        console.log('✅ Gestor de configuraciones inicializado correctamente');
-    } catch (error) {
+            } catch (error) {
         console.error('❌ Error al inicializar configuraciones:', error);
         mostrarAlertaBurbuja('Error al cargar las configuraciones', 'error');
     }
@@ -1085,3 +1083,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Exportar para uso global
 window.ConfiguracionesManager = ConfiguracionesManager;
+
+

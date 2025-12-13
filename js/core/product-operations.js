@@ -140,25 +140,15 @@ export function mostrarFormularioInventario(producto) {
 
     // Verificar si es un producto tipo Kg y manejar las pestañas
     const unidad = producto.unidad || "";
-    console.log('Debug - Producto mostrado:', {
-        nombre: producto.nombre,
-        codigo: producto.codigo,
-        unidad: unidad,
-        esTipoKg: unidad.toLowerCase().includes('kg')
-    });
-
-    import('./lotes-scanner.js').then(module => {
-        console.log('Debug - Módulo lotes-scanner cargado:', module);
-        if (module.manejarTipoProducto) {
-            console.log('Debug - Llamando manejarTipoProducto con unidad:', unidad);
-            module.manejarTipoProducto(unidad);
+        import('./lotes-scanner.js').then(module => {
+                if (module.manejarTipoProducto) {
+                        module.manejarTipoProducto(unidad);
         } else {
             console.warn('Debug - manejarTipoProducto no disponible en el módulo');
         }
         // Pasar los datos completos del producto al sistema de lotes
         if (module.establecerProductoActual) {
-            console.log('Debug - Estableciendo producto actual:', producto);
-            module.establecerProductoActual(producto);
+                        module.establecerProductoActual(producto);
         } else {
             console.warn('Debug - establecerProductoActual no disponible en el módulo');
         }
@@ -308,8 +298,7 @@ export async function agregarProducto(evento) {
     const producto = { codigo, nombre, categoria, marca, unidad };
 
     const productosanitizado = sanitizarProducto(producto);
-    console.log(productosanitizado);
-    if (!productosanitizado) {
+        if (!productosanitizado) {
         mostrarMensaje("Error: Datos de producto invalido", "error");
         return;
     }
@@ -353,8 +342,7 @@ export async function agregarProducto(evento) {
     };
 
     request.onsuccess = async () => {
-        console.log("Producto agregado exitosamente");
-        mostrarMensaje("Producto agregado exitosamente", "success");
+                mostrarMensaje("Producto agregado exitosamente", "success");
         document.getElementById("formAgregarProducto").reset();
 
         // Obtener la categoría del usuario
@@ -441,19 +429,16 @@ export function buscarProducto(codigo, formato) {
         codigoB = document.getElementById("codigoConsulta").value;
         tipoFormato = 'manual';
     }
-    console.log(`codigo: ${codigoB}, tipo de formato: ${tipoFormato}`)
-    const nombre = document.getElementById("nombreConsulta").value;
+        const nombre = document.getElementById("nombreConsulta").value;
     const categoria = document.getElementById("categoriaConsulta").value;
 
     // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
     if (codigoB.length === 4) {
-        console.log(`Código de 4 dígitos detectado: ${codigoB}`);
-        mostrarMensaje(`Código de 4 dígitos manual detectado: ${codigoB}`, "success");
+                mostrarMensaje(`Código de 4 dígitos manual detectado: ${codigoB}`, "success");
         buscarPorCodigoParcial(codigoB, "Consulta");
         return;  // Detener la ejecución aquí para evitar la búsqueda normal
     } else if (tipoFormato === "upc_a") {
-        console.log(`Código UPC-A detectado: ${codigoB}, tipo de formato: ${tipoFormato}`);
-        const codigoSanitizado = sanitizarNumeroEntero(codigoB);
+                const codigoSanitizado = sanitizarNumeroEntero(codigoB);
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
         const codigoCorto = codigoSanitizado.replace(/^0+/, '');
 
@@ -470,8 +455,7 @@ export function buscarProducto(codigo, formato) {
         }
         return; // Detener la ejecución aquí para evitar la búsqueda normal
     } else if (codigoB.length === 13 || tipoFormato === "ean_13") {
-        console.log(`Código EAN-13 detectado: ${codigoB}, tipo de formato: ${tipoFormato}`);
-        const codigoSanitizado = sanitizarNumeroEntero(codigoB); // Usar sanitizarNumeroEntero en lugar de sanitizarEntrada
+                const codigoSanitizado = sanitizarNumeroEntero(codigoB); // Usar sanitizarNumeroEntero en lugar de sanitizarEntrada
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "success");
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
@@ -492,8 +476,7 @@ export function buscarProducto(codigo, formato) {
         }
         return; // Detener la ejecución para evitar búsqueda por nombre y categoría
     } else {
-        console.log(`Búsqueda por nombre y/o categoría: ${nombre}, ${categoria}`);
-        // Búsqueda por nombre y/o categoría
+                // Búsqueda por nombre y/o categoría
         if (nombre || categoria) {
             const transaction = db.transaction(["productos"], "readonly");
             const objectStore = transaction.objectStore("productos");
@@ -540,10 +523,7 @@ export function buscarProductoParaEditar(codigo, formato) {
     } else if (tipoFormato === "upc_a") {
         const codigoSanitizado = sanitizarEntrada(codigoB);
         mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
-        console.log('codigo:', codigoSanitizado)
-        const codigoCorto = codigoSanitizado.replace(/^0+/, '');
-
-        // Expresión regular para capturar los 4 dígitos después del primer "2"
+                // Expresión regular para capturar los 4 dígitos después del primer "2"
         const regex = /2(\d{4})/;
         const match = codigoCorto.match(regex);
 
@@ -980,28 +960,12 @@ export async function modificarInventario() {
 
     const idInventario = `${codigo}-${lote}`;
 
-    console.log(`🔍 Debug - Buscando inventario:`, {
-        codigo,
-        lote,
-        idInventario,
-        timestamp: new Date().toISOString()
-    });
-
-    let registroInventarioActual = await new Promise((resolve) => {
+        let registroInventarioActual = await new Promise((resolve) => {
         const transaction = dbInventario.transaction(["inventario"], "readonly");
         const objectStore = transaction.objectStore("inventario");
         const request = objectStore.get(idInventario);
         request.onsuccess = () => {
-            console.log(`🔍 Debug - Resultado búsqueda IndexedDB:`, {
-                found: !!request.result,
-                data: request.result ? {
-                    id: request.result.id,
-                    codigo: request.result.codigo,
-                    lote: request.result.lote,
-                    area_id: request.result.area_id
-                } : null
-            });
-            resolve(request.result);
+                        resolve(request.result);
         };
         request.onerror = () => {
             console.error(`🔍 Debug - Error en búsqueda IndexedDB:`, request.error);
@@ -1021,11 +985,7 @@ export async function modificarInventario() {
             request.onerror = () => resolve([]);
         });
 
-        console.log(`🔍 Debug - Registros existentes en inventario:`,
-            todosLosRegistros.map(r => ({ id: r.id, codigo: r.codigo, lote: r.lote }))
-        );
-
-        mostrarMensaje(`No se encontró el registro de inventario con ID ${idInventario} para modificar.`, "error");
+                mostrarMensaje(`No se encontró el registro de inventario con ID ${idInventario} para modificar.`, "error");
         return;
     }
 
@@ -1581,9 +1541,7 @@ export async function seleccionarUbicacionAlmacen() {
             // Usar la nueva función para guardar el area_id de manera persistente
             guardarAreaIdPersistente(areaId, areaSeleccionada.nombre);
 
-            console.log(`Seleccionada área: ${areaSeleccionada.nombre} (ID: ${areaId})`);
-
-            // Devolver un objeto con el ID y el nombre del área
+                        // Devolver un objeto con el ID y el nombre del área
             return {
                 id: areaId,
                 nombre: areaSeleccionada.nombre
@@ -1604,8 +1562,7 @@ export async function verificarYSeleccionarUbicacion() {
     const areaIdGuardado = obtenerAreaId();
 
     if (!ubicacionGuardada || !areaIdGuardado) {
-        console.log("No se encontró ubicación o area_id guardados. Solicitando selección al usuario.");
-        try {
+                try {
             const { obtenerAreasPorCategoria } = await import('./db-operations.js');
             const areas = await obtenerAreasPorCategoria();
 
@@ -1645,9 +1602,7 @@ export async function verificarYSeleccionarUbicacion() {
 
                 sessionStorage.setItem("ubicacion_seleccionada", "true");
 
-                console.log(`Ubicación inicial seleccionada: ${areaSeleccionada.nombre} (ID: ${areaId})`);
-
-                // Actualizar la interfaz
+                                // Actualizar la interfaz
                 mostrarUbicacionActual();
             }
         } catch (error) {
@@ -1655,8 +1610,7 @@ export async function verificarYSeleccionarUbicacion() {
             mostrarMensaje("Error al cargar ubicaciones", "error");
         }
     } else {
-        console.log(`Usando ubicación guardada: ${ubicacionGuardada} (ID: ${areaIdGuardado})`);
-    }
+            }
 }
 
 // Función de ejemplo para iniciar inventario con la ubicación dada
@@ -1664,8 +1618,7 @@ export function iniciarInventario(ubicacion) {
     // Almacena la ubicación seleccionada en una variable o en el estado de la aplicación
     localStorage.setItem('ubicacion_almacen', ubicacion);
     // Continúa con la carga de inventario filtrando según la ubicación
-    console.log("Iniciando inventario para la ubicación:", ubicacion);
-    // Aquí puedes hacer la consulta a Supabase filtrando por 'ubicacion_almacen'
+        // Aquí puedes hacer la consulta a Supabase filtrando por 'ubicacion_almacen'
 }
 
 // Función para guardar el inventario en el almacenamiento local
@@ -1734,8 +1687,7 @@ export async function agregarNuevoProductoDesdeInventario(codigo, permitirModifi
         };
 
         request.onsuccess = async () => {
-            console.log("Producto agregado exitosamente a IndexedDB");
-            mostrarMensaje("Producto agregado exitosamente a IndexedDB", "success");
+                        mostrarMensaje("Producto agregado exitosamente a IndexedDB", "success");
 
             // Obtener la categoría y usuario del almacenamiento local
             const categoriaId = localStorage.getItem('categoria_id');
@@ -2090,3 +2042,5 @@ async function manejarErrorSupabase(error, operacion) {
 
     return { shouldRetry: false };
 }
+
+

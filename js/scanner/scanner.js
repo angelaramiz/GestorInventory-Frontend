@@ -160,8 +160,7 @@ export function detenerEscaner() {
                 console.warn('Error al limpiar instancia de scanner:', e);
             }
             scanner = null;
-            console.log("Escáner y cámara detenidos correctamente");
-        }).catch((err) => {
+                    }).catch((err) => {
             console.error("Error al detener el escáner:", err);
             mostrarMensaje("Error al detener la cámara", "error");
             // Intentar forzar la detención de la cámara aunque scanner.stop falle
@@ -188,8 +187,7 @@ export function detenerEscaner() {
         if (videoElement && videoElement.srcObject) {
             videoElement.srcObject.getTracks().forEach(track => track.stop());
             videoElement.srcObject = null;
-            console.log("Pistas de video detenidas (no existía instancia scanner)");
-        }
+                    }
     } catch (e) {
         console.warn('No se encontró video activo para detener:', e);
     }
@@ -257,11 +255,8 @@ export async function iniciarEscaneoConModal(inputId) {
                     }, 100); // Pequeño delay para asegurar que el escáner se detuvo completamente
                 });
             },
-            (error) => console.log("Error de escaneo:", error)
-        ).catch((err) => {
-            console.error("Error al iniciar el escáner:", err);
-            mostrarMensaje("Error al iniciar el escáner. Verifica los permisos de la cámara.", "error");
-        });
+            (error) => mostrarMensaje("Error al iniciar el escáner. Verifica los permisos de la cámara.", "error")
+        );
     } catch (error) {
         console.error("Error en iniciarEscaneoConModal:", error);
     }
@@ -270,8 +265,7 @@ export async function iniciarEscaneoConModal(inputId) {
 export function manejarCodigoEscaneado(codigo, formato, callback) {
     let codigoSanitizado = sanitizarEntrada(codigo);
     mostrarMensaje(`Código escaneado: ${codigoSanitizado}`, "info");
-    console.log(`Código escaneado: ${codigoSanitizado}, Formato: ${formato.result.format.formatName}`);
-    if (formato.result.format.formatName.toLowerCase() === "code_128") {
+        if (formato.result.format.formatName.toLowerCase() === "code_128") {
         // Eliminar ceros iniciales
         let codigoLimpio = codigoSanitizado.replace(/^0+/, '');
         
@@ -303,4 +297,6 @@ export function manejarCodigoEscaneado(codigo, formato, callback) {
         return codigoSanitizado;
     }
 }
+
+
 

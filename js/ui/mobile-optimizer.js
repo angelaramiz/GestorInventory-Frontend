@@ -22,13 +22,7 @@ class MobileOptimizer {
         this.optimizeModals();
         this.setupResponsiveForms();
         
-        console.log('🔧 Mobile Optimizer inicializado', {
-            isMobile: this.isMobile,
-            isTablet: this.isTablet,
-            isTouch: this.isTouch,
-            orientation: this.currentOrientation
-        });
-    }
+            }
 
     setupEventListeners() {
         // Redimensionamiento de ventana
@@ -566,15 +560,13 @@ class MobileOptimizer {
         this.optimizeTables();
         this.optimizeModals();
         this.setupResponsiveForms();
-        console.log('🔄 Mobile Optimizer actualizado');
-    }
+            }
 
     // Método para forzar modo móvil (útil para pruebas)
     forceMobileMode(enabled = true) {
         this.isMobile = enabled;
         this.refresh();
-        console.log(`📱 Modo móvil ${enabled ? 'activado' : 'desactivado'} manualmente`);
-    }
+            }
 }
 
 // Auto-inicialización cuando el DOM esté listo
@@ -588,3 +580,5 @@ if (document.readyState === 'loading') {
 
 // Exportar para uso manual
 window.MobileOptimizer = MobileOptimizer;
+
+

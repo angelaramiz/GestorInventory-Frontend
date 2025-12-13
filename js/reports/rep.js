@@ -92,8 +92,7 @@ async function cargarAreas() {
             return;
         }
 
-        // console.log('Áreas disponibles:', areas);
-        todasLasAreas = areas; // Guardar todas las áreas
+        //         todasLasAreas = areas; // Guardar todas las áreas
 
         const areasContainer = document.getElementById('areasContainer');
         if (areasContainer) {
@@ -453,8 +452,7 @@ function fusionarProductosPorCodigo(productos) {
         productosFusionados.push(producto);
     });
 
-    console.log(`Se han fusionado ${productos.length} productos en ${productosFusionados.length} elementos únicos`);
-    return productosFusionados;
+        return productosFusionados;
 }
 
 // Generar el reporte en PDF
@@ -1019,8 +1017,7 @@ async function generarCodigosDeBarras(productos) {
                         margin: 2
                     });
                     producto.barcodeCanvas = canvas;
-                    console.log(`Código de barras para ${producto.codigo} generado con CODE128 como fallback.`);
-                } catch (fallbackError) {
+                                    } catch (fallbackError) {
                     console.error(`Error al generar código de barras para ${producto.codigo} con CODE128 (fallback):`, fallbackError);
                     producto.barcodeCanvas = null;
                 }
@@ -1030,3 +1027,5 @@ async function generarCodigosDeBarras(productos) {
         }
     }
 }
+
+

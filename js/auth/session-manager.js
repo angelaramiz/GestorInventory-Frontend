@@ -162,8 +162,7 @@ export class SessionManager {
         try {
             // Verificar si ya existe una credencial registrada
             if (await this.hasBiometricCredential(email)) {
-                console.log('Ya existe una credencial biométrica para este usuario');
-                return false;
+                                return false;
             }
 
             // Preparar registro de credencial
@@ -221,8 +220,7 @@ export class SessionManager {
         try {
             const credential = await this.getBiometricCredential(email);
             if (!credential) {
-                console.log('No hay credencial biométrica para:', email);
-                return null;
+                                return null;
             }
 
             const challenge = new Uint8Array(32);
@@ -339,3 +337,5 @@ export class SessionManager {
 
 // Exportar instancia singleton
 export const sessionManager = new SessionManager();
+
+

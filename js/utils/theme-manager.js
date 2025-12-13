@@ -178,8 +178,7 @@ class ThemeManager {
             if (e.key === 'gestorInventory_theme' && e.newValue !== null) {
                 const newTheme = e.newValue;
                 if (newTheme !== this.currentTheme) {
-                    console.log('🔄 Sincronizando tema desde otra pestaña:', newTheme);
-                    this.currentTheme = newTheme;
+                                        this.currentTheme = newTheme;
                     this.applyTheme(this.getActualTheme());
                     
                     // Actualizar controles de tema en la página actual
@@ -334,13 +333,7 @@ class ThemeManager {
         }
         
         console.group('🎨 DEBUG SINCRONIZACIÓN DE TEMAS');
-        console.log('ThemeManager.currentTheme:', themeManagerTheme);
-        console.log('localStorage gestorInventory_theme:', localStorageTheme);
-        console.log('Config.theme:', configTheme);
-        console.log('Última actualización tema:', themeLastUpdate);
-        console.log('Última actualización config:', configLastUpdate);
-        console.log('Tema aplicado en DOM:', document.documentElement.getAttribute('data-theme'));
-        console.groupEnd();
+                                                        console.groupEnd();
         
         return {
             themeManagerTheme,
@@ -363,8 +356,7 @@ function initializeThemeManager() {
     try {
         if (!window.themeManager) {
             window.themeManager = new ThemeManager();
-            console.log('✅ ThemeManager inicializado correctamente');
-        }
+                    }
         return window.themeManager;
     } catch (error) {
         console.error('❌ Error al inicializar ThemeManager:', error);
@@ -430,3 +422,5 @@ function setupThemeControls() {
         window.themeManager.debugThemeSync();
     }
 }
+
+

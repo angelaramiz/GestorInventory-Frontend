@@ -309,8 +309,7 @@ export class ConfiguracionManager {
                 JSON.stringify(valor)
             );
             
-            console.log(`Configuración actualizada: ${clave}`, valor);
-            return true;
+                        return true;
         } catch (error) {
             console.error('Error al actualizar configuración:', error);
             return false;
@@ -330,8 +329,7 @@ export class ConfiguracionManager {
                 });
             }
             
-            console.log('Configuración restaurada');
-            return true;
+                        return true;
         } catch (error) {
             console.error('Error al restaurar configuración:', error);
             return false;
@@ -362,8 +360,7 @@ export class ConfiguracionManager {
                 this.actualizarConfiguracion(clave, valor);
             });
             
-            console.log('Configuración importada exitosamente');
-            return true;
+                        return true;
         } catch (error) {
             console.error('Error al importar configuración:', error);
             return false;
@@ -373,3 +370,5 @@ export class ConfiguracionManager {
 
 // Exportar configuración por defecto
 export default CONFIG_LOTES_AVANZADO;
+
+

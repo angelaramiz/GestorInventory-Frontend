@@ -67,8 +67,7 @@ export async function guardarPrecioKiloLocal(plu, precioKilo, productoInfo) {
                 const addRequest = store.put(registro);
                 
                 addRequest.onsuccess = () => {
-                    console.log('Precio por kilo guardado localmente:', registro);
-                    resolve(registro);
+                                        resolve(registro);
                 };
                 
                 addRequest.onerror = () => reject(addRequest.error);
@@ -185,8 +184,7 @@ export async function sincronizarDatosLotes() {
             diccionario.set(item.subProductoID, item.primarioProductID);
         });
         
-        console.log(`Diccionario de lotes sincronizado: ${diccionario.size} relaciones`);
-        return diccionario;
+                return diccionario;
         
     } catch (error) {
         console.error('Error al sincronizar datos de lotes:', error);
@@ -223,8 +221,7 @@ export async function limpiarDatosLocalesAntiguos(diasAntiguedad = 30) {
                         eliminados++;
                         cursor.continue();
                     } else {
-                        console.log(`Limpieza completada: ${eliminados} registros eliminados`);
-                        resolve(eliminados);
+                                                resolve(eliminados);
                     }
                 };
                 
@@ -332,8 +329,7 @@ function convertirACSV(data) {
 // Función auxiliar para convertir a XLSX (requiere biblioteca externa)
 function convertirAXLSX(data) {
     // Aquí implementarías la conversión a XLSX usando una biblioteca como xlsx
-    console.log('Conversión a XLSX no implementada aún');
-    return data;
+        return data;
 }
 
 // Función para backup automático
@@ -345,8 +341,7 @@ export async function crearBackupLotes() {
         // Guardar en localStorage como backup temporal
         localStorage.setItem(`backup_lotes_${timestamp}`, JSON.stringify(datos));
         
-        console.log('Backup de lotes creado:', timestamp);
-        return timestamp;
+                return timestamp;
     } catch (error) {
         console.error('Error al crear backup:', error);
         throw error;
@@ -363,9 +358,7 @@ export async function restaurarBackupLotes(timestamp) {
         }
         
         const datos = JSON.parse(backupData);
-        console.log('Backup restaurado:', datos);
-        
-        return datos;
+                return datos;
     } catch (error) {
         console.error('Error al restaurar backup:', error);
         throw error;
@@ -393,10 +386,11 @@ export async function limpiarBackupsAntiguos(diasAntiguedad = 7) {
             }
         });
         
-        console.log(`Backups limpiados: ${eliminados} archivos eliminados`);
-        return eliminados;
+                return eliminados;
     } catch (error) {
         console.error('Error al limpiar backups antiguos:', error);
         throw error;
     }
 }
+
+

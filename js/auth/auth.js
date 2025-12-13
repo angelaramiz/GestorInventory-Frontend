@@ -68,8 +68,7 @@ async function inicializeSupabase() {
         // Intentar obtener la configuración del servidor si está disponible
         if (backendAvailable) {
             try {
-                console.log('📡 Intentando obtener configuración de Supabase desde el servidor...');
-                const response = await fetch(`${BASE_URL}/api/supabase-config`, {
+                                const response = await fetch(`${BASE_URL}/api/supabase-config`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     signal: AbortSignal.timeout(5000) // 5 segundos de timeout
@@ -77,8 +76,7 @@ async function inicializeSupabase() {
 
                 if (response.ok) {
                     config = await response.json();
-                    console.log('✅ Configuración obtenida del servidor');
-                } else {
+                                    } else {
                     throw new Error(`Status: ${response.status}`);
                 }
             } catch (fetchError) {
@@ -91,8 +89,7 @@ async function inicializeSupabase() {
         // Si no se obtuvo del servidor, usar configuración de respaldo
         if (!config) {
             config = SUPABASE_CONFIG_BACKUP;
-            console.log('⚠️ Usando configuración de respaldo');
-        }
+                    }
 
         // Validar que tenemos URL y KEY
         if (!config.supabaseUrl || !config.supabaseKey) {
@@ -103,9 +100,7 @@ async function inicializeSupabase() {
             throw new Error('Configuración de Supabase incompleta: URL y KEY requeridas');
         }
 
-        console.log('🔧 Creando cliente Supabase con URL:', config.supabaseUrl?.substring(0, 40) + '...');
-        
-        // Crear cliente de Supabase
+                // Crear cliente de Supabase
         try {
             supabase = createClientFn(config.supabaseUrl, config.supabaseKey, {
                 auth: {
@@ -132,10 +127,7 @@ async function inicializeSupabase() {
                 console.warn('⚠️ Cliente Supabase sin propiedad "auth"');
             }
             
-            console.log('✅ Supabase inicializado correctamente');
-            console.log('   URL:', config.supabaseUrl?.substring(0, 30) + '...');
-            console.log('   Auth disponible:', !!supabase.auth);
-        } catch (clientError) {
+                                            } catch (clientError) {
             console.error('❌ Error al crear cliente Supabase:', clientError.message);
             console.error('   Stack:', clientError.stack);
             throw clientError;
@@ -169,9 +161,7 @@ export async function getSupabase() {
 // Login
 document.addEventListener('DOMContentLoaded', async () => {
     // Retrasar la inicialización de Supabase para después de que todo esté listo
-    console.log('🚀 Iniciando DOMContentLoaded event listener...');
-    
-    // Usar setTimeout para retrasar la inicialización
+        // Usar setTimeout para retrasar la inicialización
     setTimeout(async () => {
         try {
             const result = await inicializeSupabase();
@@ -349,7 +339,7 @@ async function iniciarSesion(email, password) {
 
                 mostrarAlertaBurbuja('Inicio de sesión exitoso', 'success');
                 setTimeout(() => {
-                    window.location.href = './plantillas/main.html';
+                    window.location.href = './templates/main.html';
                     resetearBaseDeDatos(db, "productos"); // Llamar a la función para resetear la base de datos
                 }, 500);
             } else {
@@ -407,8 +397,7 @@ export function mostrarDialogoSesionExpirada() {
         currentPath.endsWith('reset-password.html');
 
     if (isLoginPage) {
-        console.log('⚠️ Se intentó mostrar diálogo de sesión expirada en página pública, ignorando');
-        return false;
+                return false;
     }
 
     // Mostrar notificación con opción de ir al login
@@ -449,16 +438,14 @@ export function verificarTokenAutomaticamente() {
 
     // Si estamos en la página de login o registro, no verificamos token
     if (isLoginPage) {
-        console.log("En página de login/registro, no se verifica el token");
-        return true;
+                return true;
     }
 
     const token = localStorage.getItem('supabase.auth.token');
 
     if (!token) {
         // Si no hay token y no estamos en la página de login
-        console.log("No hay token de autenticación. Redirigiendo al login...");
-        debugRutas(); // Debug info
+                debugRutas(); // Debug info
         mostrarAlertaBurbuja('Sesión no iniciada. Por favor, inicia sesión.', 'warning');
         setTimeout(() => {
             window.location.href = getLoginRedirectPath();
@@ -467,8 +454,7 @@ export function verificarTokenAutomaticamente() {
     }
 
     if (isTokenExpired(token)) {
-        console.log("Token expirado. Mostrando diálogo de inicio de sesión...");
-        // IMPORTANTE: mostrarDialogoSesionExpirada() verifica que no sea una página pública
+                // IMPORTANTE: mostrarDialogoSesionExpirada() verifica que no sea una página pública
         return mostrarDialogoSesionExpirada();
     }
 
@@ -482,8 +468,8 @@ function getLoginRedirectPath() {
 
     // En desarrollo (localhost)
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        // Si estamos en una subcarpeta (como plantillas), ir hacia atrás
-        if (currentPath.includes('/plantillas/')) {
+        // Si estamos en una subcarpeta (como templates), ir hacia atrás
+        if (currentPath.includes('/templates/')) {
             return '../index.html';
         }
         // Si estamos en la raíz o en otra ubicación
@@ -496,13 +482,7 @@ function getLoginRedirectPath() {
 
 // Función de debug para verificar rutas
 function debugRutas() {
-    console.log('=== DEBUG DE RUTAS ===');
-    console.log('window.location.pathname:', window.location.pathname);
-    console.log('window.location.hostname:', window.location.hostname);
-    console.log('window.location.href:', window.location.href);
-    console.log('Ruta de redirección calculada:', getLoginRedirectPath());
-    console.log('==================');
-}
+                        }
 
 // Configurar interceptor para verificar el token antes de cada petición a Supabase
 export async function configurarInterceptorSupabase() {
@@ -526,8 +506,7 @@ export async function configurarInterceptorSupabase() {
 
                 // Verificar si el token está expirado
                 if (token && isTokenExpired(token)) {
-                    console.log("Token expirado detectado antes de una petición a Supabase");
-                    // Solo mostrar alerta una vez por sesión
+                                        // Solo mostrar alerta una vez por sesión
                     if (!window.tokenExpirationNotified) {
                         mostrarAlertaBurbuja('Tu sesión ha expirado. Algunas funciones pueden no estar disponibles.', 'warning');
                         window.tokenExpirationNotified = true;
@@ -574,7 +553,7 @@ function configurarRutasManifest() {
             // En desarrollo (localhost)
             if (hostname === 'localhost' || hostname === '127.0.0.1') {
                 // Si estamos en una subcarpeta, ajustar la ruta
-                if (currentPath.includes('/plantillas/')) {
+                if (currentPath.includes('/templates/')) {
                     manifestLink.href = '../manifest.json';
                 } else {
                     manifestLink.href = './manifest.json';
@@ -584,8 +563,7 @@ function configurarRutasManifest() {
                 manifestLink.href = '/GestorInventory-Frontend/manifest.json';
             }
 
-            console.log('Manifest configurado para:', manifestLink.href);
-        } else {
+                    } else {
             console.warn('No se encontró el elemento link[rel="manifest"]');
         }
     };
@@ -694,8 +672,7 @@ function detenerRenovacionAutomatica() {
     if (tokenCheckInterval) {
         clearInterval(tokenCheckInterval);
         tokenCheckInterval = null;
-        console.log('🛑 Sistema de renovación automática detenido');
-    }
+            }
 }
 
 // Función para verificar si la sesión es válida antes de operaciones críticas
@@ -770,13 +747,10 @@ export async function inicializarSistemaPagina() {
         });
 
         if (isPublicPage) {
-            console.log('🔓 Página pública detectada, no requiere autenticación:', currentPath);
-            return;
+                        return;
         }
 
-        console.log('🔒 Página protegida detectada, verificando autenticación:', currentPath);
-
-        // Verificar si hay una sesión válida
+                // Verificar si hay una sesión válida
         if (!supabase) {
             await inicializeSupabase();
         }
@@ -791,9 +765,7 @@ export async function inicializarSistemaPagina() {
 
         // Inicializar sistema de renovación automática
         inicializarRenovacionAutomatica();
-        console.log('✅ Sistema de renovación automática inicializado para la página');
-
-        // Verificar inmediatamente el estado del token
+                // Verificar inmediatamente el estado del token
         await verificarYRenovarToken();
 
     } catch (error) {
@@ -856,7 +828,7 @@ function verificarYAutoLogin() {
         
         mostrarAlertaBurbuja('Sesión activa detectada', 'success');
         setTimeout(() => {
-            window.location.href = './plantillas/main.html';
+            window.location.href = './templates/main.html';
         }, 500);
     }
 }
@@ -898,3 +870,5 @@ if (document.readyState === 'loading') {
         inicializarSistemaPagina();
     }
 }
+
+

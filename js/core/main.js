@@ -91,9 +91,7 @@ async function cambiarUbicacion() {
     if (resultado && resultado.id) {
         const nuevaUbicacion = resultado.nombre;
         const nuevaAreaId = resultado.id;
-        console.log(`Cambiando a ubicación: ${nuevaUbicacion} (ID: ${nuevaAreaId})`);
-
-        // Usar la nueva función de persistencia para guardar el ID del área
+                // Usar la nueva función de persistencia para guardar el ID del área
         const guardadoExitoso = guardarAreaIdPersistente(nuevaAreaId, nuevaUbicacion);
         if (!guardadoExitoso) {
             console.error("Error al guardar el ID del área de manera persistente");
@@ -136,15 +134,13 @@ async function verificarAutenticacion() {
 function iniciarVerificacionToken() {
     // Primero verificamos inmediatamente al cargar la página
     if (verificarTokenAutomaticamente()) {
-        console.log("Token válido al iniciar la aplicación");
-    }
+            }
 
     // Configurar verificación periódica cada 5 minutos
     tokenCheckInterval = setInterval(() => {
         if (!verificarTokenAutomaticamente()) {
             // Si devuelve falso, el token está expirado o no existe
-            console.log("Sesión expirada detectada en verificación periódica");
-            // La función verificarTokenAutomaticamente ya muestra el diálogo si es necesario
+                        // La función verificarTokenAutomaticamente ya muestra el diálogo si es necesario
         }
     }, 5 * 60 * 1000); // Verificar cada 5 minutos
 
@@ -227,8 +223,7 @@ async function init() {
                 const { inicializarSistemaLotes } = await import('./lotes-scanner.js');
                 if (inicializarSistemaLotes) {
                     inicializarSistemaLotes();
-                    console.log('Sistema de lotes inicializado correctamente');
-                }
+                                    }
             } catch (error) {
                 console.warn('No se pudo inicializar el sistema de lotes:', error);
             }
@@ -238,8 +233,7 @@ async function init() {
                 const { inicializarSistemaLotesAvanzado } = await import('./lotes-avanzado.js');
                 if (inicializarSistemaLotesAvanzado) {
                     inicializarSistemaLotesAvanzado();
-                    console.log('Sistema de lotes avanzado inicializado correctamente');
-                }
+                                    }
             } catch (error) {
                 console.warn('No se pudo inicializar el sistema de lotes avanzado:', error);
             }
@@ -254,8 +248,7 @@ async function init() {
 
             // Botón temporal para testing de pestañas lotes
             document.getElementById('testPestanasLotes')?.addEventListener('click', async () => {
-                console.log('🧪 Test: Forzando mostrar pestañas de lotes');
-                try {
+                                try {
                     const { manejarTipoProducto, establecerProductoActual } = await import('./lotes-scanner.js');
                     
                     // Crear producto de prueba tipo Kg
@@ -276,32 +269,26 @@ async function init() {
                     
                     // Forzar mostrar pestañas
                     if (manejarTipoProducto) {
-                        console.log('🧪 Test: Llamando manejarTipoProducto con "Kg"');
-                        manejarTipoProducto('Kg');
+                                                manejarTipoProducto('Kg');
                     }
                     
                     if (establecerProductoActual) {
-                        console.log('🧪 Test: Estableciendo producto actual');
-                        establecerProductoActual(productoTest);
+                                                establecerProductoActual(productoTest);
                     }
                     
-                    console.log('🧪 Test: Completado');
-                    
-                } catch (error) {
+                                    } catch (error) {
                     console.error('🧪 Test: Error:', error);
                 }
             });
 
             // Botón temporal para testing de extracción de códigos
             document.getElementById('testExtraccionCodigos')?.addEventListener('click', async () => {
-                console.log('🔍 Test: Iniciando prueba de extracción de códigos');
-                try {
+                                try {
                     // Importar función de prueba
                     const moduloLotes = await import('./lotes-scanner.js');
                     
                     if (moduloLotes.probarExtraccionPrecio) {
-                        console.log('🔍 Test: Ejecutando probarExtraccionPrecio()');
-                        moduloLotes.probarExtraccionPrecio();
+                                                moduloLotes.probarExtraccionPrecio();
                     } else {
                         console.error('🔍 Test: No se encontró la función probarExtraccionPrecio');
                     }
@@ -337,8 +324,7 @@ async function init() {
         botonesEscanear.forEach(boton => {
             boton.addEventListener("click", function () {
                 const inputId = this.id.replace('escanearBtn', '');
-                const targetInputId = `codigo${inputId}`;
-                console.log('Iniciando escaneo para:', targetInputId); // Debug
+                const targetInputId = `codigo${inputId}`; // Debug
                 toggleEscaner(targetInputId);
             });
         });
@@ -404,8 +390,7 @@ async function init() {
         // Event listener para el botón de cerrar escáner
         const cerrarEscanerBtn = document.getElementById('cerrarEscaner');
         if (cerrarEscanerBtn) {
-            cerrarEscanerBtn.addEventListener('click', () => {
-                console.log('Cerrando escáner'); // Debug
+            cerrarEscanerBtn.addEventListener('click', () => { // Debug
                 detenerEscaner();
             });
         }
@@ -435,7 +420,7 @@ async function init() {
         const irAReportesBtn = document.getElementById('irAReportes');
         if (irAReportesBtn) {
             irAReportesBtn.addEventListener('click', () => {
-                window.location.href = 'plantillas/report.html';
+                window.location.href = 'templates/report.html';
             });
         }
 
@@ -446,9 +431,7 @@ async function init() {
 
 // Función para debugging de estado de inventario
 function debugEstadoInventario() {
-    console.log('🔍 === DEBUG ESTADO INVENTARIO ===');
-    
-    // Debug de IndexedDB
+        // Debug de IndexedDB
     if (typeof dbInventario !== 'undefined') {
         const transaction = dbInventario.transaction(["inventario"], "readonly");
         const objectStore = transaction.objectStore("inventario");
@@ -456,19 +439,9 @@ function debugEstadoInventario() {
         
         request.onsuccess = () => {
             const registros = request.result || [];
-            console.log(`🔍 Total registros en IndexedDB: ${registros.length}`);
-            
-            registros.forEach((registro, index) => {
+                        registros.forEach((registro, index) => {
                 if (index < 5) { // Solo mostrar los primeros 5 para no saturar
-                    console.log(`🔍 Registro ${index + 1}:`, {
-                        id: registro.id,
-                        codigo: registro.codigo,
-                        lote: registro.lote,
-                        cantidad: registro.cantidad,
-                        area_id: registro.area_id,
-                        is_temp_id: registro.is_temp_id
-                    });
-                }
+                                    }
             });
         };
     }
@@ -478,14 +451,11 @@ function debugEstadoInventario() {
     if (inventarioLocal) {
         try {
             const parsed = JSON.parse(inventarioLocal);
-            console.log(`🔍 Registros en localStorage: ${Array.isArray(parsed) ? parsed.length : 'No es array'}`);
-        } catch (e) {
-            console.log('🔍 Error al parsear localStorage inventario:', e);
-        }
+                    } catch (e) {
+                    }
     }
     
-    console.log('🔍 === FIN DEBUG ESTADO INVENTARIO ===');
-}
+    }
 
 // Agregar función de debug al objeto global para acceso desde consola
 window.debugEstadoInventario = debugEstadoInventario;
@@ -627,22 +597,19 @@ function conectarWebSocket() {
     }
 
     ws.onopen = () => {
-        console.log('Conexión WebSocket establecida');
-        mostrarAlertaBurbuja('Conexión en tiempo real activa', 'success');
+                mostrarAlertaBurbuja('Conexión en tiempo real activa', 'success');
     };
 
     ws.onmessage = (event) => {
         try {
             const data = JSON.parse(event.data); // ✅ Solo intenta parsear si es JSON
-            //console.log("Mensaje recibido:", data);
         } catch (error) {
-            //console.log("Mensaje recibido (no JSON):", event.data);
+            // Ignorar errores de parseo
         }
     };
 
     ws.onclose = () => {
-        console.log('Conexión WebSocket cerrada');
-        mostrarAlertaBurbuja('Conexión en tiempo real perdida', 'error');
+                mostrarAlertaBurbuja('Conexión en tiempo real perdida', 'error');
         // Intentar reconectar después de 5 segundos
         setTimeout(conectarWebSocket, 5000);
     };
@@ -660,3 +627,5 @@ window.addEventListener('beforeunload', () => {
 
 // Exportar funciones necesarias
 export { mostrarSeccion, resetearBaseDatos, generarHojaInventario, mostrarMensaje };
+
+

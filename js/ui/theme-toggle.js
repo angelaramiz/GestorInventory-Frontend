@@ -53,3 +53,5 @@ function initializeThemeToggle() {
 
 // Auto-inicializar
 initializeThemeToggle();
+
+

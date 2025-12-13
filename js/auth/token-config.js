@@ -33,5 +33,6 @@ export function getTokenConfig() {
 // Función para logging específico de tokens
 export function logTokenEvent(event, data = {}) {
     const timestamp = new Date().toISOString();
-    console.log(`🔐 [${timestamp}] TOKEN EVENT: ${event}`, data);
-}
+    }
+
+

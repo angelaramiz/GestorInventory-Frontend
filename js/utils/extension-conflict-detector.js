@@ -12,9 +12,7 @@ class ExtensionConflictDetector {
     init() {
         if (this.initialized) return;
 
-        console.log('🔍 Iniciando detector de conflictos de extensiones...');
-
-        // Detectar modificaciones DOM
+                // Detectar modificaciones DOM
         this.observeDOM();
 
         // Detectar errores de selectores
@@ -140,21 +138,15 @@ class ExtensionConflictDetector {
 
     generateReport() {
         if (this.conflicts.length === 0) {
-            console.log('✅ No se detectaron conflictos con extensiones');
-            return;
+                        return;
         }
 
         console.group('⚠️ Reporte de Conflictos de Extensiones');
 
         this.conflicts.forEach((conflict, index) => {
-            console.log(`${index + 1}. ${conflict.type.toUpperCase()}:`);
-            console.log('   Detalles:', conflict);
-
-            if (conflict.type === 'selector_error' &&
+                                    if (conflict.type === 'selector_error' &&
                 conflict.message.includes(':has-text')) {
-                console.log('   💡 Solución: Este error proviene de uBlock Origin o similar.');
-                console.log('   💡 No afecta tu aplicación. Puedes ignorarlo o deshabilitar la extensión.');
-            }
+                                            }
         });
 
         console.groupEnd();
@@ -212,3 +204,5 @@ if (document.readyState === 'loading') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ExtensionConflictDetector;
 }
+
+

@@ -227,8 +227,7 @@ function inicializarEscanerLotes() {
         onErrorEscaneoLotes
     ).then(() => {
         isEscaneoLotesActivo = true;
-        console.log("Escáner de lotes iniciado correctamente");
-    }).catch(err => {
+            }).catch(err => {
         console.error("Error al iniciar escáner de lotes:", err);
         mostrarMensaje('Error al iniciar el escáner', 'error');
     });
@@ -236,9 +235,7 @@ function inicializarEscanerLotes() {
 
 // Función cuando el escaneo es exitoso
 function onEscaneoExitosoLotes(decodedText, decodedResult) {
-    console.log(`Código escaneado en lotes: ${decodedText}`);
-    
-    // Sanitizar el código escaneado
+        // Sanitizar el código escaneado
     const codigoLimpio = sanitizarEntrada(decodedText);
     
     // Validar y procesar el código
@@ -259,9 +256,7 @@ function procesarCodigoEscaneadoLotes(codigo, resultado) {
         formato = resultado.result.format.formatName || 'desconocido';
     }
     
-    console.log(`Formato detectado: ${formato}`);
-    
-    // Pausar el escáner temporalmente para evitar múltiples lecturas
+        // Pausar el escáner temporalmente para evitar múltiples lecturas
     if (scannerLotes && isEscaneoLotesActivo) {
         scannerLotes.pause(true);
         isEscaneoLotesActivo = false;
@@ -342,14 +337,9 @@ function validarYProcesarCodigo(codigo, resultado) {
 
 // Función para extraer datos de código CODE128 (formato real de balanza)
 function extraerDatosCodeCODE128(codigo) {
-    console.log(`\n=== ANÁLISIS DE CÓDIGO CODE128 ===`);
-    console.log(`Código completo: ${codigo} (longitud: ${codigo.length})`);
-    
-    // Eliminar cualquier prefijo de ceros si existe
+            // Eliminar cualquier prefijo de ceros si existe
     const codigoLimpio = codigo.replace(/^0+/, '');
-    console.log(`Código sin ceros iniciales: ${codigoLimpio}`);
-    
-    // Análisis del formato real observado: 022630000287341 (15 dígitos)
+        // Análisis del formato real observado: 022630000287341 (15 dígitos)
     // Formato parece ser: 0[prefijo]PLU[peso en gramos][dígito control]
     // 022630000287341 = 0 + 2263 (PLU) + 00002873 (peso en gramos) + 4 (control) + 1 (extra?)
     
@@ -372,20 +362,9 @@ function extraerDatosCodeCODE128(codigo) {
         // Calcular peso basado en el precio y el precio por kilo
         const pesoCalculado = precioPorcion / precioKiloActual;
         
-        console.log(`Patrón báscula 15 dígitos detectado (PRECIO):
-            - Prefijo: ${codigo.substring(0, 2)}
-            - PLU: ${plu}
-            - Precio string: ${precioStr}
-            - Precio en centavos: ${precioCentavos}
-            - Precio porción: $${precioPorcion.toFixed(2)}
-            - Precio por kilo: $${precioKiloActual.toFixed(2)}
-            - Peso calculado: ${pesoCalculado.toFixed(3)}kg
-            - Dígito control: ${digitoControl}`);
-            
-        // Validación básica
+                // Validación básica
         if (pesoCalculado <= 0 || pesoCalculado > 50) {
-            console.log(`Peso calculado fuera de rango: ${pesoCalculado}kg`);
-            return null;
+                        return null;
         }
         
         return {
@@ -402,12 +381,7 @@ function extraerDatosCodeCODE128(codigo) {
         pesoGramos = parseInt(pesoStr);
         digitoControl = codigo.substring(12, 13);
         
-        console.log(`Patrón 13 dígitos detectado:
-            - PLU: ${plu}
-            - Peso en gramos: ${pesoGramos}
-            - Dígito control: ${digitoControl}`);
-            
-    } else if (codigo.length >= 9 && codigoLimpio.startsWith('2')) {
+            } else if (codigo.length >= 9 && codigoLimpio.startsWith('2')) {
         // Formato original: 2 + 4 dígitos PLU + precio variable + 2 centavos + 1 control
         const match = codigoLimpio.match(/^2(\d{4})(\d+)(\d{2})(\d)$/);
         
@@ -421,14 +395,8 @@ function extraerDatosCodeCODE128(codigo) {
             const precioPorcion = pesos + (centavos / 100);
             const pesoCalculado = precioPorcion / precioKiloActual;
             
-            console.log(`Patrón precio detectado:
-                - PLU: ${plu}
-                - Precio porción: $${precioPorcion.toFixed(2)}
-                - Peso calculado: ${pesoCalculado.toFixed(3)}kg`);
-                
-            if (pesoCalculado <= 0 || pesoCalculado > 50) {
-                console.log(`Peso calculado fuera de rango: ${pesoCalculado}kg`);
-                return null;
+                        if (pesoCalculado <= 0 || pesoCalculado > 50) {
+                                return null;
             }
             
             return {
@@ -439,61 +407,49 @@ function extraerDatosCodeCODE128(codigo) {
             };
         }
     } else {
-        console.log('Formato de código no reconocido');
-        console.log(`Longitud: ${codigo.length}, Inicio: ${codigo.substring(0, 2)}`);
-        return null;
+                        return null;
     }
     
-    console.log('No se pudo extraer datos del código');
-    return null;
+        return null;
 }
 
 // Función para validar que el PLU coincida con el producto actual
 function validarPLUProducto(plu) {
     const pluProducto = extraerPLUProductoActual();
-    console.log(`Validando PLU: ${plu} contra producto: ${pluProducto}`);
-    return pluProducto === plu;
+        return pluProducto === plu;
 }
 
 // Función para extraer PLU del producto actual (tanto CODE128 como UPC-A)
 function extraerPLUProductoActual() {
     if (!productoActualLotes || !productoActualLotes.codigo) {
-        console.log('No hay producto actual definido');
-        return null;
+                return null;
     }
     
     const codigoProducto = productoActualLotes.codigo.toString();
-    console.log(`Código del producto actual: ${codigoProducto}`);
-    
-    // Si el código empieza con 2 (CODE128 para peso), extraer los siguientes 4 dígitos
+        // Si el código empieza con 2 (CODE128 para peso), extraer los siguientes 4 dígitos
     if (codigoProducto.startsWith('2') && codigoProducto.length >= 5) {
         const plu = codigoProducto.substring(1, 5);
-        console.log(`PLU extraído de CODE128: ${plu}`);
-        return plu;
+                return plu;
     }
     
     // Si es UPC-A (12 dígitos), extraer los 4 dígitos después del primer 2
     if (codigoProducto.length === 12 && codigoProducto.startsWith('2')) {
         const plu = codigoProducto.substring(1, 5);
-        console.log(`PLU extraído de UPC-A: ${plu}`);
-        return plu;
+                return plu;
     }
     
     // Si el código tiene exactamente 4 dígitos, usar como PLU directamente
     if (codigoProducto.length === 4) {
-        console.log(`PLU directo: ${codigoProducto}`);
-        return codigoProducto;
+                return codigoProducto;
     }
     
     // Si el código es más largo, extraer los últimos 4 dígitos como fallback
     if (codigoProducto.length > 4) {
         const plu = codigoProducto.slice(-4);
-        console.log(`PLU extraído (últimos 4 dígitos): ${plu}`);
-        return plu;
+                return plu;
     }
     
-    console.log(`No se pudo extraer PLU del código: ${codigoProducto}`);
-    return codigoProducto; // Retornar el código original como último recurso
+        return codigoProducto; // Retornar el código original como último recurso
 }
 
 // Función para actualizar totales
@@ -689,9 +645,7 @@ function procesarLotesEnInventario() {
         }, 3000);
     }
     
-    console.log(`Peso total transferido al inventario: ${pesoTotal.toFixed(3)} kg`);
-    console.log(`Comentarios agregados con ${codigosEscaneados.length} lotes`);
-}
+        }
 
 // Función para reproducir sonido de confirmación
 function reproducirSonidoConfirmacion() {
@@ -711,8 +665,7 @@ function reproducirSonidoConfirmacion() {
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.1);
     } catch (error) {
-        console.log('No se puede reproducir sonido:', error);
-    }
+            }
 }
 
 // Función para mostrar animaciones de validación
@@ -812,8 +765,7 @@ function reanudarEscannerDespuesDeValidacion() {
             if (contenidoEscaner && contenidoEscaner.style.display !== 'none') {
                 scannerLotes.resume();
                 isEscaneoLotesActivo = true;
-                console.log('Escáner reanudado después de validación');
-            }
+                            }
         }
         ocultarAnimacionValidacion();
     }, 1000);
@@ -855,9 +807,7 @@ function cerrarModalLotesConAnimacion() {
 
 // Función de prueba para validar la nueva lógica de extracción (TEMPORAL - para testing)
 export function probarExtraccionPrecio() {
-    console.log("=== PRUEBA DE EXTRACCIÓN DE CÓDIGOS ===");
-    
-    // Simular precio por kilo para las pruebas
+        // Simular precio por kilo para las pruebas
     precioKiloActual = 200; // $200 por kilo
     
     const codigosPrueba = [
@@ -872,17 +822,15 @@ export function probarExtraccionPrecio() {
     ];
     
     codigosPrueba.forEach((codigo, index) => {
-        console.log(`\n--- Prueba ${index + 1}: ${codigo} ---`);
-        const resultado = extraerDatosCodeCODE128(codigo);
+                const resultado = extraerDatosCodeCODE128(codigo);
         if (resultado) {
-            console.log(`✅ Éxito: PLU=${resultado.plu}, Precio=$${resultado.precioPorcion.toFixed(2)}, Peso=${resultado.peso.toFixed(3)}kg`);
-        } else {
-            console.log(`❌ Error al procesar el código`);
-        }
+                    } else {
+                    }
     });
     
-    console.log("=== FIN DE PRUEBAS ===");
-}
+    }
 
 // Las funciones ya están exportadas individualmente arriba en el archivo
 // No es necesario exportarlas nuevamente aquí
+
+

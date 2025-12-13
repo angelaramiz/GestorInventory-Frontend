@@ -1,8 +1,6 @@
 // Verificador de errores de inicialización
 // Este script debe ser incluido ANTES que theme-manager.js para capturar errores
 
-console.log('🔍 Verificador de errores iniciado');
-
 // Capturar errores globales
 window.addEventListener('error', function(e) {
     console.error('❌ Error global capturado:', {
@@ -45,57 +43,28 @@ function verificarDOM() {
         return false;
     }
     
-    console.log('✅ Elementos DOM básicos disponibles');
-    return true;
+        return true;
 }
 
 // Verificar en diferentes momentos
-console.log('📊 Estado inicial del DOM:', document.readyState);
-
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('📊 DOM cargado, verificando elementos...');
-        setTimeout(verificarDOM, 50);
+                setTimeout(verificarDOM, 50);
     });
 } else {
-    console.log('📊 DOM ya está listo, verificando inmediatamente...');
-    verificarDOM();
+        verificarDOM();
 }
 
 // Función de diagnóstico avanzado
 window.diagnosticarTemas = function() {
     console.group('🔧 DIAGNÓSTICO COMPLETO DE TEMAS');
     
-    console.log('Estado del DOM:', {
-        readyState: document.readyState,
-        body: !!document.body,
-        documentElement: !!document.documentElement,
-        bodyClassList: document.body ? document.body.classList.toString() : 'N/A',
-        htmlClassList: document.documentElement ? document.documentElement.classList.toString() : 'N/A',
-        dataTheme: document.documentElement ? document.documentElement.getAttribute('data-theme') : 'N/A'
-    });
-    
-    console.log('ThemeManager disponible:', !!window.ThemeManager);
-    console.log('Instancia themeManager:', !!window.themeManager);
-    
-    if (window.themeManager) {
-        console.log('Estado del ThemeManager:', {
-            currentTheme: window.themeManager.currentTheme,
-            actualTheme: window.themeManager.getActualTheme()
-        });
-        
-        // Ejecutar debug del ThemeManager
+                if (window.themeManager) {
+                // Ejecutar debug del ThemeManager
         window.themeManager.debugThemeSync();
     }
     
-    console.log('LocalStorage keys relacionados:', {
-        theme: localStorage.getItem('gestorInventory_theme'),
-        config: localStorage.getItem('gestorInventory_config'),
-        themeLastUpdate: localStorage.getItem('gestorInventory_themeLastUpdate'),
-        configLastUpdate: localStorage.getItem('gestorInventory_configLastUpdate')
-    });
-    
-    console.groupEnd();
+        console.groupEnd();
 };
 
 // Auto-diagnóstico después de un tiempo
@@ -105,4 +74,4 @@ setTimeout(() => {
     }
 }, 2000);
 
-console.log('✅ Verificador de errores configurado correctamente');
+

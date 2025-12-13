@@ -23,8 +23,7 @@ class TableMobileOptimizer {
             this.refreshAllTables();
         });
 
-        console.log('📱 Table Mobile Optimizer inicializado');
-    }
+            }
 
     setupMutationObserver() {
         const observer = new MutationObserver((mutations) => {
@@ -405,8 +404,7 @@ class TableMobileOptimizer {
         });
         
         this.optimizeExistingTables();
-        console.log('🔄 Tablas móviles actualizadas');
-    }
+            }
 }
 
 // Auto-inicialización
@@ -420,3 +418,5 @@ if (document.readyState === 'loading') {
 
 // Exportar para uso manual
 window.TableMobileOptimizer = TableMobileOptimizer;
+
+

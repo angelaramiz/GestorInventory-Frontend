@@ -28,8 +28,7 @@ export class BackendStatusMonitor {
                 this.isBackendAvailable = true;
                 this.retryCount = 0;
                 this.lastCheckTime = new Date();
-                console.log('✅ Backend disponible:', BASE_URL);
-                this.notifyBackendStatus(true);
+                                this.notifyBackendStatus(true);
                 return true;
             } else {
                 throw new Error(`Status: ${response.status}`);
@@ -65,8 +64,7 @@ export class BackendStatusMonitor {
 
         // También verificar cuando el navegador vuelva a estar online
         window.addEventListener('online', () => {
-            console.log('📡 Conexión de red restaurada, verificando backend...');
-            this.checkBackendAvailability();
+                        this.checkBackendAvailability();
         });
     }
 
@@ -117,3 +115,5 @@ export class BackendStatusMonitor {
 
 // Exportar instancia singleton
 export const backendStatusMonitor = new BackendStatusMonitor();
+
+

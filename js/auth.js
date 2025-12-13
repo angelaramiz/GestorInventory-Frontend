@@ -1,6 +1,9 @@
 import { mostrarAlertaBurbuja } from './logs.js'; // Importar la nueva función
 import { resetearBaseDeDatos, db } from './db-operations.js';
 import { getTokenConfig, logTokenEvent } from './token-config.js';
+import { BASE_URL } from './configuraciones.js';
+import { sessionManager } from './session-manager.js';
+import { backendStatusMonitor } from './backend-status.js';
 
 let supabase = null;
 let supabaseInitializing = false; // Flag para evitar inicializaciones múltiples
@@ -62,23 +65,31 @@ async function inicializeSupabase() {
 
         let config = null;
         
-        // Intentar obtener la configuración del servidor
-        try {
-            console.log('📡 Intentando obtener configuración de Supabase desde el servidor...');
-            const response = await fetch('https://gestorinventory-backend.fly.dev/api/supabase-config', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-                signal: AbortSignal.timeout(5000) // 5 segundos de timeout
-            });
+        // Verificar disponibilidad del backend ANTES de intentar fetch
+        console.log('🔍 Verificando disponibilidad del backend...');
+        const backendAvailable = await backendStatusMonitor.checkBackendAvailability(2);
+        
+        // Intentar obtener la configuración del servidor si está disponible
+        if (backendAvailable) {
+            try {
+                console.log('📡 Intentando obtener configuración de Supabase desde el servidor...');
+                const response = await fetch(`${BASE_URL}/api/supabase-config`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: AbortSignal.timeout(5000) // 5 segundos de timeout
+                });
 
-            if (response.ok) {
-                config = await response.json();
-                console.log('✅ Configuración obtenida del servidor');
-            } else {
-                throw new Error(`Status: ${response.status}`);
+                if (response.ok) {
+                    config = await response.json();
+                    console.log('✅ Configuración obtenida del servidor');
+                } else {
+                    throw new Error(`Status: ${response.status}`);
+                }
+            } catch (fetchError) {
+                console.warn('⚠️ No se pudo obtener config del servidor, usando respaldo:', fetchError.message);
             }
-        } catch (fetchError) {
-            console.warn('⚠️ No se pudo obtener config del servidor, usando respaldo:', fetchError.message);
+        } else {
+            console.warn('⚠️ Backend no disponible, usando configuración de respaldo directamente');
         }
 
         // Si no se obtuvo del servidor, usar configuración de respaldo
@@ -206,7 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            const response = await fetch('https://gestorinventory-backend.fly.dev/productos/registro', {
+            const response = await fetch(`${BASE_URL}/productos/registro`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nombre, email, password })
@@ -245,7 +256,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             try {
-                const response = await fetch('https://gestorinventory-backend.fly.dev/productos/request-password-reset', {
+                const response = await fetch(`${BASE_URL}/productos/request-password-reset`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -272,7 +283,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function iniciarSesion(email, password) {
     try {
-        const response = await fetch('https://gestorinventory-backend.fly.dev/productos/login', {
+        const response = await fetch(`${BASE_URL}/productos/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
@@ -310,6 +321,19 @@ async function iniciarSesion(email, password) {
                 localStorage.setItem('usuario_id', user.id);
                 localStorage.setItem('categoria_id', user.categoria_id); // Guardar la categoría
                 localStorage.setItem('rol', user.rol); // Guardar el rol del usuario
+                localStorage.setItem('email', email); // Guardar email
+                localStorage.setItem('nombre', user.nombre || 'Usuario');
+
+                // Guardar sesión en SessionManager para persistencia
+                sessionManager.saveSession({
+                    access_token,
+                    refresh_token,
+                    usuario_id: user.id,
+                    categoria_id: user.categoria_id,
+                    rol: user.rol,
+                    email: email,
+                    nombre: user.nombre || 'Usuario'
+                });
 
                 // Configurar el token en el cliente Supabase (si está disponible)
                 if (supabase && supabase.auth) {
@@ -375,6 +399,22 @@ export function isTokenExpired(token) {
 
 // Función para mostrar mensaje cuando el token está expirado (sin modal de login)
 export function mostrarDialogoSesionExpirada() {
+    // NO MOSTRAR en páginas públicas
+    const currentPath = window.location.pathname;
+    const isLoginPage =
+        currentPath.endsWith('index.html') ||
+        currentPath === '/' ||
+        currentPath.endsWith('/') ||
+        currentPath.endsWith('register.html') ||
+        currentPath.endsWith('confirm-email.html') ||
+        currentPath.endsWith('request-password-reset.html') ||
+        currentPath.endsWith('reset-password.html');
+
+    if (isLoginPage) {
+        console.log('⚠️ Se intentó mostrar diálogo de sesión expirada en página pública, ignorando');
+        return false;
+    }
+
     // Mostrar notificación con opción de ir al login
     Swal.fire({
         title: 'Sesión expirada',
@@ -432,6 +472,7 @@ export function verificarTokenAutomaticamente() {
 
     if (isTokenExpired(token)) {
         console.log("Token expirado. Mostrando diálogo de inicio de sesión...");
+        // IMPORTANTE: mostrarDialogoSesionExpirada() verifica que no sea una página pública
         return mostrarDialogoSesionExpirada();
     }
 
@@ -765,9 +806,99 @@ export async function inicializarSistemaPagina() {
 }
 
 // Event listener para inicializar el sistema cuando se carga el DOM
+// Función de logout mejorada
+export async function cerrarSesion(rememberUser = true) {
+    try {
+        // Limpiar sesión del SessionManager
+        sessionManager.logout(rememberUser);
+
+        mostrarAlertaBurbuja('Sesión cerrada correctamente', 'success');
+        
+        // Redirigir al login después de 1 segundo
+        setTimeout(() => {
+            window.location.href = './index.html';
+        }, 1000);
+
+        return true;
+    } catch (error) {
+        console.error('Error cerrando sesión:', error);
+        mostrarAlertaBurbuja('Error al cerrar sesión', 'error');
+        return false;
+    }
+}
+
+// Auto-login si hay sesión válida
+function verificarYAutoLogin() {
+    // Solo ejecutar en la página de login
+    const currentPath = window.location.pathname;
+    const isLoginPage = 
+        currentPath.endsWith('index.html') || 
+        currentPath === '/' || 
+        currentPath.endsWith('/');
+
+    if (!isLoginPage) return;
+
+    // Limpiar localStorage de tokens expirados al abrir login
+    const token = localStorage.getItem('supabase.auth.token');
+    if (token && isTokenExpired(token)) {
+        console.warn('⚠️ Token expirado encontrado, limpiando...');
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('supabase.auth.refresh');
+        localStorage.removeItem('usuario_id');
+        localStorage.removeItem('categoria_id');
+        localStorage.removeItem('rol');
+        localStorage.removeItem('email');
+        localStorage.removeItem('nombre');
+        sessionManager.logout(false);
+        return;
+    }
+
+    // Verificar si hay sesión válida guardada
+    if (sessionManager.hasValidSession()) {
+        const session = sessionManager.getSession();
+        sessionManager.restoreSession(session);
+        
+        mostrarAlertaBurbuja('Sesión activa detectada', 'success');
+        setTimeout(() => {
+            window.location.href = './plantillas/main.html';
+        }, 500);
+    }
+}
+
+// Ejecutar verificación de auto-login cuando se cargue la página
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inicializarSistemaPagina);
+    document.addEventListener('DOMContentLoaded', () => {
+        verificarYAutoLogin();
+        // Solo inicializar sistema de página si NO estamos en una página pública
+        const currentPath = window.location.pathname;
+        const isLoginPage = 
+            currentPath.endsWith('index.html') || 
+            currentPath === '/' || 
+            currentPath.endsWith('/') ||
+            currentPath.endsWith('register.html') ||
+            currentPath.endsWith('confirm-email.html') ||
+            currentPath.endsWith('request-password-reset.html') ||
+            currentPath.endsWith('reset-password.html');
+        
+        if (!isLoginPage) {
+            inicializarSistemaPagina();
+        }
+    });
 } else {
     // Si el DOM ya está cargado, ejecutar inmediatamente
-    inicializarSistemaPagina();
+    verificarYAutoLogin();
+    // Solo inicializar sistema de página si NO estamos en una página pública
+    const currentPath = window.location.pathname;
+    const isLoginPage = 
+        currentPath.endsWith('index.html') || 
+        currentPath === '/' || 
+        currentPath.endsWith('/') ||
+        currentPath.endsWith('register.html') ||
+        currentPath.endsWith('confirm-email.html') ||
+        currentPath.endsWith('request-password-reset.html') ||
+        currentPath.endsWith('reset-password.html');
+    
+    if (!isLoginPage) {
+        inicializarSistemaPagina();
+    }
 }

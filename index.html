@@ -43,6 +43,7 @@
                 <input
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark-theme-input"
                     id="email" type="email" required>
+                <small class="text-gray-500 mt-1 block" id="emailHint"></small>
             </div>
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2 dark-theme-label" for="password">
@@ -52,13 +53,24 @@
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark-theme-input"
                     id="password" type="password" required>
             </div>
-            <div class="flex items-center justify-between">
-                <button
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark-theme-button"
-                    type="submit">
-                    Iniciar Sesión
-                </button>
-                <a href="./register.html" class="text-blue-500 hover:underline dark-theme-link">¿No tienes una cuenta? Regístrate</a>
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-2">
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark-theme-button flex-1"
+                        type="submit">
+                        Iniciar Sesión
+                    </button>
+                    <!-- Botón de huella biométrica -->
+                    <button
+                        id="biometricBtn"
+                        class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark-theme-button"
+                        type="button"
+                        title="Autenticarse con huella o reconocimiento facial"
+                        style="display: none;">
+                        🔐
+                    </button>
+                </div>
+                <a href="./register.html" class="text-blue-500 hover:underline dark-theme-link text-sm">¿No tienes una cuenta? Regístrate</a>
             </div>
             <div class="mt-4 text-center">
                 <a href="plantillas/request-password-reset.html"
@@ -111,6 +123,77 @@
         } else {
             console.warn('⚠️ Service Workers no son compatibles con este navegador');
         }
+    </script>
+    <script type="module">
+        import { sessionManager } from './js/session-manager.js';
+        
+        // Auto-llenar email desde usuario recordado
+        document.addEventListener('DOMContentLoaded', () => {
+            const emailInput = document.getElementById('email');
+            const emailHint = document.getElementById('emailHint');
+            const biometricBtn = document.getElementById('biometricBtn');
+            
+            const rememberedUser = sessionManager.getRememberedUser();
+            if (rememberedUser) {
+                emailInput.value = rememberedUser;
+                emailHint.textContent = `👤 Usuario recordado: ${rememberedUser}`;
+                emailHint.className = 'text-gray-500 mt-1 block text-xs';
+                
+                // Mostrar botón de biometría si está disponible
+                if (sessionManager.isBiometricAvailable()) {
+                    biometricBtn.style.display = 'block';
+                    biometricBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        await autenticarConBiometria(rememberedUser);
+                    });
+                }
+            }
+        });
+
+        // Función para autenticarse con biometría
+        async function autenticarConBiometria(email) {
+            const biometricBtn = document.getElementById('biometricBtn');
+            biometricBtn.disabled = true;
+            biometricBtn.textContent = '⏳';
+            
+            try {
+                const success = await sessionManager.authenticateWithBiometric(email);
+                if (success) {
+                    // Si la biometría es exitosa, pedir contraseña
+                    const { value: password } = await Swal.fire({
+                        title: 'Contraseña requerida',
+                        input: 'password',
+                        inputLabel: 'Ingresa tu contraseña para completar el inicio de sesión',
+                        inputPlaceholder: 'Contraseña',
+                        showCancelButton: true,
+                        confirmButtonText: 'Iniciar Sesión',
+                        cancelButtonText: 'Cancelar',
+                        inputAttributes: {
+                            autocapitalize: 'off',
+                            autocorrect: 'off'
+                        }
+                    });
+                    
+                    if (password) {
+                        // Enviar al backend para validar
+                        document.getElementById('email').value = email;
+                        document.getElementById('password').value = password;
+                        document.getElementById('formLogin').dispatchEvent(new Event('submit'));
+                    }
+                } else {
+                    alert('Autenticación biométrica fallida o no disponible');
+                }
+            } catch (error) {
+                console.error('Error en autenticación biométrica:', error);
+                alert('Error en autenticación biométrica: ' + error.message);
+            } finally {
+                biometricBtn.disabled = false;
+                biometricBtn.textContent = '🔐';
+            }
+        }
+
+        // Exponer función globalmente para debug
+        window.autenticarConBiometria = autenticarConBiometria;
     </script>
     <script>
     // Función para mostrar bloqueo y temporizador en login

@@ -1,6 +1,7 @@
 import { mostrarMensaje, mostrarResultadoCarga, mostrarAlertaBurbuja } from './logs.js';
 import { sanitizarProducto } from './sanitizacion.js';
 import { getSupabase } from './auth.js'; // Importar la nueva función
+import { BASE_URL } from './configuraciones.js';
 
 // variables globales
 export let db;
@@ -659,7 +660,7 @@ export async function sincronizarProductosDesdeBackend() {
             console.warn("No hay usuario o categoría disponible para sincronizar");
             return;
         }
-        const response = await fetch('https://gestorinventory-backend.fly.dev/productos/sincronizar', {
+        const response = await fetch(`${BASE_URL}/productos/sincronizar`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -741,7 +742,7 @@ export async function subirProductosAlBackend() {
         }
 
         // Enviar productos al backend
-        const response = await fetch("https://gestorinventory-backend.fly.dev/productos/actualizar-usuario-productos", {
+        const response = await fetch(`${BASE_URL}/productos/actualizar-usuario-productos`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

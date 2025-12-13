@@ -17,12 +17,21 @@
     <link rel="stylesheet" href="../css/mobile-components.css">
     <script src="../js/theme-manager.js"></script>
     <script src="../js/theme-toggle.js"></script>
+    
+    <!-- Cargar Supabase como script tradicional -->
+    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
 </head>
 
 <body class="bg-gray-100 dark-theme-body">
     <header class="bg-blue-600 text-white p-4 flex justify-between items-center dark-theme-header">
         <h1 class="text-3xl font-bold dark-theme-title">Sistema de Gestión de Productos</h1>
         <div class="flex items-center space-x-4">
+            <!-- Indicador de estado del backend -->
+            <div id="backendStatus" class="px-3 py-1 rounded-full text-sm font-semibold" 
+                 title="Estado de conexión con el backend"
+                 style="background-color: #fbbf24; color: #78350f;">
+                ⏳ Verificando...
+            </div>
             <!-- Botón de alternar tema -->
             <button id="themeToggleBtn" class="p-2 rounded-lg bg-blue-700 hover:bg-blue-800 transition-colors"
                 title="Alternar tema">
@@ -44,6 +53,11 @@
         <ul id="menuRoutes" class="p-4 space-y-2 dark-theme-nav-list">
             <!-- Las rutas se generarán dinámicamente -->
         </ul>
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t dark-theme-sidebar-footer">
+            <button id="logoutBtn" class="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded dark-theme-button">
+                Cerrar Sesión
+            </button>
+        </div>
     </div>
 
     <a href="../index.html" class="text-blue-500 hover:underline mb-4 inline-block dark-theme-link">← Regresar</a>
@@ -119,8 +133,78 @@
     </footer>
 
     <script src="../js/mobile-optimizer.js"></script>
-    <script type="module" src="../js/main.js"></script>
-    <script>
+    <script type="module" src="../js/main.js"></script>    <script type="module">
+        import { backendStatusMonitor } from '../js/backend-status.js';
+        
+        // Monitorear estado del backend
+        document.addEventListener('DOMContentLoaded', () => {
+            const backendStatusEl = document.getElementById('backendStatus');
+            
+            // Escuchar cambios de estado del backend
+            window.addEventListener('backendStatusChanged', (event) => {
+                const { available } = event.detail;
+                
+                if (available) {
+                    backendStatusEl.textContent = '🟢 Backend activo';
+                    backendStatusEl.style.backgroundColor = '#dcfce7'; // green-100
+                    backendStatusEl.style.color = '#166534'; // green-800
+                } else {
+                    backendStatusEl.textContent = '🔴 Backend no disponible';
+                    backendStatusEl.style.backgroundColor = '#fee2e2'; // red-100
+                    backendStatusEl.style.color = '#991b1b'; // red-900
+                    
+                    // Mostrar alerta una sola vez
+                    if (!window.backendDownNotified) {
+                        setTimeout(() => {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Backend no disponible',
+                                text: 'La aplicación funcionará en modo offline. Los cambios se sincronizarán cuando el servidor esté disponible.',
+                                allowOutsideClick: false,
+                                didOpen: (modal) => {
+                                    // Cerrar automáticamente después de 5 segundos
+                                    setTimeout(() => {
+                                        Swal.close();
+                                    }, 5000);
+                                }
+                            });
+                        }, 500);
+                        window.backendDownNotified = true;
+                    }
+                }
+            });
+            
+            // Iniciar monitoreo (cada 30 segundos)
+            backendStatusMonitor.startMonitoring(30);
+        });
+    </script>
+    <script type="module">
+        import { cerrarSesion } from '../js/auth.js';
+        
+        // Manejar botón de logout
+        document.addEventListener('DOMContentLoaded', () => {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    const { value: rememberUser } = await Swal.fire({
+                        title: 'Cerrar Sesión',
+                        text: '¿Deseas que se recuerde tu usuario para el próximo login?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, recordar usuario',
+                        cancelButtonText: 'No, no recordar',
+                        allowOutsideClick: false
+                    });
+                    
+                    // Si cancela, no hace nada
+                    if (rememberUser === undefined) return;
+                    
+                    // Llamar función de logout
+                    await cerrarSesion(rememberUser === true);
+                });
+            }
+        });
+    </script>    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const menuToggle = document.getElementById('menuToggle');
             const sideMenu = document.getElementById('sideMenu');

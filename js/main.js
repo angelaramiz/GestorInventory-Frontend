@@ -4,6 +4,8 @@ import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
 import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations.js';
 import { toggleEscaner, detenerEscaner } from './scanner.js';
 import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente, configurarInterceptorSupabase } from './auth.js';
+import { BASE_URL } from './configuraciones.js';
+import { backendStatusMonitor } from './backend-status.js';
 
 
 // Variable para almacenar el ID del intervalo de verificación de token
@@ -616,7 +618,13 @@ document.addEventListener('DOMContentLoaded', actualizarIndicadorConexion);
 let ws;
 
 function conectarWebSocket() {
-    ws = new WebSocket('wss://gestorinventory-backend.fly.dev');
+    try {
+        const wsUrl = BASE_URL.replace(/^https?:/, m => m === 'https:' ? 'wss:' : 'ws:');
+        ws = new WebSocket(wsUrl);
+    } catch (e) {
+        console.warn('No se pudo construir WebSocket desde BASE_URL, usando URL por defecto');
+        ws = new WebSocket('wss://gestorinventory-backend.fly.dev');
+    }
 
     ws.onopen = () => {
         console.log('Conexión WebSocket establecida');

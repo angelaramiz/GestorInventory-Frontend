@@ -2,6 +2,8 @@
 import { mostrarAlertaBurbuja } from './logs.js';
 import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente } from './auth.js';
 
+export const BASE_URL = 'https://gestorinventory-backend-morning-dream-6699.fly.dev';
+
 // Configuración por defecto
 const DEFAULT_CONFIG = {
     theme: 'light',

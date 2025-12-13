@@ -242,26 +242,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             try {
-                const response = await fetch(`${BASE_URL}/productos/request-password-reset`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
+                // Usar Supabase directamente para solicitar el email de recuperación.
+                const client = await getSupabase();
+                if (!client) {
+                    mostrarAlertaBurbuja('Servicio de autenticación no disponible', 'error');
+                    return;
+                }
 
-                const data = await response.json();
+                // Usar la misma página actual como destino para el enlace de recuperación
+                const redirectTo = `${location.origin}${location.pathname}`;
+                const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
 
-                if (data.success) {
+                if (error) {
+                    console.error('Supabase reset error:', error);
+                    mostrarAlertaBurbuja(error.message || 'Error al solicitar recuperación de contraseña', 'error');
+                } else {
                     mostrarAlertaBurbuja('Se ha enviado un enlace de recuperación a tu correo', 'success');
                     document.getElementById('formPasswordReset').reset();
                     setTimeout(() => {
                         window.location.href = '../index.html';
                     }, 2000);
-                } else {
-                    mostrarAlertaBurbuja(data.error || 'Error al solicitar recuperación de contraseña', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                mostrarAlertaBurbuja('Error de conexión con el servidor', 'error');
+                mostrarAlertaBurbuja('Error de conexión con el servicio de autenticación', 'error');
             }
         });
     }

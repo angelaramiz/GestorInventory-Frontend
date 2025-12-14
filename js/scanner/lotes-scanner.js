@@ -1,6 +1,6 @@
 // Funcionalidad de escaneo por lotes para productos tipo Kg
-import { mostrarMensaje } from './logs.js';
-import { sanitizarEntrada } from './sanitizacion.js';
+import { mostrarMensaje } from '../utils/logs.js';
+import { sanitizarEntrada } from '../utils/sanitizacion.js';
 
 // Variables globales para el escaneo por lotes
 let scannerLotes = null;

@@ -15,8 +15,8 @@
     <script src="../librerías/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
-    <script src="../js/theme-manager.js"></script>
-    <script src="../js/theme-toggle.js"></script>
+    <script src="../js/ui/theme-manager.js"></script>
+    <script src="../js/ui/theme-toggle.js"></script>
     
     <!-- Cargar Supabase como script tradicional -->
     <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
@@ -614,15 +614,15 @@
         </div>
     </div>
     <script src="../librerías/html5-qrcode.min.js"></script>
-    <script src="../js/mobile-optimizer.js"></script>
-    <script src="../js/table-mobile-optimizer.js"></script>
-    <script src="../js/extension-conflict-detector.js"></script>
-    <script type="module" src="../js/main.js"></script>
-    <script type="module" src="../js/registro-entradas-operations.js"></script>
+    <script src="../js/ui/mobile-optimizer.js"></script>
+    <script src="../js/ui/table-mobile-optimizer.js"></script>
+    <script src="../js/utils/extension-conflict-detector.js"></script>
+    <script type="module" src="../js/core/main.js"></script>
+    <script type="module" src="../js/core/registro-entradas-operations.js"></script>
     <script type="module">
-        import { inicializarRegistroEntradas } from '../js/registro-entradas-operations.js';
-        import { inicializarDB } from '../js/db-operations.js';
-        import { toggleEscaner } from '../js/scanner.js';        // Inicializar cuando el DOM esté cargado
+        import { inicializarRegistroEntradas } from '../js/core/registro-entradas-operations.js';
+        import { inicializarDB } from '../js/db/db-operations.js';
+        import { toggleEscaner } from '../js/scanner/scanner.js';        // Inicializar cuando el DOM esté cargado
         document.addEventListener('DOMContentLoaded', async function () {
             try {
                 // Inicializar base de datos principal

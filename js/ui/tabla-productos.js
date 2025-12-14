@@ -1,10 +1,10 @@
 // tabla-productos.js - Manejo del agregado de productos por tabla
 
-import { db } from './db-operations.js';
-import { buscarProducto } from './product-operations.js';
-import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
-import { getSupabase } from './auth.js';
-import { sanitizarProducto } from './sanitizacion.js';
+import { db } from '../db/db-operations.js';
+import { buscarProducto } from '../core/product-operations.js';
+import { mostrarMensaje, mostrarAlertaBurbuja } from '../utils/logs.js';
+import { getSupabase } from '../auth/auth.js';
+import { sanitizarProducto } from '../utils/sanitizacion.js';
 
 // Variables globales para el manejo de la tabla
 let productoPrimario = null;

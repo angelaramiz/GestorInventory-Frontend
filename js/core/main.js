@@ -1,11 +1,11 @@
 // Importaciones
-import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion, guardarAreaIdPersistente, obtenerAreaId, inicializarDBEntradas, procesarColaSincronizacionEntradas } from './db-operations.js';
-import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
-import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from './product-operations.js';
-import { toggleEscaner, detenerEscaner } from './scanner.js';
-import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente, configurarInterceptorSupabase } from './auth.js';
-import { BASE_URL } from './configuraciones.js';
-import { backendStatusMonitor } from './backend-status.js';
+import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion, guardarAreaIdPersistente, obtenerAreaId, inicializarDBEntradas, procesarColaSincronizacionEntradas } from '../db/db-operations.js';
+import { mostrarMensaje, mostrarAlertaBurbuja } from '../utils/logs.js';
+import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from '../core/product-operations.js';
+import { toggleEscaner, detenerEscaner } from '../scanner/scanner.js';
+import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente, configurarInterceptorSupabase } from '../auth/auth.js';
+import { BASE_URL } from '../core/configuraciones.js';
+import { backendStatusMonitor } from '../utils/backend-status.js';
 
 
 // Variable para almacenar el ID del intervalo de verificación de token
@@ -13,14 +13,14 @@ let tokenCheckInterval;
 
 
 // Definir window.getSupabase usando la función de auth.js si no existe
-import('./auth.js').then(mod => {
+import('../auth/auth.js').then(mod => {
     if (!window.getSupabase) {
         window.getSupabase = mod.getSupabase;
     }
 }).catch(() => {});
 
 // Importar y exponer funciones de relaciones de productos para reutilización global
-import('../js/relaciones-productos.js').then(mod => {
+import('./relaciones-productos.js').then(mod => {
     window.obtenerRelacionesProductosSupabase = mod.obtenerRelacionesProductosSupabase;
     window.buscarRelacionProducto = mod.buscarRelacionProducto;
 }).catch(() => {});

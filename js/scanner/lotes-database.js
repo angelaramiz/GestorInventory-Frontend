@@ -1,7 +1,7 @@
 // Funciones específicas para el manejo de datos de lotes avanzado en Supabase
 
 // Importar configuración de Supabase
-import { getSupabase } from './auth.js';
+import { getSupabase } from '../auth/auth.js';
 
 // Función para obtener productos subproducto desde Supabase
 export async function obtenerProductosSubproducto() {

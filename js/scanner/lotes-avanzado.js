@@ -2,12 +2,12 @@
 // Mejora del sistema de lotes con detección automática y agrupación de productos
 
 // Importar configuración de Supabase
-import { getSupabase } from './auth.js';
+import { getSupabase } from '../auth/auth.js';
 // Importar función de búsqueda de IndexedDB
-import { buscarPorCodigoParcial } from './product-operations.js';
+import { buscarPorCodigoParcial } from '../core/product-operations.js';
 // Importar funciones de sincronización y guardado
-import { mostrarMensaje } from './main.js';
-import { mostrarAlertaBurbuja } from './logs.js';
+import { mostrarMensaje } from '../core/main.js';
+import { mostrarAlertaBurbuja } from '../utils/logs.js';
 
 // Variables globales para el escaneo por lotes avanzado
 let scannerLotesAvanzado = null;
@@ -1578,7 +1578,7 @@ async function guardarInventarioLotesAvanzado() {
         }
 
         // Verificar sesión y obtener datos del usuario
-        const { verificarSesionValida } = await import('./auth.js');
+        const { verificarSesionValida } = await import('../auth/auth.js');
         const sesionValida = await verificarSesionValida();
 
         if (!sesionValida) {

@@ -1,6 +1,6 @@
 //importaciones
-import { cargarDatosEnTabla } from "./db-operations.js";
-import { iniciarEscaneoConModal, detenerEscaner } from "./scanner.js";
+import { cargarDatosEnTabla } from "../db/db-operations.js";
+import { iniciarEscaneoConModal, detenerEscaner } from "../scanner/scanner.js";
 
 // Funciones de mensajes y alertas
 

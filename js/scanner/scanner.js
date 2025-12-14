@@ -1,7 +1,7 @@
 // Importaciones
-import { buscarProducto, buscarProductoParaEditar, buscarProductoInventario, buscarPorCodigoParcial } from './product-operations.js';
-import { mostrarModalEscaneo, cerrarModalEscaneo, mostrarMensaje } from './logs.js';
-import { sanitizarEntrada } from './sanitizacion.js';
+import { buscarProducto, buscarProductoParaEditar, buscarProductoInventario, buscarPorCodigoParcial } from '../core/product-operations.js';
+import { mostrarModalEscaneo, cerrarModalEscaneo, mostrarMensaje } from '../utils/logs.js';
+import { sanitizarEntrada } from '../utils/sanitizacion.js';
 
 // Variables globales
 let scanner = null;

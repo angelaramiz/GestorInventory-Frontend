@@ -1,7 +1,7 @@
 // Operaciones específicas para el registro de entradas
-import { agregarRegistroEntrada, cargarEntradasEnTabla, sincronizarEntradasDesdeSupabase, eliminarRegistroEntrada, generarReporteEntradas, inicializarDBEntradas } from './db-operations.js';
-import { mostrarMensaje, mostrarAlertaBurbuja } from './logs.js';
-import { db } from './db-operations.js';
+import { agregarRegistroEntrada, cargarEntradasEnTabla, sincronizarEntradasDesdeSupabase, eliminarRegistroEntrada, generarReporteEntradas, inicializarDBEntradas } from '../db/db-operations.js';
+import { mostrarMensaje, mostrarAlertaBurbuja } from '../utils/logs.js';
+import { db } from '../db/db-operations.js';
 
 // Variable para almacenar el producto seleccionado
 let productoSeleccionadoEntrada = null;

@@ -1,10 +1,10 @@
-import { db, dbInventario, agregarAColaSincronizacion } from './db-operations.js';
-import { mostrarMensaje } from './logs.js';
-import { cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, guardarAreaIdPersistente } from './db-operations.js';
-import { sanitizarProducto, sanitizarEntrada, sanitizarNumeroEntero } from './sanitizacion.js';
-import { getSupabase } from './auth.js';
+import { db, dbInventario, agregarAColaSincronizacion } from '../db/db-operations.js';
+import { mostrarMensaje } from '../utils/logs.js';
+import { cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, guardarAreaIdPersistente } from '../db/db-operations.js';
+import { sanitizarProducto, sanitizarEntrada, sanitizarNumeroEntero } from '../utils/sanitizacion.js';
+import { getSupabase } from '../auth/auth.js';
 import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm'; // Usar UUID para IDs únicos
-import { mostrarUbicacionActual } from './main.js';
+import { mostrarUbicacionActual } from '../core/main.js';
 // Función para generar un ID temporal si estás offline
 function generarIdTemporal(codigo, lote) {
     return `${codigo}-${lote}-${uuidv4().slice(0, 8)}`; // Ejemplo: "123-1-abc12345"
@@ -730,7 +730,7 @@ export function limpiarFormularioInventario() {
 // Función para guardar productos en la base de datos para inventariar
 export async function guardarInventario() {
     // Verificar sesión antes de continuar
-    const { verificarSesionValida } = await import('./auth.js');
+    const { verificarSesionValida } = await import('../auth/auth.js');
     const sesionValida = await verificarSesionValida();
 
     if (!sesionValida) {
@@ -793,7 +793,7 @@ export async function guardarInventario() {
             }
         } else if (navigator.onLine) {
             try {
-                const supabase = await import('./auth.js').then(m => m.getSupabase());
+                const supabase = await import('../auth/auth.js').then(m => m.getSupabase());
                 const { data, error } = await supabase
                     .from('areas')
                     .select('id')
@@ -840,7 +840,7 @@ export async function guardarInventario() {
         let nuevoLote = parseInt(lote);
 
         while (existe) {
-            const supabase = await import('./auth.js').then(m => m.getSupabase());
+            const supabase = await import('../auth/auth.js').then(m => m.getSupabase());
             const { data, error } = await supabase
                 .from('inventario')
                 .select('id')
@@ -915,7 +915,7 @@ export async function guardarInventario() {
 
         // Sincronizar con Supabase
         if (navigator.onLine) {
-            const supabase = await import('./auth.js').then(m => m.getSupabase());
+            const supabase = await import('../auth/auth.js').then(m => m.getSupabase());
             const { error } = await supabase
                 .from('inventario')
                 .insert(inventarioDataRemoto);
@@ -945,7 +945,7 @@ export async function guardarInventario() {
 
 export async function modificarInventario() {
     // Verificar sesión antes de continuar
-    const { verificarSesionValida } = await import('./auth.js');
+    const { verificarSesionValida } = await import('../auth/auth.js');
     const sesionValida = await verificarSesionValida();
 
     if (!sesionValida) {
@@ -1322,7 +1322,7 @@ function buscarEnProductos(codigo, nombre, marca) {
 function buscarEnInventario(codigo, nombre, marca) {
     return new Promise(async (resolve, reject) => {
         try {
-            const { getSupabase } = await import('./auth.js');
+            const { getSupabase } = await import('../auth/auth.js');
             const supabase = await getSupabase();
             let query = supabase.from('inventario').select('*');
 
@@ -2073,7 +2073,7 @@ async function manejarErrorSupabase(error, operacion) {
         console.warn('Error de autenticación detectado, intentando renovar sesión...');
         mostrarMensaje('Token expirado, renovando sesión automáticamente...', 'warning');
 
-        const { verificarSesionValida } = await import('./auth.js');
+        const { verificarSesionValida } = await import('../auth/auth.js');
         const sesionRenovada = await verificarSesionValida();
 
         if (sesionRenovada) {

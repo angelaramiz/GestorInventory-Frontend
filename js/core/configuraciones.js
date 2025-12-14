@@ -1,6 +1,6 @@
 // Importaciones necesarias
-import { mostrarAlertaBurbuja } from './logs.js';
-import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente } from './auth.js';
+import { mostrarAlertaBurbuja } from '../utils/logs.js';
+import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente } from '../auth/auth.js';
 
 export const BASE_URL = 'https://gestorinventory-backend-morning-dream-6699.fly.dev';
 

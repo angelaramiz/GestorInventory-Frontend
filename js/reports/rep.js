@@ -1,5 +1,5 @@
-import { obtenerAreasPorCategoria } from './db-operations.js';
-import { getSupabase } from './auth.js';
+import { obtenerAreasPorCategoria } from '../db/db-operations.js';
+import { getSupabase } from '../auth/auth.js';
 
 let productosInventario = [];
 let supabase;

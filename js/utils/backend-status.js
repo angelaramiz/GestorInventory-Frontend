@@ -2,7 +2,7 @@
  * Backend Status Monitor - Monitorea la disponibilidad del backend
  */
 
-import { BASE_URL } from './configuraciones.js';
+import { BASE_URL } from '../core/configuraciones.js';
 
 export class BackendStatusMonitor {
     constructor() {

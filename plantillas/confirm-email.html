@@ -12,8 +12,8 @@
     
         <link href="../librerías/tailwind.min.css" rel="stylesheet">
         <link href="../css/styles.css" rel="stylesheet">
-        <script src="../js/theme-manager.js"></script>
-        <script src="../js/theme-toggle.js"></script>
+        <script src="../js/ui/theme-manager.js"></script>
+        <script src="../js/ui/theme-toggle.js"></script>
     </head>
 
     <body class="bg-gray-100 flex items-center justify-center h-screen">
@@ -27,9 +27,9 @@
                 Ir al Inicio de Sesión
             </a>
         </div>
-        <script src="../js/mobile-optimizer.js"></script>
+        <script src="../js/ui/mobile-optimizer.js"></script>
         <script type="module">
-            import { supabase } from '../js/auth.js';
+            import { getSupabase } from '../js/auth/auth.js';
 
             const statusTitleEl = document.getElementById('statusTitle');
             const statusMessageEl = document.getElementById('statusMessage');
@@ -59,14 +59,16 @@
                 detailsMessageEl.textContent = 'Ya puedes cerrar esta ventana e iniciar sesión.';
 
                 // onAuthStateChange puede dar feedback adicional si la confirmación también inicia sesión.
-                supabase.auth.onAuthStateChange((event, session) => {
-                    if (event === 'SIGNED_IN' && session) {
-                        detailsMessageEl.textContent = 'Has iniciado sesión automáticamente. Â¡Bienvenido!';
-                    } else if (event === 'USER_UPDATED' && session?.user?.email_confirmed_at) {
-                        // El correo está confirmado, el mensaje por defecto ya es apropiado.
-                        // Puedes añadir algo más si es necesario.
-                    }
-                });
+                getSupabase().then(supabase => {
+                    if (!supabase) return;
+                    supabase.auth.onAuthStateChange((event, session) => {
+                        if (event === 'SIGNED_IN' && session) {
+                            detailsMessageEl.textContent = 'Has iniciado sesión automáticamente. ¡Bienvenido!';
+                        } else if (event === 'USER_UPDATED' && session?.user?.email_confirmed_at) {
+                            // El correo está confirmado, el mensaje por defecto ya es apropiado.
+                        }
+                    });
+                }).catch(err => console.warn('No se pudo obtener supabase:', err));
             }
         </script>
     </body>

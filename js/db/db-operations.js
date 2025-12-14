@@ -1,7 +1,7 @@
-import { mostrarMensaje, mostrarResultadoCarga, mostrarAlertaBurbuja } from './logs.js';
-import { sanitizarProducto } from './sanitizacion.js';
-import { getSupabase } from './auth.js'; // Importar la nueva función
-import { BASE_URL } from './configuraciones.js';
+import { mostrarMensaje, mostrarResultadoCarga, mostrarAlertaBurbuja } from '../utils/logs.js';
+import { sanitizarProducto } from '../utils/sanitizacion.js';
+import { getSupabase } from '../auth/auth.js'; // Importar la nueva función
+import { BASE_URL } from '../core/configuraciones.js';
 
 // variables globales
 export let db;

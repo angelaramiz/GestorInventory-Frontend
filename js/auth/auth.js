@@ -1,9 +1,9 @@
-import { mostrarAlertaBurbuja } from './logs.js'; // Importar la nueva función
-import { resetearBaseDeDatos, db } from './db-operations.js';
+import { mostrarAlertaBurbuja } from '../utils/logs.js'; // Importar la nueva función
+import { resetearBaseDeDatos, db } from '../db/db-operations.js';
 import { getTokenConfig, logTokenEvent } from './token-config.js';
-import { BASE_URL } from './configuraciones.js';
+import { BASE_URL } from '../core/configuraciones.js';
 import { sessionManager } from './session-manager.js';
-import { backendStatusMonitor } from './backend-status.js';
+import { backendStatusMonitor } from '../utils/backend-status.js';
 
 let supabase = null;
 let supabaseInitializing = false; // Flag para evitar inicializaciones múltiples

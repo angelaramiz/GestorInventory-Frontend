@@ -3,7 +3,7 @@
 ### 🚀 **Funcionalidades Avanzadas**
 - ✅ **Sistema de lotes avanzado** con control granular
 - ✅ **Temas oscuro/claro** automáticos
-- ✅ **PWA completa** instalable como aplicación nativa
+- ✅ **PWA completa** instalable como aplicación web
 - ✅ **Sincronización automática** con resolución de conflictos
 - ✅ **Modo offline completo** con IndexedDB
 

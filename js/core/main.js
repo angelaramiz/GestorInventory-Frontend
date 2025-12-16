@@ -209,7 +209,7 @@ async function init() {
 
         if (esPaginaInventario) {
             // Obtener áreas por categoría al inicializar solo en la página de inventario
-            const { obtenerAreasPorCategoria } = await import('./db-operations.js');
+            const { obtenerAreasPorCategoria } = await import('../db/db-operations.js');
             await obtenerAreasPorCategoria();
 
             await inicializarSuscripciones();

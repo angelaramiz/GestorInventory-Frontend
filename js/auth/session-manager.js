@@ -159,6 +159,12 @@ export class SessionManager {
             return false;
         }
 
+        // No intentar registrar si el contexto no es válido para WebAuthn
+        if (!this.isSecureForWebAuthn()) {
+            console.warn('No se puede registrar credencial biométrica: contexto no seguro para WebAuthn (HTTPS o localhost requerido).');
+            return false;
+        }
+
         try {
             // Verificar si ya existe una credencial registrada
             if (await this.hasBiometricCredential(email)) {
@@ -173,13 +179,15 @@ export class SessionManager {
             const encoder = new TextEncoder();
             const userId = encoder.encode(email);
 
+            // Determinar si estamos en un contexto seguro / dominio válido para WebAuthn
+            const hostname = window.location.hostname || '';
+            const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+            const isSecureContext = window.isSecureContext || location.protocol === 'https:';
+
             const registerOptions = {
                 publicKey: {
                     challenge: challenge.buffer,
-                    rp: {
-                        name: 'Sistema de Gestión de Productos',
-                        id: window.location.hostname
-                    },
+                    rp: Object.assign({ name: 'Sistema de Gestión de Productos' }, (isSecureContext || isLocalhost) ? { id: hostname } : {}),
                     user: {
                         id: userId,
                         name: email,
@@ -259,13 +267,28 @@ export class SessionManager {
                 }
             ];
 
+            // No intentar si el contexto no es válido para WebAuthn
+            if (!this.isSecureForWebAuthn()) {
+                console.warn('No se puede autenticar con biometría: contexto no seguro para WebAuthn (HTTPS o localhost requerido).');
+                return false;
+            }
+
+            const hostname = window.location.hostname || '';
+            const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+            const isSecureContext = window.isSecureContext || location.protocol === 'https:';
+
             const assertionOptions = {
                 challenge: challenge.buffer,
                 timeout: 60000,
                 userVerification: 'preferred',
-                rpId: window.location.hostname,
                 allowCredentials
             };
+
+            if (isSecureContext || isLocalhost) {
+                assertionOptions.rpId = hostname;
+            } else {
+                console.warn('Omitiendo rpId en assertionOptions: requieres HTTPS o localhost para usar WebAuthn en este dominio.');
+            }
 
             const assertion = await navigator.credentials.get({ publicKey: assertionOptions });
 
@@ -290,6 +313,20 @@ export class SessionManager {
             navigator.credentials.create &&
             navigator.credentials.get
         );
+    }
+
+    /**
+     * Comprobar si el contexto es válido para WebAuthn (HTTPS o localhost)
+     */
+    isSecureForWebAuthn() {
+        try {
+            const hostname = window.location.hostname || '';
+            const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+            const isSecureContext = !!(window.isSecureContext || location.protocol === 'https:');
+            return isSecureContext || isLocalhost;
+        } catch (e) {
+            return false;
+        }
     }
 
     /**

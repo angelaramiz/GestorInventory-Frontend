@@ -68,6 +68,14 @@ export function initBiometricUI() {
     document.addEventListener('DOMContentLoaded', () => {
         const header = document.querySelector('header');
         if (!header) return;
+        // Mostrar aviso si WebAuthn no está disponible o el contexto no es seguro
+        if (!sessionManager.isBiometricAvailable() || !sessionManager.isSecureForWebAuthn()) {
+            const notice = document.createElement('div');
+            notice.className = 'ml-3 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-md text-sm';
+            notice.textContent = 'Biometría no disponible: requiere navegador compatible y contexto seguro (HTTPS o localhost).';
+            header.appendChild(notice);
+            return;
+        }
 
         const container = document.createElement('div');
         container.id = 'biometricControls';

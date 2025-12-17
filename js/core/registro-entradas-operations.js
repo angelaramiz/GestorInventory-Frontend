@@ -177,6 +177,10 @@ export async function registrarEntrada() {
             producto_id: productoSeleccionadoEntrada.id || null
         };
 
+        // Adjuntar area_id si está disponible (localStorage o producto)
+        const areaIdFromStorage = localStorage.getItem('area_id');
+        entradaData.area_id = areaIdFromStorage || (productoSeleccionadoEntrada && productoSeleccionadoEntrada.area_id) || null;
+
         // Registrar la entrada
         const entradaRegistrada = await agregarRegistroEntrada(entradaData);
 

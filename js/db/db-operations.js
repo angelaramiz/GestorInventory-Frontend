@@ -1959,15 +1959,16 @@ export function inicializarDBEntradas() {
 // Función para agregar una entrada al registro
 export async function agregarRegistroEntrada(entradaData) {
     try {
-        const areaId = obtenerAreaId();
+        // Priorizar area indicada en entradaData, luego obtener de almacenamiento
+        const areaId = entradaData.area_id || obtenerAreaId();
         if (!areaId) {
-            throw new Error("No se encontró ID de área");
+            console.warn("No se encontró ID de área; la entrada se guardará sin area_id (null)");
         }
 
         // Preparar los datos de la entrada
         const entrada = {
             ...entradaData,
-            area_id: areaId,
+            area_id: areaId || null,
             fecha_entrada: entradaData.fecha_entrada || new Date().toISOString().split('T')[0],
             created_at: new Date().toISOString(),
             usuario_id: localStorage.getItem('usuario_id'),

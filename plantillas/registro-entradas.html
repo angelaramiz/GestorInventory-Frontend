@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
     <script src="../js/ui/theme-manager.js"></script>
-    <script src="../js/ui/theme-toggle.js"></script>
     
     <!-- Cargar Supabase como script tradicional -->
     <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
@@ -26,7 +25,7 @@
     <header class="bg-green-600 text-white p-4 flex justify-between items-center shadow-lg">
         <div class="flex items-center space-x-3">
             <div class="p-2 bg-green-700 rounded-lg">
-                ðŸ“¦
+                📦
             </div>
             <h1 class="text-3xl font-bold tracking-wide">Registro de Entradas</h1>
         </div>
@@ -55,7 +54,7 @@
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center space-x-4">
                 <h1 class="text-4xl font-bold text-gray-800 flex items-center">
-                    ðŸ“¦ Registro de Entradas
+                    📦 Registro de Entradas
                     <span class="ml-3 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                         Sistema de Gestión
                     </span>
@@ -64,18 +63,18 @@
             <div class="flex items-center space-x-3">
                 <a href="./main.html"
                     class="text-green-600 hover:text-green-800 hover:underline font-medium flex items-center space-x-2 transition-colors">
-                    <span>â†</span>
+                    <span>←</span>
                     <span>Regresar al Menú Principal</span>
                 </a>
                 <button id="menuToggle"
                     class="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 border-2 border-green-600 font-semibold transition-all hover:shadow-md">
-                    ðŸ“‹ Menú de Navegación
+                    ☰ Menú de Navegación
                 </button>
             </div>
         </div> <!-- Sección de búsqueda de productos -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover">
-            <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
-                ðŸ” Buscar Producto
+                <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
+                🔎 Buscar Producto
                 <span id="searchStatus" class="ml-3 text-sm"></span>
                 <div class="ml-auto text-sm text-gray-500">
                     <span id="ultimaBusqueda"></span>
@@ -85,7 +84,7 @@
             <div class="grid md:grid-cols-3 gap-6 mb-6">
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ·ï¸ Buscar por Código:
+                        🔢 Buscar por Código:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaCodigo"
@@ -93,14 +92,14 @@
                             placeholder="Ingrese código del producto">
                         <button id="buscarPorCodigo"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
-                            <span id="btnCodigoText">ðŸ” Buscar</span>
+                            <span id="btnCodigoText">🔎 Buscar</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaNombre" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ“ Buscar por Nombre:
+                        🔎 Buscar por Nombre:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaNombre"
@@ -108,14 +107,14 @@
                             placeholder="Ingrese nombre del producto">
                         <button id="buscarPorNombre"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
-                            <span id="btnNombreText">ðŸ” Buscar</span>
+                            <span id="btnNombreText">🔎 Buscar</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaMarca" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ¢ Buscar por Marca:
+                        🏷️ Buscar por Marca:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaMarca"
@@ -123,7 +122,7 @@
                             placeholder="Ingrese marca del producto">
                         <button id="buscarPorMarca"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
-                            <span id="btnMarcaText">ðŸ” Buscar</span>
+                            <span id="btnMarcaText">🔎 Buscar</span>
                         </button>
                     </div>
                 </div>
@@ -132,7 +131,7 @@
             <div class="flex justify-center">
                 <button id="escanearBtn"
                     class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                    <span>ðŸ“·</span>
+                    <span>🔍</span>
                     <span>Escanear Código de Barras</span>
                 </button>
             </div>
@@ -149,7 +148,7 @@
             class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover"
             style="display: none;">
             <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
-                ðŸ“¦ Datos del Producto
+                📦 Datos del Producto
                 <div id="productLoadingIndicator" class="ml-3" style="display: none;">
                     <div
                         class="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin">
@@ -158,7 +157,7 @@
                 </div>
                 <div class="ml-auto">
                     <span class="text-sm text-gray-500 bg-green-100 px-3 py-1 rounded-full">
-                        Producto encontrado âœ…
+                        Producto encontrado ✓
                     </span>
                 </div>
             </h2>
@@ -169,7 +168,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="codigoProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ·ï¸ <span class="ml-2">Código del Producto:</span>
+                            🔢 <span class="ml-2">Código del Producto:</span>
                         </label>
                         <input type="text" id="codigoProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white font-mono text-lg rounded-lg shadow-sm"
@@ -179,7 +178,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="nombreProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ“ <span class="ml-2">Nombre del Producto:</span>
+                            🔤 <span class="ml-2">Nombre del Producto:</span>
                         </label>
                         <input type="text" id="nombreProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white font-semibold text-lg rounded-lg shadow-sm"
@@ -189,7 +188,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="marcaProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ¢ <span class="ml-2">Marca:</span>
+                            🏷️ <span class="ml-2">Marca:</span>
                         </label>
                         <input type="text" id="marcaProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
@@ -200,7 +199,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="categoriaProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ“‚ <span class="ml-2">Categoría:</span>
+                            📂 <span class="ml-2">Categoría:</span>
                         </label>
                         <input type="text" id="categoriaProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
@@ -209,7 +208,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="unidadProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ“ <span class="ml-2">Unidad de Medida:</span>
+                            📏 <span class="ml-2">Unidad de Medida:</span>
                         </label>
                         <input type="text" id="unidadProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
@@ -217,7 +216,7 @@
 
                     <!-- Información adicional del stock actual -->
                     <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <h4 class="text-sm font-semibold text-blue-700 mb-2">ðŸ“Š Stock Actual</h4>
+                        <h4 class="text-sm font-semibold text-blue-700 mb-2">📊 Stock Actual</h4>
                         <div class="text-2xl font-bold text-blue-600" id="stockActual">--</div>
                         <div class="text-xs text-blue-500">unidades disponibles</div>
                     </div>
@@ -225,7 +224,7 @@
             </div>
             <div class="border-t-2 border-gray-200 pt-8">
                 <h3 class="text-lg font-semibold mb-6 text-green-600 flex items-center">
-                    ðŸ“ Datos de la Entrada
+                    🧾 Datos de la Entrada
                     <span class="ml-3 text-sm text-gray-500 bg-yellow-100 px-3 py-1 rounded-full">
                         * Campos obligatorios
                     </span>
@@ -238,7 +237,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="cantidadEntrada"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ“Š <span class="ml-2">Cantidad Recibida *:</span>
+                               📊 <span class="ml-2">Cantidad Recibida *:</span>
                         </label>
                         <div class="relative">
                             <input type="number" id="cantidadEntrada"
@@ -254,7 +253,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="fechaEntrada"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ“… <span class="ml-2">Fecha de Entrada *:</span>
+                               📅 <span class="ml-2">Fecha de Entrada *:</span>
                         </label>
                         <input type="date" id="fechaEntrada"
                             class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg"
@@ -264,7 +263,7 @@
 
                     <div class="transform transition-all hover:scale-105">
                         <label for="loteEntrada" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            ðŸ·ï¸ <span class="ml-2">Número de Lote:</span>
+                               🔢 <span class="ml-2">Número de Lote:</span>
                         </label>
                         <input type="text" id="loteEntrada"
                             class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
@@ -276,7 +275,7 @@
                 <div class="mb-6">
                     <label for="comentariosEntrada"
                         class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ’¬ <span class="ml-2">Comentarios y Observaciones:</span>
+                            💬 <span class="ml-2">Comentarios y Observaciones:</span>
                     </label>
                     <textarea id="comentariosEntrada"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
@@ -287,26 +286,26 @@
                 <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
                     <button id="limpiarFormulario"
                         class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span>ðŸ—‘ï¸</span>
+                        <span>🧹</span>
                         <span>Limpiar Formulario</span>
                     </button>
                     <button id="registrarEntrada"
                         class="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span id="btnRegistrarText">âœ… Registrar Entrada</span>
+                        <span id="btnRegistrarText">✓ Registrar Entrada</span>
                     </button>
                 </div>
 
                 <!-- Resumen de la entrada -->
                 <div id="resumenEntrada" class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded"
                     style="display: none;">
-                    <h4 class="font-semibold text-blue-700 mb-2">ðŸ“‹ Resumen de la Entrada:</h4>
+                    <h4 class="font-semibold text-blue-700 mb-2">📝 Resumen de la Entrada:</h4>
                     <div id="textoResumen" class="text-sm text-blue-600"></div>
                 </div>
             </div>
         </div> <!-- Filtros y controles -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-blue-500 card-hover">
-            <h2 class="text-xl font-bold mb-6 text-blue-600 flex items-center">
-                ðŸ”§ Filtros y Controles del Sistema
+                <h2 class="text-xl font-bold mb-6 text-blue-600 flex items-center">
+                ⚙️ Filtros y Controles del Sistema
                 <div id="syncStatus" class="ml-3 text-sm"></div>
                 <div class="ml-auto text-sm text-gray-500">
                     <span id="estadoSistema" class="bg-green-100 text-green-700 px-3 py-1 rounded-full">
@@ -318,7 +317,7 @@
             <div class="grid md:grid-cols-4 gap-6 mb-6">
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ·ï¸ <span class="ml-2">Filtrar por Código:</span>
+                        🔢 <span class="ml-2">Filtrar por Código:</span>
                     </label>
                     <input type="text" id="filtroCodigo"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
@@ -327,7 +326,7 @@
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroNombre" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ“ <span class="ml-2">Filtrar por Nombre:</span>
+                        🔤 <span class="ml-2">Filtrar por Nombre:</span>
                     </label>
                     <input type="text" id="filtroNombre"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
@@ -336,7 +335,7 @@
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroMarca" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ¢ <span class="ml-2">Filtrar por Marca:</span>
+                        🏷️ <span class="ml-2">Filtrar por Marca:</span>
                     </label>
                     <input type="text" id="filtroMarca"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
@@ -346,12 +345,12 @@
                 <div class="flex items-end space-x-2">
                     <button id="filtrarEntradas"
                         class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
-                        <span>ðŸ”</span>
+                        <span>🔎</span>
                         <span>Filtrar</span>
                     </button>
                     <button id="limpiarFiltros"
                         class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-3 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
-                        <span>ðŸ—‘ï¸</span>
+                        <span>🧹</span>
                         <span>Limpiar</span>
                     </button>
                 </div>
@@ -361,7 +360,7 @@
             <div class="grid md:grid-cols-3 gap-6 mb-6 p-4 bg-gray-50 rounded-lg">
                 <div>
                     <label for="fechaDesde" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ“… <span class="ml-2">Desde:</span>
+                        📅 <span class="ml-2">Desde:</span>
                     </label>
                     <input type="date" id="fechaDesde"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
@@ -385,16 +384,16 @@
                 <div class="flex flex-wrap gap-3">
                     <button id="sincronizarEntradas"
                         class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span id="btnSincText">ðŸ”„ Sincronizar con Servidor</span>
+                        <span id="btnSincText">🔄 Sincronizar con Servidor</span>
                     </button>
                     <button id="generarReporte"
                         class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span>ðŸ“Š</span>
+                        <span>📊</span>
                         <span>Generar Reporte CSV</span>
                     </button>
                     <button id="autoRefresh"
                         class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span>âš¡</span>
+                        <span>🔁</span>
                         <span>Auto-actualización: OFF</span>
                     </button>
                 </div>
@@ -415,7 +414,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-purple-600 flex items-center">
-                        ðŸ“‹ Historial de Entradas del Sistema
+                        📋 Historial de Entradas del Sistema
                         <div id="tableLoadingIndicator" class="ml-3" style="display: none;">
                             <div
                                 class="inline-block w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin">
@@ -436,19 +435,19 @@
                     <button id="refreshTable"
                         class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-2 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
                         title="Actualizar tabla">
-                        <span>ðŸ”„</span>
+                        <span>🔄</span>
                         <span class="hidden md:inline">Actualizar</span>
                     </button>
                     <button id="exportVisible"
                         class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
                         title="Exportar datos visibles">
-                        <span>ðŸ“¥</span>
+                        <span>📤</span>
                         <span class="hidden md:inline">Exportar</span>
                     </button>
                     <button id="expandirTabla"
                         class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
                         title="Expandir/Contraer tabla">
-                        <span>â›¶</span>
+                        <span>⤢</span>
                         <span class="hidden md:inline">Expandir</span>
                     </button>
                 </div>
@@ -459,7 +458,7 @@
                 <div class="flex items-center space-x-3">
                     <input type="text" id="busquedaRapida"
                         class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        placeholder="ðŸ” Búsqueda rápida en la tabla...">
+                        placeholder="🔎 Búsqueda rápida en la tabla...">
                     <select id="ordenarPor"
                         class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500">
                         <option value="fecha-desc">Más reciente primero</option>
@@ -482,58 +481,58 @@
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('codigo')">
                                 <div class="flex items-center space-x-1">
-                                    <span>ðŸ·ï¸ Código</span>
-                                    <span class="sort-indicator">â†•ï¸</span>
+                                    <span>🔢 Código</span>
+                                    <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('nombre')">
                                 <div class="flex items-center space-x-1">
-                                    <span>ðŸ“ Nombre</span>
-                                    <span class="sort-indicator">â†•ï¸</span>
+                                    <span>🔤 Nombre</span>
+                                    <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('marca')">
                                 <div class="flex items-center space-x-1">
-                                    <span>ðŸ¢ Marca</span>
-                                    <span class="sort-indicator">â†•ï¸</span>
+                                    <span>🏷️ Marca</span>
+                                    <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('categoria')">
                                 <div class="flex items-center space-x-1">
-                                    <span>ðŸ“‚ Categoría</span>
-                                    <span class="sort-indicator">â†•ï¸</span>
+                                    <span>📂 Categoría</span>
+                                    <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('unidad')">
                                 <div class="flex items-center space-x-1">
-                                    <span>ðŸ“ Unidad</span>
-                                    <span class="sort-indicator">â†•ï¸</span>
+                                    <span>📏 Unidad</span>
+                                    <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('cantidad')">
                                 <div class="flex items-center space-x-1">
-                                    <span>ðŸ“Š Cantidad</span>
-                                    <span class="sort-indicator">â†•ï¸</span>
+                                    <span>📊 Cantidad</span>
+                                    <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('fecha')">
                                 <div class="flex items-center space-x-1">
-                                    <span>ðŸ“… Fecha</span>
-                                    <span class="sort-indicator">â†•ï¸</span>
+                                    <span>📅 Fecha</span>
+                                    <span class="sort-indicator">↕️</span>
                                 </div>
                             </th>
                             <th
                                 class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                                ðŸ’¬ Comentarios
+                                💬 Comentarios
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                âš™ï¸ Acciones
+                                ⚙️ Acciones
                             </th>
                         </tr>
                     </thead>
@@ -542,7 +541,7 @@
                         <tr class="text-center text-gray-500 bg-gray-50">
                             <td colspan="9" class="px-6 py-8">
                                 <div class="flex flex-col items-center space-y-3">
-                                    <div class="text-4xl">ðŸ“¦</div>
+                                    <div class="text-4xl">📦</div>
                                     <div class="text-lg font-medium">No hay entradas registradas</div>
                                     <div class="text-sm">Las entradas aparecerán aquí cuando se registren productos
                                     </div>
@@ -577,11 +576,11 @@
                 class="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl border-4 border-green-500 transform transition-all">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold text-gray-800 flex items-center">
-                        ðŸ“· <span class="ml-2">Escáner de Código de Barras</span>
+                        🔍 <span class="ml-2">Escáner de Código de Barras</span>
                     </h3>
                     <button id="cerrarEscaner"
                         class="text-red-500 hover:text-red-700 text-2xl font-bold transition-colors transform hover:scale-110">
-                        âœ•
+                        ✖️
                     </button>
                 </div>
 
@@ -598,7 +597,7 @@
                 <div class="flex space-x-3">
                     <button id="detenerEscaner"
                         class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 w-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
-                        <span>ðŸ›‘</span>
+                        <span>⏹️</span>
                         <span>Detener Escáner</span>
                     </button>
                 </div>
@@ -619,6 +618,7 @@
     <script src="../js/utils/extension-conflict-detector.js"></script>
     <script type="module" src="../js/core/main.js"></script>
     <script type="module" src="../js/core/registro-entradas-operations.js"></script>
+    <script type="module" src="../js/auth/biometric-ui.js"></script>
     <script type="module">
         import { inicializarRegistroEntradas } from '../js/core/registro-entradas-operations.js';
         import { inicializarDB } from '../js/db/db-operations.js';
@@ -889,7 +889,7 @@
 
                     if (selectedDate > maxDate) {
                         e.target.classList.add('border-yellow-500');
-                        showToast('âš ï¸ La fecha seleccionada está muy lejos en el futuro', 'warning');
+                        showToast('⚠️ La fecha seleccionada está muy lejos en el futuro', 'warning');
                     } else {
                         e.target.classList.remove('border-yellow-500');
                         updateEntryPreview();
@@ -913,7 +913,14 @@
                     textoResumen.innerHTML = `
                         <strong>${nombre}</strong> (${codigo})<br>
                         Cantidad: <strong>${cantidad} ${unidad || 'unidades'}</strong><br>
-                        Fecha: <strong>${new Date(fecha).toLocaleDateString('es-ES')}</strong>
+                        Fecha: <strong>${(function(){
+                            const parts = fecha.split('-').map(Number);
+                            if (parts.length === 3) {
+                                const d = new Date(parts[0], parts[1]-1, parts[2]);
+                                return d.toLocaleDateString('es-ES');
+                            }
+                            return new Date(fecha).toLocaleDateString('es-ES');
+                        })()}</strong>
                     `;
                     resumen.style.display = 'block';
                 }
@@ -964,7 +971,7 @@
                     autoRefreshEnabled = !autoRefreshEnabled;
 
                     if (autoRefreshEnabled) {
-                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualización: ON</span>';
+                        autoRefreshBtn.innerHTML = '<span>🔁</span><span>Auto-actualización: ON</span>';
                         autoRefreshBtn.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-indigo-600', 'hover:from-indigo-600', 'hover:to-indigo-700');
                         autoRefreshBtn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
 
@@ -973,16 +980,16 @@
                             updateLastSyncTime();
                         }, 30000); // Cada 30 segundos
 
-                        showToast('âœ… Auto-actualización activada', 'success');
+                        showToast('✓ Auto-actualización activada', 'success');
                     } else {
-                        autoRefreshBtn.innerHTML = '<span>âš¡</span><span>Auto-actualización: OFF</span>';
+                        autoRefreshBtn.innerHTML = '<span>🔁</span><span>Auto-actualización: OFF</span>';
                         autoRefreshBtn.classList.remove('bg-gradient-to-r', 'from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
                         autoRefreshBtn.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-indigo-600', 'hover:from-indigo-600', 'hover:to-indigo-700');
 
                         if (autoRefreshInterval) {
                             clearInterval(autoRefreshInterval);
                         }
-                        showToast('â¸ï¸ Auto-actualización desactivada', 'info');
+                        showToast('ℹ️ Auto-actualización desactivada', 'info');
                     }
                 });
             }
@@ -1006,11 +1013,11 @@
                 if (btn) {
                     btn.addEventListener('click', () => {
                         const textId = btnId.replace('buscar', 'btn') + 'Text';
-                        showButtonLoading(btn, textId, 'ðŸ” Buscando...');
+                        showButtonLoading(btn, textId, '🔎 Buscando...');
 
                         // Simular búsqueda exitosa
                         setTimeout(() => {
-                            hideButtonLoading(btn, textId, 'ðŸ” Buscar');
+                            hideButtonLoading(btn, textId, '🔎 Buscar');
                             updateSearchHistory(btnId);
                         }, 2000);
                     });
@@ -1021,11 +1028,11 @@
             const registrarBtn = document.getElementById('registrarEntrada');
             if (registrarBtn) {
                 registrarBtn.addEventListener('click', () => {
-                    showButtonLoading(registrarBtn, 'btnRegistrarText', 'â³ Registrando entrada...');
+                    showButtonLoading(registrarBtn, 'btnRegistrarText', '⏳ Registrando entrada...');
 
                     setTimeout(() => {
-                        hideButtonLoading(registrarBtn, 'btnRegistrarText', 'âœ… Registrar Entrada');
-                        showToast('âœ… Entrada registrada exitosamente', 'success');
+                        hideButtonLoading(registrarBtn, 'btnRegistrarText', '✓ Registrar Entrada');
+                        showToast('✓ Entrada registrada exitosamente', 'success');
                         updateEntryCounter();
                     }, 3000);
                 });
@@ -1035,11 +1042,11 @@
             const sincBtn = document.getElementById('sincronizarEntradas');
             if (sincBtn) {
                 sincBtn.addEventListener('click', () => {
-                    showButtonLoading(sincBtn, 'btnSincText', 'ðŸ”„ Sincronizando con servidor...');
+                    showButtonLoading(sincBtn, 'btnSincText', '🔄 Sincronizando con servidor...');
 
                     setTimeout(() => {
-                        hideButtonLoading(sincBtn, 'btnSincText', 'ðŸ”„ Sincronizar con Servidor');
-                        showToast('âœ… Sincronización completada', 'success');
+                        hideButtonLoading(sincBtn, 'btnSincText', '🔄 Sincronizar con Servidor');
+                        showToast('✓ Sincronización completada', 'success');
                         updateLastSyncTime();
                     }, 4000);
                 });
@@ -1054,7 +1061,7 @@
                         indicator.style.display = 'block';
                         setTimeout(() => {
                             indicator.style.display = 'none';
-                            showToast('ðŸ”„ Tabla actualizada', 'info');
+                            showToast('🔄 Tabla actualizada', 'info');
                         }, 2000);
                     }
                 });
@@ -1310,28 +1317,38 @@
         function updateStockDisplay() {
             const stockActual = document.getElementById('stockActual');
             if (stockActual) {
-                // Simular datos de stock
-                const stock = Math.floor(Math.random() * 500) + 10;
-                stockActual.textContent = stock;
+                // Mostrar valor real si está disponible en el atributo data-stock
+                const stockAttr = stockActual.getAttribute('data-stock');
+                if (stockAttr !== null && stockAttr !== '') {
+                    const stock = parseInt(stockAttr, 10);
+                    if (!Number.isNaN(stock)) {
+                        stockActual.textContent = stock;
 
-                // Animación del contador
-                stockActual.style.transform = 'scale(1.2)';
-                stockActual.style.transition = 'transform 0.3s ease';
+                        // Animación ligera cuando se actualiza
+                        stockActual.style.transform = 'scale(1.05)';
+                        stockActual.style.transition = 'transform 0.2s ease';
+                        setTimeout(() => { stockActual.style.transform = 'scale(1)'; }, 200);
 
-                setTimeout(() => {
-                    stockActual.style.transform = 'scale(1)';
-                }, 300);
+                        // Color basado en el stock
+                        if (stock < 50) {
+                            stockActual.className = 'text-2xl font-bold text-red-600';
+                            stockActual.parentElement.className = 'bg-red-50 p-4 rounded-lg border border-red-200';
+                        } else if (stock < 100) {
+                            stockActual.className = 'text-2xl font-bold text-yellow-600';
+                            stockActual.parentElement.className = 'bg-yellow-50 p-4 rounded-lg border border-yellow-200';
+                        } else {
+                            stockActual.className = 'text-2xl font-bold text-green-600';
+                            stockActual.parentElement.className = 'bg-green-50 p-4 rounded-lg border border-green-200';
+                        }
+                        return;
+                    }
+                }
 
-                // Color basado en el stock
-                if (stock < 50) {
-                    stockActual.className = 'text-2xl font-bold text-red-600';
-                    stockActual.parentElement.className = 'bg-red-50 p-4 rounded-lg border border-red-200';
-                } else if (stock < 100) {
-                    stockActual.className = 'text-2xl font-bold text-yellow-600';
-                    stockActual.parentElement.className = 'bg-yellow-50 p-4 rounded-lg border border-yellow-200';
-                } else {
-                    stockActual.className = 'text-2xl font-bold text-green-600';
-                    stockActual.parentElement.className = 'bg-green-50 p-4 rounded-lg border border-green-200';
+                // Si no hay dato real, mostrar placeholder neutro en lugar de un número aleatorio
+                stockActual.textContent = '--';
+                stockActual.className = 'text-2xl font-bold text-gray-500';
+                if (stockActual.parentElement) {
+                    stockActual.parentElement.className = 'bg-blue-50 p-4 rounded-lg border border-blue-200';
                 }
             }
         }
@@ -1383,10 +1400,10 @@
             setInterval(() => {
                 if (Math.random() < 0.1) { // 10% de probabilidad cada minuto
                     const messages = [
-                        'âœ… Sistema funcionando correctamente',
-                        'ðŸ“Š Base de datos sincronizada',
-                        'ðŸ”„ Datos actualizados automáticamente',
-                        'ðŸ“ˆ Rendimiento óptimo del sistema'
+                        '✓ Sistema funcionando correctamente',
+                        '✓ Base de datos sincronizada',
+                        '🔄 Datos actualizados automáticamente',
+                        '⚡ Rendimiento óptimo del sistema'
                     ];
 
                     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
@@ -1481,9 +1498,9 @@
                             const hasta = new Date(fechaHasta).toLocaleDateString('es-ES');
                             rangoFechas.textContent = `Mostrando entradas del ${desde} al ${hasta}`;
                         }
-                        showToast(`ðŸ“… Filtro aplicado: ${fechaDesde} a ${fechaHasta}`, 'info');
+                        showToast(`📅 Filtro aplicado: ${fechaDesde} a ${fechaHasta}`, 'info');
                     } else {
-                        showToast('âš ï¸ Seleccione ambas fechas para filtrar', 'warning');
+                        showToast('⚠️ Seleccione ambas fechas para filtrar', 'warning');
                     }
                 });
             }
@@ -1493,10 +1510,10 @@
             const exportBtn = document.getElementById('exportVisible');
             if (exportBtn) {
                 exportBtn.addEventListener('click', () => {
-                    showToast('ðŸ“¥ Preparando exportación...', 'info');
+                    showToast('📤 Preparando exportación...', 'info');
 
                     setTimeout(() => {
-                        showToast('âœ… Datos exportados exitosamente', 'success');
+                        showToast('✓ Datos exportados exitosamente', 'success');
                     }, 2000);
                 });
             }
@@ -1512,14 +1529,14 @@
 
                     if (!isExpanded) {
                         tableContainer.classList.add('fixed', 'inset-4', 'z-40', 'overflow-auto');
-                        expandBtn.innerHTML = '<span>â›¶</span><span class="hidden md:inline">Contraer</span>';
+                        expandBtn.innerHTML = '<span>⤢</span><span class="hidden md:inline">Contraer</span>';
                         isExpanded = true;
-                        showToast('â›¶ Tabla expandida', 'info');
+                        showToast('⤢ Tabla expandida', 'info');
                     } else {
                         tableContainer.classList.remove('fixed', 'inset-4', 'z-40', 'overflow-auto');
-                        expandBtn.innerHTML = '<span>â›¶</span><span class="hidden md:inline">Expandir</span>';
+                        expandBtn.innerHTML = '<span>⤢</span><span class="hidden md:inline">Expandir</span>';
                         isExpanded = false;
-                        showToast('â›¶ Tabla contraída', 'info');
+                        showToast('⤢ Tabla contraída', 'info');
                     }
                 });
             }

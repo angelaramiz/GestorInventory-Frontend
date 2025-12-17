@@ -170,39 +170,63 @@ export class SessionManager {
             const challenge = new Uint8Array(32);
             crypto.getRandomValues(challenge);
 
+            const encoder = new TextEncoder();
+            const userId = encoder.encode(email);
+
             const registerOptions = {
-                challenge: challenge,
-                rp: {
-                    name: 'Sistema de Gestión de Productos',
-                    id: window.location.hostname
-                },
-                user: {
-                    id: new Uint8Array(Buffer.from(email)),
-                    name: email,
-                    displayName: email
-                },
-                pubKeyCredParams: [
-                    { type: 'public-key', alg: -7 },  // ES256
-                    { type: 'public-key', alg: -257 } // RS256
-                ],
-                timeout: 60000,
-                attestation: 'none',
-                authenticatorSelection: {
-                    authenticatorAttachment: 'platform',
-                    userVerification: 'preferred',
-                    residentKey: 'preferred'
+                publicKey: {
+                    challenge: challenge.buffer,
+                    rp: {
+                        name: 'Sistema de Gestión de Productos',
+                        id: window.location.hostname
+                    },
+                    user: {
+                        id: userId,
+                        name: email,
+                        displayName: email
+                    },
+                    pubKeyCredParams: [
+                        { type: 'public-key', alg: -7 },  // ES256
+                        { type: 'public-key', alg: -257 } // RS256
+                    ],
+                    timeout: 60000,
+                    attestation: 'none',
+                    authenticatorSelection: {
+                        authenticatorAttachment: 'platform',
+                        userVerification: 'preferred',
+                        residentKey: 'preferred'
+                    }
                 }
             };
 
-            const credential = await navigator.credentials.create({
-                publicKey: registerOptions
-            });
+            const credential = await navigator.credentials.create(registerOptions);
 
             if (credential) {
                 // Guardar credencial localmente (en un caso real, enviar al servidor)
-                this.saveBiometricCredential(email, credential);
+                const rawId = credential.rawId;
+                const attestationObject = credential.response?.attestationObject;
+                const clientDataJSON = credential.response?.clientDataJSON;
+
+                const stored = {
+                    id: this.arrayBufferToBase64(rawId),
+                    type: credential.type,
+                    attestationObject: this.arrayBufferToBase64(attestationObject),
+                    clientDataJSON: this.arrayBufferToBase64(clientDataJSON),
+                    timestamp: new Date().toISOString()
+                };
+
+                this.saveBiometricCredential(email, stored);
+
+                // Intentar enviar al backend (Supabase) si está disponible
+                try {
+                    await this.saveCredentialToSupabase(email, stored);
+                } catch (e) {
+                    console.warn('No se pudo guardar credencial en backend:', e);
+                }
+
                 return true;
             }
+
             return false;
         } catch (error) {
             console.warn('Error registrando credencial biométrica:', error);
@@ -228,19 +252,28 @@ export class SessionManager {
             const challenge = new Uint8Array(32);
             crypto.getRandomValues(challenge);
 
+            const allowCredentials = [
+                {
+                    type: 'public-key',
+                    id: this.base64ToArrayBuffer(credential.id)
+                }
+            ];
+
             const assertionOptions = {
-                challenge: challenge,
+                challenge: challenge.buffer,
                 timeout: 60000,
                 userVerification: 'preferred',
-                rpId: window.location.hostname
+                rpId: window.location.hostname,
+                allowCredentials
             };
 
-            const assertion = await navigator.credentials.get({
-                publicKey: assertionOptions,
-                mediation: 'optional'
-            });
+            const assertion = await navigator.credentials.get({ publicKey: assertionOptions });
 
-            return assertion ? true : false;
+            if (!assertion) return false;
+
+            // Verificar en backend o con fallback local
+            const verified = await this.verifyAssertionWithServer(email, assertion);
+            return verified;
         } catch (error) {
             console.warn('Error autenticando con biometría:', error);
             return false;
@@ -266,13 +299,104 @@ export class SessionManager {
         try {
             const credentials = JSON.parse(localStorage.getItem(this.biometricKey) || '{}');
             credentials[email] = {
-                id: this.arrayBufferToBase64(credential.id),
-                type: credential.type,
-                timestamp: new Date().toISOString()
+                id: credential.id || (credential.rawId ? this.arrayBufferToBase64(credential.rawId) : null),
+                type: credential.type || 'public-key',
+                attestationObject: credential.attestationObject || null,
+                clientDataJSON: credential.clientDataJSON || null,
+                timestamp: credential.timestamp || new Date().toISOString()
             };
             localStorage.setItem(this.biometricKey, JSON.stringify(credentials));
         } catch (error) {
             console.warn('Error guardando credencial biométrica:', error);
+        }
+    }
+
+    /**
+     * Enviar credencial al backend (Supabase) para almacenamiento seguro.
+     * Nota: en producción el servidor debe validar la attestation. Aquí intentamos
+     * insertar en la tabla `biometric_credentials` si está disponible.
+     */
+    async saveCredentialToSupabase(email, credentialObj) {
+        try {
+            if (!window.getSupabase) {
+                console.warn('getSupabase no disponible, omitiendo envío de credencial al backend');
+                return false;
+            }
+
+            const supabase = await window.getSupabase();
+            if (!supabase) {
+                console.warn('Supabase no inicializado, no se enviará la credencial');
+                return false;
+            }
+
+            const payload = {
+                email,
+                credential_id: credentialObj.id,
+                attestation: credentialObj.attestationObject || null,
+                client_data: credentialObj.clientDataJSON || null,
+                created_at: new Date().toISOString()
+            };
+
+            const { data, error } = await supabase.from('biometric_credentials').insert([payload]);
+            if (error) {
+                console.warn('No se pudo guardar la credencial en Supabase:', error.message || error);
+                return false;
+            }
+            console.log('Credencial biométrica enviada a Supabase:', data);
+            return true;
+        } catch (error) {
+            console.warn('Error enviando credencial a Supabase:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Verificar la assertion con el backend.
+     * Intenta llamar a un RPC `verify_webauthn` si está disponible; si no, hace un
+     * fallback simple buscando el credential_id en la tabla `biometric_credentials`.
+     */
+    async verifyAssertionWithServer(email, assertion) {
+        try {
+            if (!window.getSupabase) {
+                console.warn('getSupabase no disponible, no se puede verificar en backend');
+                return false;
+            }
+
+            const supabase = await window.getSupabase();
+            if (!supabase) return false;
+
+            // Preparar datos para el backend
+            const dataToSend = {
+                email,
+                id: this.arrayBufferToBase64(assertion.rawId),
+                authData: this.arrayBufferToBase64(assertion.response.authenticatorData || new ArrayBuffer(0)),
+                signature: this.arrayBufferToBase64(assertion.response.signature || new ArrayBuffer(0)),
+                clientDataJSON: this.arrayBufferToBase64(assertion.response.clientDataJSON || new ArrayBuffer(0))
+            };
+
+            // Intentar RPC 'verify_webauthn' (si el backend lo implementó en Supabase)
+            try {
+                const { data, error } = await supabase.rpc('verify_webauthn', dataToSend);
+                if (error) {
+                    console.warn('RPC verify_webauthn no disponible o falló:', error.message || error);
+                } else {
+                    console.log('Resultado verify_webauthn:', data);
+                    return !!data?.verified;
+                }
+            } catch (rpcErr) {
+                console.warn('Error llamando RPC verify_webauthn:', rpcErr.message || rpcErr);
+            }
+
+            // Fallback: comprobar existencia del credential id en la tabla
+            const { data, error } = await supabase.from('biometric_credentials').select('*').eq('email', email).eq('credential_id', dataToSend.id).limit(1);
+            if (error) {
+                console.warn('Error consultando biometric_credentials:', error.message || error);
+                return false;
+            }
+            return data && data.length > 0;
+        } catch (error) {
+            console.warn('Error verificando assertion en servidor:', error);
+            return false;
         }
     }
 

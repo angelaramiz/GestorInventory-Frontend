@@ -201,6 +201,80 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!result) {
                 console.warn('⚠️ Supabase no se inicializó correctamente, continuando sin él');
             }
+            // Intento opcional de login biométrico si existe usuario recordado y credencial
+            try {
+                const rememberedEmail = sessionManager.getRememberedUser() || localStorage.getItem('email');
+                if (rememberedEmail) {
+                    const hasCred = await sessionManager.hasBiometricCredential(rememberedEmail);
+                    if (hasCred) {
+                        const doAuto = await Swal.fire({
+                            title: 'Inicio con biometría',
+                            text: `Se detectó una credencial biométrica para ${rememberedEmail}. ¿Deseas iniciar sesión con biometría?`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, usar biometría',
+                            cancelButtonText: 'No'
+                        });
+
+                        if (doAuto.isConfirmed) {
+                            Swal.fire({ title: 'Autenticando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                            const ok = await sessionManager.authenticateWithBiometric(rememberedEmail);
+                            Swal.close();
+                            if (ok) {
+                                // Intentar solicitar sesión al backend por biometric-login (endpoint opcional)
+                                try {
+                                    const resp = await fetch(`${BASE_URL}/productos/biometric-login`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ email: rememberedEmail })
+                                    });
+                                    if (resp.ok) {
+                                        const json = await resp.json();
+                                        if (json.success && json.user) {
+                                            // Reutilizar la función iniciarSesion con tokens si el backend devuelve estructura esperada
+                                            const { access_token, refresh_token, user } = json.user;
+                                            if (access_token && refresh_token && user) {
+                                                localStorage.setItem('supabase.auth.token', access_token);
+                                                localStorage.setItem('supabase.auth.refresh', refresh_token);
+                                                localStorage.setItem('usuario_id', user.id);
+                                                localStorage.setItem('categoria_id', user.categoria_id);
+                                                localStorage.setItem('rol', user.rol);
+                                                localStorage.setItem('email', rememberedEmail);
+
+                                                sessionManager.saveSession({
+                                                    access_token,
+                                                    refresh_token,
+                                                    usuario_id: user.id,
+                                                    categoria_id: user.categoria_id,
+                                                    rol: user.rol,
+                                                    email: rememberedEmail,
+                                                    nombre: user.nombre || 'Usuario'
+                                                });
+
+                                                inicializarRenovacionAutomatica();
+                                                mostrarAlertaBurbuja('Inicio de sesión por biometría exitoso', 'success');
+                                                setTimeout(() => {
+                                                    window.location.href = './plantillas/main.html';
+                                                }, 500);
+                                            }
+                                        }
+                                    } else {
+                                        console.warn('biometric-login no implementado en backend o falló');
+                                        mostrarAlertaBurbuja('Autenticación biométrica completada localmente (sin sesión servidor)', 'warning');
+                                    }
+                                } catch (err) {
+                                    console.warn('Error contactando endpoint biometric-login:', err);
+                                    mostrarAlertaBurbuja('Autenticación biométrica completada localmente (sin sesión servidor)', 'warning');
+                                }
+                            } else {
+                                mostrarAlertaBurbuja('Autenticación biométrica fallida', 'error');
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Error en intento biométrico automático:', err);
+            }
         } catch (error) {
             console.error('Error al inicializar Supabase en carga de página:', error);
         }

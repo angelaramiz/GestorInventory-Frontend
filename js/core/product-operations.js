@@ -1599,7 +1599,7 @@ export async function seleccionarUbicacionAlmacen() {
 }
 
 export async function verificarYSeleccionarUbicacion() {
-    const { obtenerUbicacionEnUso, obtenerAreaId, guardarAreaIdPersistente } = await import('./db-operations.js');
+    const { obtenerUbicacionEnUso, obtenerAreaId, guardarAreaIdPersistente } = await import('../db/db-operations.js');
     const ubicacionGuardada = await obtenerUbicacionEnUso();
     const areaIdGuardado = obtenerAreaId();
 

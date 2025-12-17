@@ -224,7 +224,7 @@ async function init() {
 
             // Inicializar sistema de lotes
             try {
-                const { inicializarSistemaLotes } = await import('./lotes-scanner.js');
+                const { inicializarSistemaLotes } = await import('../scanner/lotes-scanner.js');
                 if (inicializarSistemaLotes) {
                     inicializarSistemaLotes();
                     console.log('Sistema de lotes inicializado correctamente');
@@ -235,7 +235,7 @@ async function init() {
 
             // Inicializar sistema de lotes avanzado
             try {
-                const { inicializarSistemaLotesAvanzado } = await import('./lotes-avanzado.js');
+                const { inicializarSistemaLotesAvanzado } = await import('../scanner/lotes-avanzado.js');
                 if (inicializarSistemaLotesAvanzado) {
                     inicializarSistemaLotesAvanzado();
                     console.log('Sistema de lotes avanzado inicializado correctamente');
@@ -256,7 +256,7 @@ async function init() {
             document.getElementById('testPestanasLotes')?.addEventListener('click', async () => {
                 console.log('🧪 Test: Forzando mostrar pestañas de lotes');
                 try {
-                    const { manejarTipoProducto, establecerProductoActual } = await import('./lotes-scanner.js');
+                    const { manejarTipoProducto, establecerProductoActual } = await import('../scanner/lotes-scanner.js');
                     
                     // Crear producto de prueba tipo Kg
                     const productoTest = {
@@ -297,7 +297,7 @@ async function init() {
                 console.log('🔍 Test: Iniciando prueba de extracción de códigos');
                 try {
                     // Importar función de prueba
-                    const moduloLotes = await import('./lotes-scanner.js');
+                    const moduloLotes = await import('../scanner/lotes-scanner.js');
                     
                     if (moduloLotes.probarExtraccionPrecio) {
                         console.log('🔍 Test: Ejecutando probarExtraccionPrecio()');

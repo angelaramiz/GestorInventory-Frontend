@@ -1,4 +1,5 @@
-const CACHE_NAME = "gestor-inventory-v2";
+// Incrementar la versión del cache para forzar actualización en los clientes
+const CACHE_NAME = "gestor-inventory-v3";
 
 // Detectar si estamos en localhost o en GitHub Pages
 const isLocalhost =

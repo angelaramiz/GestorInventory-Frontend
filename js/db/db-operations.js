@@ -140,9 +140,37 @@ export async function procesarColaSincronizacion() {
     }
 }
 
-// Escuchar eventos de conexión
-window.addEventListener('online', procesarColaSincronizacion);
-window.addEventListener('online', procesarColaSincronizacionEntradas);
+// Registrar sincronización automática SOLO en páginas específicas
+(() => {
+    const allowedSyncPages = ['main.html', 'inventario.html'];
+    const pathname = window.location && window.location.pathname ? window.location.pathname : '';
+    const shouldEnableSync = allowedSyncPages.some(p => pathname.includes(p));
+
+    if (!shouldEnableSync) {
+        console.log('Sincronización automática deshabilitada en esta ruta:', pathname);
+        return;
+    }
+
+    // Escuchar eventos de conexión
+    window.addEventListener('online', procesarColaSincronizacion);
+    // procesarColaSincronizacionEntradas puede no existir en todas las versiones; añadir condicionalmente
+    if (typeof procesarColaSincronizacionEntradas === 'function') {
+        window.addEventListener('online', procesarColaSincronizacionEntradas);
+    }
+
+    // También sincronizar bidireccionalmente cuando volvemos a línea
+    window.addEventListener('online', () => {
+        console.log('Conexión restablecida: iniciando sincronización bidireccional');
+        sincronizarBidireccional().catch(err => console.error('Error en sincronización bidireccional:', err));
+    });
+
+    // Ejecutar sincronización periódica cuando estemos online (cada 60s)
+    setInterval(() => {
+        if (navigator.onLine) {
+            sincronizarBidireccional().catch(err => console.error('Error en sincronización periódica:', err));
+        }
+    }, 60 * 1000);
+})();
 
 // Inicialización de la base de datos
 export function inicializarDB() {
@@ -256,6 +284,245 @@ async function actualizarInventarioDesdeServidor(payload) {
         }
     } catch (error) {
         console.error("Error actualizando inventario local:", error);
+    }
+}
+
+/**
+ * Sincronización bidireccional: subida de cambios locales pendientes y bajada de cambios desde Supabase.
+ */
+export async function sincronizarBidireccional() {
+    try {
+        // Primero procesar la cola local (subida)
+        await procesarColaSincronizacion();
+        // Luego bajar cambios desde Supabase y resolver conflictos
+        await sincronizarDesdeSupabase();
+        // Finalmente, intentar sincronizar productos locales que no hayan subido
+        await sincronizarProductosLocalesHaciaSupabase();
+    } catch (error) {
+        console.error('Error en sincronizarBidireccional:', error);
+        throw error;
+    }
+}
+
+/**
+ * Baja cambios desde Supabase y actualiza IndexedDB.
+ * - Consulta registros con `last_modified` mayores al último `lastSync` local.
+ * - Para conflictos, conserva el que tenga `last_modified` más reciente y en caso de que el local sea más nuevo, lo añade a la cola para subir.
+ */
+export async function sincronizarDesdeSupabase() {
+    try {
+        const supabase = await getSupabase();
+        if (!supabase) {
+            console.warn('sincronizarDesdeSupabase: supabase no inicializado');
+            return;
+        }
+
+        const lastSync = localStorage.getItem('lastSync') || '1970-01-01T00:00:00.000Z';
+        const maxTimestamp = new Date(lastSync).toISOString();
+
+        // Sincronizar tabla productos
+        try {
+            // Intentar sincronización incremental por last_modified
+            let productosRemotos = null;
+            try {
+                const { data, error: errProd } = await supabase
+                    .from('productos')
+                    .select('*')
+                    .gt('last_modified', lastSync || '1970-01-01T00:00:00.000Z');
+
+                if (errProd) {
+                    // Detectar si el error es por columna inexistente (p. ej. código Postgres 42703)
+                    const isMissingColumn = errProd.code === '42703' || (errProd.message && errProd.message.includes('last_modified'));
+                    if (isMissingColumn) {
+                        console.warn('Sincronización: la columna last_modified no existe en productos. Realizando fetch completo como fallback.');
+                        const { data: allData, error: errAll } = await supabase.from('productos').select('*');
+                        if (errAll) throw errAll;
+                        productosRemotos = allData || [];
+                    } else {
+                        throw errProd;
+                    }
+                } else {
+                    productosRemotos = data || [];
+                }
+            } catch (innerErr) {
+                // Si ocurre un error recuperable, reintentar con fetch completo
+                if (!productosRemotos) {
+                    console.warn('Fallo al intentar sincronizar incrementalmente productos, intentando fetch completo:', innerErr.message || innerErr);
+                    const { data: allData, error: errAll } = await supabase.from('productos').select('*');
+                    if (errAll) throw errAll;
+                    productosRemotos = allData || [];
+                }
+            }
+
+            if (productosRemotos && productosRemotos.length) {
+                const tx = db.transaction(['productos'], 'readwrite');
+                const store = tx.objectStore('productos');
+
+                for (const remoto of productosRemotos) {
+                    const codigo = String(remoto.codigo);
+                    const getReq = store.get(codigo);
+                    // Encapsular en promesa para serializar
+                    await new Promise((resolve) => {
+                        getReq.onsuccess = async () => {
+                            const local = getReq.result;
+                            const remotoTS = remoto.last_modified ? new Date(remoto.last_modified).getTime() : null;
+                            const localTS = local && local.last_modified ? new Date(local.last_modified).getTime() : null;
+
+                            if (!local) {
+                                // No existe localmente -> insertar remoto
+                                try {
+                                    const putReq = store.put(remoto);
+                                    putReq.onsuccess = () => resolve();
+                                    putReq.onerror = () => resolve();
+                                } catch (e) { resolve(); }
+                            } else if (remotoTS !== null && localTS !== null) {
+                                if (remotoTS > localTS) {
+                                    // Remoto más reciente -> sobrescribir local
+                                    try {
+                                        const putReq = store.put(remoto);
+                                        putReq.onsuccess = () => resolve();
+                                        putReq.onerror = () => resolve();
+                                    } catch (e) { resolve(); }
+                                } else if (localTS > remotoTS) {
+                                    // Local más reciente -> añadir a la cola para subir
+                                    agregarAColaSincronizacion(local);
+                                    resolve();
+                                } else {
+                                    resolve();
+                                }
+                            } else {
+                                // No hay timestamps disponibles: reconciliar por contenido
+                                try {
+                                    const localJson = JSON.stringify(local || {});
+                                    const remotoJson = JSON.stringify(remoto || {});
+                                    if (!local) {
+                                        const putReq = store.put(remoto);
+                                        putReq.onsuccess = () => resolve();
+                                        putReq.onerror = () => resolve();
+                                    } else if (localJson !== remotoJson) {
+                                        // Si difieren y no hay timestamps, preferimos la versión local: encolar para subir
+                                        agregarAColaSincronizacion(local);
+                                        resolve();
+                                    } else {
+                                        resolve();
+                                    }
+                                } catch (e) { resolve(); }
+                            }
+                        };
+                        getReq.onerror = () => resolve();
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error sincronizando productos desde Supabase:', error);
+        }
+
+        // Sincronizar tabla inventario — Solo en la ruta inventario.html
+        if (window.location && window.location.pathname && window.location.pathname.includes('inventario.html')) {
+            try {
+                const { data: inventarioRemoto, error: errInv } = await supabase
+                    .from('inventario')
+                    .select('*')
+                    .gt('last_modified', lastSync || '1970-01-01T00:00:00.000Z');
+
+                if (errInv) throw errInv;
+
+                if (inventarioRemoto && inventarioRemoto.length) {
+                    const tx = dbInventario.transaction(['inventario'], 'readwrite');
+                    const store = tx.objectStore('inventario');
+
+                    for (const remoto of inventarioRemoto) {
+                        const id = remoto.id;
+                        const getReq = store.get(id);
+                        await new Promise((resolve) => {
+                            getReq.onsuccess = () => {
+                                const local = getReq.result;
+                                const remotoTS = remoto.last_modified ? new Date(remoto.last_modified).getTime() : 0;
+                                const localTS = local && local.last_modified ? new Date(local.last_modified).getTime() : 0;
+
+                                if (!local) {
+                                    const putReq = store.put({ ...remoto, areaName: localStorage.getItem('ubicacion_almacen') || '' });
+                                    putReq.onsuccess = () => resolve();
+                                    putReq.onerror = () => resolve();
+                                } else if (remotoTS > localTS) {
+                                    const putReq = store.put({ ...remoto, areaName: local.areaName || localStorage.getItem('ubicacion_almacen') || '' });
+                                    putReq.onsuccess = () => resolve();
+                                    putReq.onerror = () => resolve();
+                                } else if (localTS > remotoTS) {
+                                    // Local más reciente -> subir
+                                    agregarAColaSincronizacion(local);
+                                    resolve();
+                                } else {
+                                    resolve();
+                                }
+                            };
+                            getReq.onerror = () => resolve();
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error sincronizando inventario desde Supabase:', error);
+            }
+        }
+
+        // Actualizar timestamp de última sincronización
+        try {
+            localStorage.setItem('lastSync', new Date().toISOString());
+        } catch (e) { /* ignore */ }
+
+    } catch (error) {
+        console.error('sincronizarDesdeSupabase error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Sincroniza productos locales hacia Supabase: para cada producto local, si el remoto no existe
+ * o está desactualizado, se hace upsert.
+ */
+export async function sincronizarProductosLocalesHaciaSupabase() {
+    try {
+        const supabase = await getSupabase();
+        if (!supabase) return;
+
+        const productosLocal = await new Promise((resolve, reject) => {
+            const tx = db.transaction(['productos'], 'readonly');
+            const store = tx.objectStore('productos');
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => resolve([]);
+        });
+
+        for (const local of productosLocal) {
+            try {
+                // Obtener remoto por codigo
+                const { data: remoto, error } = await supabase
+                    .from('productos')
+                    .select('*')
+                    .eq('codigo', local.codigo)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') {
+                    // PGRST116 may mean no rows; ignore and continue
+                }
+
+                if (!remoto) {
+                    // No existe remoto -> insertar
+                    await supabase.from('productos').insert({ ...local, usuario_id: local.usuario_id || localStorage.getItem('usuario_id') });
+                } else {
+                    const remotoTS = remoto.last_modified ? new Date(remoto.last_modified).getTime() : 0;
+                    const localTS = local.last_modified ? new Date(local.last_modified).getTime() : 0;
+                    if (localTS > remotoTS) {
+                        // Local más reciente -> upsert
+                        await supabase.from('productos').upsert({ ...local, usuario_id: local.usuario_id || localStorage.getItem('usuario_id') });
+                    }
+                }
+            } catch (err) {
+                console.error('Error sincronizando producto local hacia Supabase:', err, local.codigo);
+            }
+        }
+    } catch (error) {
+        console.error('sincronizarProductosLocalesHaciaSupabase error:', error);
     }
 }
 

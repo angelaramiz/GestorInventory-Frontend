@@ -215,55 +215,9 @@ class ThemeManager {
             console.warn('DOM no disponible para crear theme toggle');
             return null;
         }
-
-        const themeToggle = document.createElement('div');
-        themeToggle.className = 'theme-toggle-container dark-theme-bg dark-theme-text';
-        themeToggle.innerHTML = `
-            <div class="theme-toggle-wrapper dark-theme-bg">
-                <label class="theme-toggle-label dark-theme-text">
-                    <svg class="theme-icon sun-icon dark-theme-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
-                        </path>
-                    </svg>
-                    <span class="theme-toggle-switch dark-theme-accent">
-                        <input type="checkbox" class="theme-checkbox dark-theme-input" ${this.getActualTheme() === 'dark' ? 'checked' : ''}>
-                        <span class="theme-slider dark-theme-slider"></span>
-                    </span>
-                    <svg class="theme-icon moon-icon dark-theme-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
-                        </path>
-                    </svg>
-                </label>
-            </div>
-        `;
-
-        // Agregar evento de cambio
-        const checkbox = themeToggle.querySelector('.theme-checkbox');
-        if (checkbox) {
-            checkbox.addEventListener('change', (e) => {
-                this.setTheme(e.target.checked ? 'dark' : 'light');
-            });
-        }
-
-        // Insertar en el contenedor especificado o en el header
-        if (container) {
-            container.appendChild(themeToggle);
-        } else {
-            // Buscar un lugar apropiado en el header
-            const header = document.querySelector('header');
-            if (header) {
-                header.appendChild(themeToggle);
-            } else {
-                // Si no hay header, agregar al body solo si está disponible
-                if (document.body) {
-                    document.body.insertBefore(themeToggle, document.body.firstChild);
-                }
-            }
-        }
-
-        return themeToggle;
+        // Toggle eliminado: devolver null para evitar insertar el control en el DOM.
+        // Si se desea restaurarlo en el futuro, revertir este cambio.
+        return null;
     }
 
     // Crear un selector de tema más completo (con opción auto)

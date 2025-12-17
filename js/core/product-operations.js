@@ -5,6 +5,20 @@ import { sanitizarProducto, sanitizarEntrada, sanitizarNumeroEntero } from '../u
 import { getSupabase } from '../auth/auth.js';
 import { v4 as uuidv4 } from 'https://cdn.jsdelivr.net/npm/uuid@8.3.2/+esm'; // Usar UUID para IDs únicos
 import { mostrarUbicacionActual } from '../core/main.js';
+// Inicializar una referencia local al cliente Supabase para compatibilidad
+let supabase = null;
+(async function initSupabaseClient() {
+    try {
+        supabase = await getSupabase();
+    } catch (e) {
+        console.warn('No se pudo inicializar Supabase automáticamente en product-operations:', e.message);
+        try {
+            supabase = window.supabase || null;
+        } catch (err) {
+            supabase = null;
+        }
+    }
+})();
 // Función para generar un ID temporal si estás offline
 function generarIdTemporal(codigo, lote) {
     return `${codigo}-${lote}-${uuidv4().slice(0, 8)}`; // Ejemplo: "123-1-abc12345"
@@ -317,10 +331,16 @@ export async function agregarProducto(evento) {
     const transaction = db.transaction(["productos"], "readwrite");
     const objectStore = transaction.objectStore("productos");
 
-    // Verificar si el código ya existe
+    // Verificar si el código ya existe (usar el código sanitizado para evitar discrepancias)
+    const codigoBuscado = productosanitizado.codigo;
     const existe = await new Promise(resolve => {
-        const req = objectStore.get(codigo);
-        req.onsuccess = () => resolve(!!req.result);
+        const req = objectStore.get(codigoBuscado);
+        req.onsuccess = () => {
+            if (req.result) {
+                console.warn('Verificación existencia: request.result =', req.result);
+            }
+            resolve(!!req.result);
+        };
     });
 
     if (existe) {
@@ -363,30 +383,35 @@ export async function agregarProducto(evento) {
         // Subir el producto a Supabase
         if (navigator.onLine) {
             try {
-                const { error } = await supabase
-                    .from('productos')
-                    .insert({ ...productosanitizado, categoria_id: categoriaId, usuario_id: localStorage.getItem('usuario_id') });
-
-                if (error) {
-                    console.error("Error al sincronizar con Supabase:", error);
-                    mostrarMensaje("Error al sincronizar con Supabase", "error");
+                const supabase = await getSupabase();
+                if (!supabase) {
+                    mostrarMensaje("No se pudo inicializar Supabase. Producto guardado localmente.", "warning");
                 } else {
-                    mostrarMensaje("Producto sincronizado exitosamente con Supabase", "success");
+                    const { error } = await supabase
+                        .from('productos')
+                        .insert({ ...productosanitizado, categoria_id: categoriaId, usuario_id: localStorage.getItem('usuario_id') });
 
-                    // Si hay un producto primario, crear la relación en producto_subproducto
-                    if (productoPrimario && productoPrimario.trim() !== '') {
-                        const { error: errorRelacion } = await supabase
-                            .from('productos_subproductos')
-                            .insert({
-                                principalproductid: productoPrimario,
-                                subproductid: codigo
-                            });
+                    if (error) {
+                        console.error("Error al sincronizar con Supabase:", error);
+                        mostrarMensaje("Error al sincronizar con Supabase", "error");
+                    } else {
+                        mostrarMensaje("Producto sincronizado exitosamente con Supabase", "success");
 
-                        if (errorRelacion) {
-                            console.error("Error al crear relación producto-subproducto:", errorRelacion);
-                            mostrarMensaje("Producto agregado pero hubo un error al crear la relación con el producto primario", "warning");
-                        } else {
-                            mostrarMensaje("Relación producto-subproducto creada exitosamente", "success");
+                        // Si hay un producto primario, crear la relación en producto_subproducto
+                        if (productoPrimario && productoPrimario.trim() !== '') {
+                            const { error: errorRelacion } = await supabase
+                                .from('productos_subproductos')
+                                .insert({
+                                    principalproductid: productoPrimario,
+                                    subproductid: codigo
+                                });
+
+                            if (errorRelacion) {
+                                console.error("Error al crear relación producto-subproducto:", errorRelacion);
+                                mostrarMensaje("Producto agregado pero hubo un error al crear la relación con el producto primario", "warning");
+                            } else {
+                                mostrarMensaje("Relación producto-subproducto creada exitosamente", "success");
+                            }
                         }
                     }
                 }
@@ -433,12 +458,13 @@ export async function agregarProducto(evento) {
  * buscarProducto("012345678901", { formato: { result: { format: { formatName: "UPC-A" } } } });
  */
 export function buscarProducto(codigo, formato) {
-    let codigoB = codigo;
-    let tipoFormato = formato || ''; // Valor por defecto
-
-    // Manejar el caso cuando formato está vacío o es undefined
-    if (!tipoFormato || tipoFormato === '') {
-        codigoB = document.getElementById("codigoConsulta").value;
+    // Preferir el `codigo` pasado por argumento si existe; solo leer del DOM si no se proporcionó
+    let codigoB = (codigo !== undefined && codigo !== null && String(codigo).trim() !== '')
+        ? String(codigo)
+        : (document.getElementById("codigoConsulta") ? document.getElementById("codigoConsulta").value : '');
+    let tipoFormato = formato || '';
+    // Si no se proporcionó tipoFormato, marcar como 'manual' cuando usamos el campo del DOM
+    if (!tipoFormato) {
         tipoFormato = 'manual';
     }
     console.log(`codigo: ${codigoB}, tipo de formato: ${tipoFormato}`)
@@ -525,11 +551,12 @@ export function buscarProducto(codigo, formato) {
 }
 
 export function buscarProductoParaEditar(codigo, formato) {
-    let codigoB = codigo;
-    let tipoFormato = formato || ''; // Valor por defecto
-    // Manejar el caso cuando formato está vacío o es undefined
-    if (!tipoFormato || tipoFormato === '') {
-        codigoB = document.getElementById("codigoEditar").value;
+    // Preferir el `codigo` pasado por argumento si existe; solo leer del DOM si no se proporcionó
+    let codigoB = (codigo !== undefined && codigo !== null && String(codigo).trim() !== '')
+        ? String(codigo)
+        : (document.getElementById("codigoEditar") ? document.getElementById("codigoEditar").value : '');
+    let tipoFormato = formato || '';
+    if (!tipoFormato) {
         tipoFormato = 'manual';
     }
 
@@ -1051,6 +1078,15 @@ export async function modificarInventario() {
 
     try {
         if (navigator.onLine) {
+            const supabase = await getSupabase();
+            if (!supabase) {
+                const datosParaIndexedDBError = { ...datosParaActualizarRemoto, is_temp_id: true, areaName: areaName_actual };
+                delete datosParaIndexedDBError.usuario_id;
+                await actualizarEnIndexedDB(datosParaIndexedDBError);
+                agregarAColaSincronizacion({ type: 'update', payload: datosParaActualizarRemoto });
+                mostrarMensaje("No se pudo inicializar Supabase. Modificación guardada localmente.", "warning");
+                return;
+            }
             const { data, error } = await supabase
                 .from('inventario')
                 .update({

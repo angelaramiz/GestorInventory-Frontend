@@ -139,6 +139,12 @@ async function inicializeSupabase() {
             console.log('✅ Supabase inicializado correctamente');
             console.log('   URL:', config.supabaseUrl?.substring(0, 30) + '...');
             console.log('   Auth disponible:', !!supabase.auth);
+            // Exponer el cliente y la función de obtención globalmente para compatibilidad
+            try {
+                window.supabase = supabase;
+            } catch (e) {
+                // En entornos donde window no está disponible, ignorar
+            }
         } catch (clientError) {
             console.error('❌ Error al crear cliente Supabase:', clientError.message);
             console.error('   Stack:', clientError.stack);
@@ -149,6 +155,12 @@ async function inicializeSupabase() {
         console.error('   Detalles:', error.message);
         console.error('   Stack:', error.stack);
         supabase = null;
+        try {
+            // Asegurar que la referencia global se limpie si la inicialización falla
+            window.supabase = null;
+        } catch (e) {
+            // Ignorar si no existe window
+        }
         // No lanzar error, solo devolver null para graceful degradation
     } finally {
         supabaseInitializing = false;
@@ -168,6 +180,13 @@ export async function getSupabase() {
         }
     }
     return supabase;
+}
+
+// Exponer la función getSupabase en window para compatibilidad con módulos antiguos
+try {
+    window.getSupabase = getSupabase;
+} catch (e) {
+    // Ignorar si no existe window
 }
 
 // Login

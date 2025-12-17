@@ -1547,7 +1547,7 @@ function mostrarFormularioModificacion(productoInventario) {
 // Función para solicitar al usuario la selección de ubicación
 export async function seleccionarUbicacionAlmacen() {
     try {
-        const { obtenerAreasPorCategoria, guardarAreaIdPersistente } = await import('./db-operations.js');
+        const { obtenerAreasPorCategoria, guardarAreaIdPersistente } = await import('../db/db-operations.js');
         const areas = await obtenerAreasPorCategoria();
 
         if (!areas || areas.length === 0) {
@@ -1606,7 +1606,7 @@ export async function verificarYSeleccionarUbicacion() {
     if (!ubicacionGuardada || !areaIdGuardado) {
         console.log("No se encontró ubicación o area_id guardados. Solicitando selección al usuario.");
         try {
-            const { obtenerAreasPorCategoria } = await import('./db-operations.js');
+            const { obtenerAreasPorCategoria } = await import('../db/db-operations.js');
             const areas = await obtenerAreasPorCategoria();
 
             if (!areas || areas.length === 0) {

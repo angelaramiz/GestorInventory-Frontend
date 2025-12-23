@@ -132,10 +132,20 @@ function playTone(frequency, duration, type = 'sine') {
 }
 
 // Función para toggle del escáner
-// Actualización de toggleEscaner para usar modal
-export function toggleEscaner(inputId) {
-    if (inputId) {
-        mostrarModalEscaneo(inputId);
+// Actualización de toggleEscaner para usar modal o container fijo
+export function toggleEscaner(inputId, containerId = null) {
+    if (containerId) {
+        // Usar container fijo
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.style.display = 'flex';
+            iniciarEscaneoConContainer(inputId, containerId);
+        }
+    } else {
+        // Usar modal
+        if (inputId) {
+            mostrarModalEscaneo(inputId);
+        }
     }
 }
 
@@ -264,6 +274,85 @@ export async function iniciarEscaneoConModal(inputId) {
         });
     } catch (error) {
         console.error("Error en iniciarEscaneoConModal:", error);
+    }
+}
+
+// Nueva función para iniciar el escáner en un container fijo
+export async function iniciarEscaneoConContainer(inputId, containerId) {
+    try {
+        const scannerContainer = document.getElementById(containerId);
+        if (!scannerContainer) return;
+        // Si ya hay una instancia activa, detenerla primero para evitar múltiples streams
+        if (scanner) {
+            try {
+                await scanner.stop();
+            } catch (e) {
+                console.warn('Error al detener instancia previa de scanner antes de crear nueva:', e);
+            }
+            try {
+                const videoElementPrev = document.querySelector("#reader video");
+                if (videoElementPrev && videoElementPrev.srcObject) {
+                    videoElementPrev.srcObject.getTracks().forEach(track => track.stop());
+                    videoElementPrev.srcObject = null;
+                }
+            } catch (e) {
+                console.warn('No se pudo forzar parada de pistas del video previo:', e);
+            }
+            try { scanner.clear(); } catch (e) {}
+            scanner = null;
+        }
+
+        // Asegurar que el contenedor reader esté limpio antes de crear la nueva instancia
+        const readerEl = document.getElementById('reader');
+        if (readerEl) readerEl.innerHTML = '';
+
+        // Esperar un poco para que el container tenga tamaño
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        scanner = new Html5Qrcode("reader");
+        scanner.start(
+            { facingMode: "environment" },
+            {
+                fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0
+            },
+            (decodedText, decodedResult) => {
+                // 1. Procesar el código primero
+                manejarCodigoEscaneado(decodedText, decodedResult, (codigoProcesado) => {
+                    // 2. Reproducir sonido de confirmación
+                    playTone(440, 0.2);
+                    
+                    // 3. Actualizar el input con el código procesado
+                    document.getElementById(inputId).value = codigoProcesado;
+                    const formatoCodigo = decodedResult.result.format.formatName.toLowerCase();
+                    // 4. Mostrar mensaje de éxito
+                    mostrarMensaje(`Código detectado: ${codigoProcesado}`, "success", { timer: 1000 });
+                    
+                    // 5. Ocultar container y detener escáner
+                    scannerContainer.style.display = 'none';
+                    detenerEscaner();
+                    
+                    // 6. Ejecutar búsqueda con el código procesado DESPUÉS de detener el escáner
+                    setTimeout(() => {
+                        if (inputId === "codigoConsulta") {
+                            buscarProducto(codigoProcesado, formatoCodigo);
+                        } else if (inputId === "codigoEditar") {
+                            buscarProductoParaEditar(codigoProcesado, formatoCodigo);
+                        } else if (inputId === "codigo") {
+                            buscarProductoInventario(codigoProcesado, formatoCodigo);
+                        } else if (inputId === "busquedaCodigo") {
+                            // Para registro-entradas, buscar producto
+                            buscarProductoInventario(codigoProcesado, formatoCodigo);
+                        }
+                    }, 100); // Pequeño delay para asegurar que el escáner se detuvo completamente
+                });
+            },
+            (error) => console.log("Error de escaneo:", error)
+        ).catch((err) => {
+            console.error("Error al iniciar el escáner:", err);
+            mostrarMensaje("Error al iniciar el escáner. Verifica los permisos de la cámara.", "error");
+        });
+    } catch (error) {
+        console.error("Error en iniciarEscaneoConContainer:", error);
     }
 }
 // Función para manejar el código escaneado

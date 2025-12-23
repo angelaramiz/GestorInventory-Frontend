@@ -4,19 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Entradas</title>    
+    <title>Registro de Entradas</title>
     <!-- Favicon y iconos -->
     <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/logo.svg">
-    
+    <link rel="manifest" href="../manifest.json">
+
     <link href="../librerías/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../librerías/fontawesome-all.min.css">
     <script src="../librerías/sweetalert2@11.js"></script>
     <script src="../librerías/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/mobile-components.css">
     <script src="../js/ui/theme-manager.js"></script>
-    
+
     <!-- Cargar Supabase como script tradicional -->
     <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
 </head>
@@ -25,7 +27,7 @@
     <header class="bg-green-600 text-white p-4 flex justify-between items-center shadow-lg">
         <div class="flex items-center space-x-3">
             <div class="p-2 bg-green-700 rounded-lg">
-                📦
+                <i class="fas fa-box text-white"></i>
             </div>
             <h1 class="text-3xl font-bold tracking-wide">Registro de Entradas</h1>
         </div>
@@ -54,7 +56,7 @@
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center space-x-4">
                 <h1 class="text-4xl font-bold text-gray-800 flex items-center">
-                    📦 Registro de Entradas
+                    <i class="fas fa-box text-green-600 mr-2"></i> Registro de Entradas
                     <span class="ml-3 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                         Sistema de Gestión
                     </span>
@@ -73,18 +75,18 @@
             </div>
         </div> <!-- Sección de búsqueda de productos -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover">
-                <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
-                🔎 Buscar Producto
+            <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
+                <i class="fas fa-search text-green-600 mr-2"></i> Buscar Producto
                 <span id="searchStatus" class="ml-3 text-sm"></span>
                 <div class="ml-auto text-sm text-gray-500">
                     <span id="ultimaBusqueda"></span>
                 </div>
             </h2>
 
-            <div class="grid md:grid-cols-3 gap-6 mb-6">
+            <div class="grid md:grid-cols-4 gap-6 mb-6">
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🔢 Buscar por Código:
+                        <i class="fas fa-hashtag text-gray-600 mr-2"></i> Buscar por Código:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaCodigo"
@@ -92,14 +94,14 @@
                             placeholder="Ingrese código del producto">
                         <button id="buscarPorCodigo"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
-                            <span id="btnCodigoText">🔎 Buscar</span>
+                            <span id="btnCodigoText"><i class="fas fa-search"></i> Buscar</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaNombre" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🔎 Buscar por Nombre:
+                        <i class="fas fa-search text-gray-600 mr-2"></i> Buscar por Nombre:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaNombre"
@@ -107,14 +109,14 @@
                             placeholder="Ingrese nombre del producto">
                         <button id="buscarPorNombre"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
-                            <span id="btnNombreText">🔎 Buscar</span>
+                            <span id="btnNombreText"><i class="fas fa-search"></i> Buscar</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="busquedaMarca" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🏷️ Buscar por Marca:
+                        <i class="fas fa-tag text-gray-600 mr-2"></i> Buscar por Marca:
                     </label>
                     <div class="flex shadow-md rounded-lg overflow-hidden">
                         <input type="text" id="busquedaMarca"
@@ -122,7 +124,22 @@
                             placeholder="Ingrese marca del producto">
                         <button id="buscarPorMarca"
                             class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
-                            <span id="btnMarcaText">🔎 Buscar</span>
+                            <span id="btnMarcaText"><i class="fas fa-search"></i> Buscar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="transform transition-all hover:scale-105">
+                    <label for="busquedaCodigoCorto" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <i class="fas fa-hashtag text-gray-600 mr-2"></i> Buscar por Código Corto:
+                    </label>
+                    <div class="flex shadow-md rounded-lg overflow-hidden">
+                        <input type="text" id="busquedaCodigoCorto"
+                            class="flex-1 border-0 p-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                            placeholder="Ingrese código corto del producto">
+                        <button id="buscarPorCodigoCorto"
+                            class="bg-green-500 text-white px-6 py-3 hover:bg-green-600 transition-colors">
+                            <span id="btnCodigoCortoText"><i class="fas fa-search"></i> Buscar</span>
                         </button>
                     </div>
                 </div>
@@ -131,7 +148,7 @@
             <div class="flex justify-center">
                 <button id="escanearBtn"
                     class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                    <span>🔍</span>
+                    <i class="fas fa-qrcode"></i>
                     <span>Escanear Código de Barras</span>
                 </button>
             </div>
@@ -148,7 +165,7 @@
             class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-green-500 card-hover"
             style="display: none;">
             <h2 class="text-xl font-bold mb-6 text-green-600 flex items-center">
-                📦 Datos del Producto
+                <i class="fas fa-box text-green-600 mr-2"></i> Datos del Producto
                 <div id="productLoadingIndicator" class="ml-3" style="display: none;">
                     <div
                         class="inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin">
@@ -157,7 +174,7 @@
                 </div>
                 <div class="ml-auto">
                     <span class="text-sm text-gray-500 bg-green-100 px-3 py-1 rounded-full">
-                        Producto encontrado ✓
+                        Producto encontrado <i class="fas fa-check text-green-600"></i>
                     </span>
                 </div>
             </h2>
@@ -168,7 +185,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="codigoProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            🔢 <span class="ml-2">Código del Producto:</span>
+                            <i class="fas fa-hashtag text-gray-600 mr-2"></i> <span class="ml-2">Código del Producto:</span>
                         </label>
                         <input type="text" id="codigoProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white font-mono text-lg rounded-lg shadow-sm"
@@ -178,7 +195,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="nombreProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            🔤 <span class="ml-2">Nombre del Producto:</span>
+                            <i class="fas fa-font text-gray-600 mr-2"></i> <span class="ml-2">Nombre del Producto:</span>
                         </label>
                         <input type="text" id="nombreProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white font-semibold text-lg rounded-lg shadow-sm"
@@ -188,7 +205,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="marcaProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            🏷️ <span class="ml-2">Marca:</span>
+                            <i class="fas fa-tag text-gray-600 mr-2"></i> <span class="ml-2">Marca:</span>
                         </label>
                         <input type="text" id="marcaProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
@@ -199,7 +216,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="categoriaProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            📂 <span class="ml-2">Categoría:</span>
+                            <i class="fas fa-folder text-gray-600 mr-2"></i> <span class="ml-2">Categoría:</span>
                         </label>
                         <input type="text" id="categoriaProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
@@ -208,7 +225,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="unidadProducto"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            📏 <span class="ml-2">Unidad de Medida:</span>
+                            <i class="fas fa-ruler text-gray-600 mr-2"></i> <span class="ml-2">Unidad de Medida:</span>
                         </label>
                         <input type="text" id="unidadProducto"
                             class="border-2 border-gray-200 p-3 w-full bg-white rounded-lg shadow-sm" readonly>
@@ -216,7 +233,7 @@
 
                     <!-- Información adicional del stock actual -->
                     <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <h4 class="text-sm font-semibold text-blue-700 mb-2">📊 Stock Actual</h4>
+                        <h4 class="text-sm font-semibold text-blue-700 mb-2"><i class="fas fa-chart-line text-blue-600 mr-2"></i> Stock Actual</h4>
                         <div class="text-2xl font-bold text-blue-600" id="stockActual">--</div>
                         <div class="text-xs text-blue-500">unidades disponibles</div>
                     </div>
@@ -224,7 +241,7 @@
             </div>
             <div class="border-t-2 border-gray-200 pt-8">
                 <h3 class="text-lg font-semibold mb-6 text-green-600 flex items-center">
-                    🧾 Datos de la Entrada
+                    <i class="fas fa-clipboard-list text-green-600 mr-2"></i> Datos de la Entrada
                     <span class="ml-3 text-sm text-gray-500 bg-yellow-100 px-3 py-1 rounded-full">
                         * Campos obligatorios
                     </span>
@@ -237,7 +254,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="cantidadEntrada"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                               📊 <span class="ml-2">Cantidad Recibida *:</span>
+                            <i class="fas fa-chart-bar text-gray-600 mr-2"></i> <span class="ml-2">Cantidad Recibida *:</span>
                         </label>
                         <div class="relative">
                             <input type="number" id="cantidadEntrada"
@@ -253,7 +270,7 @@
                     <div class="transform transition-all hover:scale-105">
                         <label for="fechaEntrada"
                             class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                               📅 <span class="ml-2">Fecha de Entrada *:</span>
+                            <i class="fas fa-calendar-alt text-gray-600 mr-2"></i> <span class="ml-2">Fecha de Entrada *:</span>
                         </label>
                         <input type="date" id="fechaEntrada"
                             class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm text-lg"
@@ -263,7 +280,7 @@
 
                     <div class="transform transition-all hover:scale-105">
                         <label for="loteEntrada" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                               🔢 <span class="ml-2">Número de Lote:</span>
+                            <i class="fas fa-hashtag text-gray-600 mr-2"></i> <span class="ml-2">Número de Lote:</span>
                         </label>
                         <input type="text" id="loteEntrada"
                             class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
@@ -275,7 +292,7 @@
                 <div class="mb-6">
                     <label for="comentariosEntrada"
                         class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            💬 <span class="ml-2">Comentarios y Observaciones:</span>
+                        <i class="fas fa-comment text-gray-600 mr-2"></i> <span class="ml-2">Comentarios y Observaciones:</span>
                     </label>
                     <textarea id="comentariosEntrada"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm"
@@ -286,26 +303,26 @@
                 <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
                     <button id="limpiarFormulario"
                         class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span>🧹</span>
+                        <i class="fas fa-broom"></i>
                         <span>Limpiar Formulario</span>
                     </button>
                     <button id="registrarEntrada"
                         class="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span id="btnRegistrarText">✓ Registrar Entrada</span>
+                        <span id="btnRegistrarText"><i class="fas fa-check"></i> Registrar Entrada</span>
                     </button>
                 </div>
 
                 <!-- Resumen de la entrada -->
                 <div id="resumenEntrada" class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded"
                     style="display: none;">
-                    <h4 class="font-semibold text-blue-700 mb-2">📝 Resumen de la Entrada:</h4>
+                    <h4 class="font-semibold text-blue-700 mb-2"><i class="fas fa-sticky-note text-blue-600 mr-2"></i> Resumen de la Entrada:</h4>
                     <div id="textoResumen" class="text-sm text-blue-600"></div>
                 </div>
             </div>
         </div> <!-- Filtros y controles -->
         <div class="bg-white shadow-xl rounded-lg px-8 pt-6 pb-8 mb-6 border-l-4 border-blue-500 card-hover">
-                <h2 class="text-xl font-bold mb-6 text-blue-600 flex items-center">
-                ⚙️ Filtros y Controles del Sistema
+            <h2 class="text-xl font-bold mb-6 text-blue-600 flex items-center">
+                <i class="fas fa-cogs text-blue-600 mr-2"></i> Filtros y Controles del Sistema
                 <div id="syncStatus" class="ml-3 text-sm"></div>
                 <div class="ml-auto text-sm text-gray-500">
                     <span id="estadoSistema" class="bg-green-100 text-green-700 px-3 py-1 rounded-full">
@@ -317,7 +334,7 @@
             <div class="grid md:grid-cols-4 gap-6 mb-6">
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroCodigo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🔢 <span class="ml-2">Filtrar por Código:</span>
+                        <i class="fas fa-hashtag text-gray-600 mr-2"></i> <span class="ml-2">Filtrar por Código:</span>
                     </label>
                     <input type="text" id="filtroCodigo"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
@@ -326,7 +343,7 @@
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroNombre" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🔤 <span class="ml-2">Filtrar por Nombre:</span>
+                        <i class="fas fa-font text-gray-600 mr-2"></i> <span class="ml-2">Filtrar por Nombre:</span>
                     </label>
                     <input type="text" id="filtroNombre"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
@@ -335,7 +352,7 @@
 
                 <div class="transform transition-all hover:scale-105">
                     <label for="filtroMarca" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        🏷️ <span class="ml-2">Filtrar por Marca:</span>
+                        <i class="fas fa-tag text-gray-600 mr-2"></i> <span class="ml-2">Filtrar por Marca:</span>
                     </label>
                     <input type="text" id="filtroMarca"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm"
@@ -345,12 +362,12 @@
                 <div class="flex items-end space-x-2">
                     <button id="filtrarEntradas"
                         class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
-                        <span>🔎</span>
+                        <i class="fas fa-search"></i>
                         <span>Filtrar</span>
                     </button>
                     <button id="limpiarFiltros"
                         class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-3 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1">
-                        <span>🧹</span>
+                        <i class="fas fa-broom"></i>
                         <span>Limpiar</span>
                     </button>
                 </div>
@@ -360,14 +377,14 @@
             <div class="grid md:grid-cols-3 gap-6 mb-6 p-4 bg-gray-50 rounded-lg">
                 <div>
                     <label for="fechaDesde" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        📅 <span class="ml-2">Desde:</span>
+                        <i class="fas fa-calendar-alt text-gray-600 mr-2"></i> <span class="ml-2">Desde:</span>
                     </label>
                     <input type="date" id="fechaDesde"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
                 </div>
                 <div>
                     <label for="fechaHasta" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                        ðŸ“… <span class="ml-2">Hasta:</span>
+                        <i class="fas fa-calendar-alt text-gray-600 mr-2"></i> <span class="ml-2">Hasta:</span>
                     </label>
                     <input type="date" id="fechaHasta"
                         class="border-2 border-gray-200 p-3 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-lg shadow-sm">
@@ -375,7 +392,7 @@
                 <div class="flex items-end">
                     <button id="filtrarPorFecha"
                         class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all w-full">
-                        ðŸ“Š Filtrar por Fechas
+                        <i class="fas fa-calendar-alt mr-2"></i> Filtrar por Fechas
                     </button>
                 </div>
             </div>
@@ -384,16 +401,16 @@
                 <div class="flex flex-wrap gap-3">
                     <button id="sincronizarEntradas"
                         class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span id="btnSincText">🔄 Sincronizar con Servidor</span>
+                        <span id="btnSincText"><i class="fas fa-sync"></i> Sincronizar con Servidor</span>
                     </button>
                     <button id="generarReporte"
                         class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span>📊</span>
+                        <i class="fas fa-chart-bar"></i>
                         <span>Generar Reporte CSV</span>
                     </button>
                     <button id="autoRefresh"
                         class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2">
-                        <span>🔁</span>
+                        <i class="fas fa-refresh"></i>
                         <span>Auto-actualización: OFF</span>
                     </button>
                 </div>
@@ -414,7 +431,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-purple-600 flex items-center">
-                        📋 Historial de Entradas del Sistema
+                        <i class="fas fa-clipboard text-purple-600 mr-2"></i> Historial de Entradas del Sistema
                         <div id="tableLoadingIndicator" class="ml-3" style="display: none;">
                             <div
                                 class="inline-block w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin">
@@ -435,19 +452,19 @@
                     <button id="refreshTable"
                         class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-4 py-2 rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
                         title="Actualizar tabla">
-                        <span>🔄</span>
+                        <i class="fas fa-sync"></i>
                         <span class="hidden md:inline">Actualizar</span>
                     </button>
                     <button id="exportVisible"
                         class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
                         title="Exportar datos visibles">
-                        <span>📤</span>
+                        <i class="fas fa-download"></i>
                         <span class="hidden md:inline">Exportar</span>
                     </button>
                     <button id="expandirTabla"
                         class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-1"
                         title="Expandir/Contraer tabla">
-                        <span>⤢</span>
+                        <i class="fas fa-expand"></i>
                         <span class="hidden md:inline">Expandir</span>
                     </button>
                 </div>
@@ -458,7 +475,7 @@
                 <div class="flex items-center space-x-3">
                     <input type="text" id="busquedaRapida"
                         class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        placeholder="🔎 Búsqueda rápida en la tabla...">
+                        placeholder="Búsqueda rápida en la tabla...">
                     <select id="ordenarPor"
                         class="border-2 border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-500">
                         <option value="fecha-desc">Más reciente primero</option>
@@ -481,58 +498,58 @@
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('codigo')">
                                 <div class="flex items-center space-x-1">
-                                    <span>🔢 Código</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <i class="fas fa-hashtag text-gray-500"></i> <span>Código</span>
+                                    <span class="sort-indicator"><i class="fas fa-sort text-gray-400"></i></span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('nombre')">
                                 <div class="flex items-center space-x-1">
-                                    <span>🔤 Nombre</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <i class="fas fa-font text-gray-500"></i> <span>Nombre</span>
+                                    <span class="sort-indicator"><i class="fas fa-sort text-gray-400"></i></span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('marca')">
                                 <div class="flex items-center space-x-1">
-                                    <span>🏷️ Marca</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <i class="fas fa-tag text-gray-500"></i> <span>Marca</span>
+                                    <span class="sort-indicator"><i class="fas fa-sort text-gray-400"></i></span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('categoria')">
                                 <div class="flex items-center space-x-1">
-                                    <span>📂 Categoría</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <i class="fas fa-folder text-gray-500"></i> <span>Categoría</span>
+                                    <span class="sort-indicator"><i class="fas fa-sort text-gray-400"></i></span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('unidad')">
                                 <div class="flex items-center space-x-1">
-                                    <span>📏 Unidad</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <i class="fas fa-ruler text-gray-500"></i> <span>Unidad</span>
+                                    <span class="sort-indicator"><i class="fas fa-sort text-gray-400"></i></span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('cantidad')">
                                 <div class="flex items-center space-x-1">
-                                    <span>📊 Cantidad</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <i class="fas fa-chart-bar text-gray-500"></i> <span>Cantidad</span>
+                                    <span class="sort-indicator"><i class="fas fa-sort text-gray-400"></i></span>
                                 </div>
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors border-r border-gray-200"
                                 onclick="sortTable('fecha')">
                                 <div class="flex items-center space-x-1">
-                                    <span>📅 Fecha</span>
-                                    <span class="sort-indicator">↕️</span>
+                                    <i class="fas fa-calendar-alt text-gray-500"></i> <span>Fecha</span>
+                                    <span class="sort-indicator"><i class="fas fa-sort text-gray-400"></i></span>
                                 </div>
                             </th>
                             <th
                                 class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                                💬 Comentarios
+                                <i class="fas fa-comment text-gray-500"></i> Comentarios
                             </th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ⚙️ Acciones
+                                <i class="fas fa-cogs text-gray-500"></i> Acciones
                             </th>
                         </tr>
                     </thead>
@@ -541,7 +558,7 @@
                         <tr class="text-center text-gray-500 bg-gray-50">
                             <td colspan="9" class="px-6 py-8">
                                 <div class="flex flex-col items-center space-y-3">
-                                    <div class="text-4xl">📦</div>
+                                    <div class="text-4xl"><i class="fas fa-box-open text-gray-400"></i></div>
                                     <div class="text-lg font-medium">No hay entradas registradas</div>
                                     <div class="text-sm">Las entradas aparecerán aquí cuando se registren productos
                                     </div>
@@ -576,11 +593,11 @@
                 class="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl border-4 border-green-500 transform transition-all">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold text-gray-800 flex items-center">
-                        🔍 <span class="ml-2">Escáner de Código de Barras</span>
+                        <i class="fas fa-camera text-gray-800"></i> <span class="ml-2">Escáner de Código de Barras</span>
                     </h3>
                     <button id="cerrarEscaner"
                         class="text-red-500 hover:text-red-700 text-2xl font-bold transition-colors transform hover:scale-110">
-                        ✖️
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
 
@@ -597,7 +614,7 @@
                 <div class="flex space-x-3">
                     <button id="detenerEscaner"
                         class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 w-full transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
-                        <span>⏹️</span>
+                        <i class="fas fa-stop"></i>
                         <span>Detener Escáner</span>
                     </button>
                 </div>
@@ -616,12 +633,15 @@
     <script src="../js/ui/mobile-optimizer.js"></script>
     <script src="../js/ui/table-mobile-optimizer.js"></script>
     <script src="../js/utils/extension-conflict-detector.js"></script>
+    <script src="../js/utils/sincronizacion-diagnostico.js"></script>
     <script type="module" src="../js/core/main.js"></script>
     <script type="module" src="../js/core/registro-entradas-operations.js"></script>
     <script type="module">
         import { inicializarRegistroEntradas } from '../js/core/registro-entradas-operations.js';
         import { inicializarDB } from '../js/db/db-operations.js';
-        import { toggleEscaner } from '../js/scanner/scanner.js';        // Inicializar cuando el DOM esté cargado
+        import { toggleEscaner, detenerEscaner } from '../js/scanner/scanner.js';
+
+        // Inicializar cuando el DOM esté cargado
         document.addEventListener('DOMContentLoaded', async function () {
             try {
                 // Inicializar base de datos principal
@@ -639,17 +659,18 @@
                 }
 
                 const cerrarEscaner = document.getElementById('cerrarEscaner');
-                const detenerEscaner = document.getElementById('detenerEscaner');
+        const detenerEscanerBtn = document.getElementById('detenerEscaner');
 
-                if (cerrarEscaner) {
-                    cerrarEscaner.addEventListener('click', () => {
-                        document.getElementById('scanner-container').style.display = 'none';
-                    });
-                }
+        if (cerrarEscaner) {
+            cerrarEscaner.addEventListener('click', () => {
+                detenerEscaner();
+                document.getElementById('scanner-container').style.display = 'none';
+            });
+        }
 
-                if (detenerEscaner) {
-                    detenerEscaner.addEventListener('click', () => {
-                        document.getElementById('scanner-container').style.display = 'none';
+        if (detenerEscanerBtn) {
+            detenerEscanerBtn.addEventListener('click', () => {
+                detenerEscaner();
                     });
                 }
 
@@ -912,10 +933,10 @@
                     textoResumen.innerHTML = `
                         <strong>${nombre}</strong> (${codigo})<br>
                         Cantidad: <strong>${cantidad} ${unidad || 'unidades'}</strong><br>
-                        Fecha: <strong>${(function(){
+                        Fecha: <strong>${(function () {
                             const parts = fecha.split('-').map(Number);
                             if (parts.length === 3) {
-                                const d = new Date(parts[0], parts[1]-1, parts[2]);
+                                const d = new Date(parts[0], parts[1] - 1, parts[2]);
                                 return d.toLocaleDateString('es-ES');
                             }
                             return new Date(fecha).toLocaleDateString('es-ES');
@@ -944,8 +965,8 @@
             // Implementación simple de toast
             const toast = document.createElement('div');
             toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500' :
-                    type === 'warning' ? 'bg-yellow-500' :
-                        type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                type === 'warning' ? 'bg-yellow-500' :
+                    type === 'error' ? 'bg-red-500' : 'bg-blue-500'
                 } text-white`;
             toast.textContent = message;
 
@@ -1007,7 +1028,7 @@
 
         function setupLoadingEffects() {
             // Interceptar clicks en botones de búsqueda
-            ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca'].forEach(btnId => {
+            ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca', 'buscarPorCodigoCorto'].forEach(btnId => {
                 const btn = document.getElementById(btnId);
                 if (btn) {
                     btn.addEventListener('click', () => {
@@ -1075,7 +1096,8 @@
                 const tipoTexto = {
                     'buscarPorCodigo': 'Búsqueda por código',
                     'buscarPorNombre': 'Búsqueda por nombre',
-                    'buscarPorMarca': 'Búsqueda por marca'
+                    'buscarPorMarca': 'Búsqueda por marca',
+                    'buscarPorCodigoCorto': 'Búsqueda por código corto'
                 };
 
                 const now = new Date().toLocaleTimeString('es-ES', {
@@ -1216,7 +1238,7 @@
 
         function setupDynamicNotifications() {
             // Mostrar formulario solo cuando se selecciona un producto
-            ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca'].forEach(btnId => {
+            ['buscarPorCodigo', 'buscarPorNombre', 'buscarPorMarca', 'buscarPorCodigoCorto'].forEach(btnId => {
                 const btn = document.getElementById(btnId);
                 if (btn) {
                     btn.addEventListener('click', () => {
@@ -1688,33 +1710,35 @@
         // Función para aplicar la conversión a un input
         function aplicarConversionCodigo(input) {
             if (!input) return;
-            
-            input.addEventListener('input', function(e) {
+
+            input.addEventListener('input', function (e) {
                 const valorOriginal = e.target.value;
                 const valorConvertido = convertirGuionACeros(valorOriginal);
-                
+
                 if (valorOriginal !== valorConvertido) {
                     const cursorPos = e.target.selectionStart;
                     e.target.value = valorConvertido;
-                    
+
                     const diferencia = valorConvertido.length - valorOriginal.length;
                     const nuevaPosicion = Math.min(cursorPos + diferencia, valorConvertido.length);
                     e.target.setSelectionRange(nuevaPosicion, nuevaPosicion);
                 }
             });
 
-            input.addEventListener('blur', function(e) {
+            input.addEventListener('blur', function (e) {
                 e.target.value = convertirGuionACeros(e.target.value);
             });
         }
 
         // Aplicar conversión a los campos de código cuando se cargue la página
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const busquedaCodigo = document.getElementById('busquedaCodigo');
+            const busquedaCodigoCorto = document.getElementById('busquedaCodigoCorto');
             const codigoProducto = document.getElementById('codigoProducto');
             const filtroCodigo = document.getElementById('filtroCodigo');
-            
+
             aplicarConversionCodigo(busquedaCodigo);
+            aplicarConversionCodigo(busquedaCodigoCorto);
             aplicarConversionCodigo(codigoProducto);
             aplicarConversionCodigo(filtroCodigo);
         });

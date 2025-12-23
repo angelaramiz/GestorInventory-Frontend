@@ -1,7 +1,8 @@
 // Operaciones específicas para el registro de entradas
-import { agregarRegistroEntrada, cargarEntradasEnTabla, sincronizarEntradasDesdeSupabase, eliminarRegistroEntrada, generarReporteEntradas, inicializarDBEntradas } from '../db/db-operations.js';
+import { agregarRegistroEntrada, cargarEntradasEnTabla, sincronizarEntradasDesdeSupabase, eliminarRegistroEntrada, generarReporteEntradas, inicializarDBEntradas, procesarColaSincronizacionEntradas } from '../db/db-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from '../utils/logs.js';
 import { db } from '../db/db-operations.js';
+import { buscarPorCodigoParcial } from './product-operations.js';
 
 // Variable para almacenar el producto seleccionado
 let productoSeleccionadoEntrada = null;
@@ -17,6 +18,15 @@ export async function buscarProductoParaEntrada(termino, tipoBusqueda = 'codigo'
         const objectStore = transaction.objectStore("productos");
 
         return new Promise((resolve, reject) => {
+            // Manejar búsqueda por código corto (4 dígitos)
+            if (tipoBusqueda === 'codigo' && termino.length === 4) {
+                buscarPorCodigoParcial(termino, "RegistroEntradas", (resultados) => {
+                    const producto = resultados.length > 0 ? resultados[0] : null;
+                    resolve(producto);
+                });
+                return;
+            }
+
             let request;
 
             switch (tipoBusqueda) {
@@ -177,10 +187,6 @@ export async function registrarEntrada() {
             producto_id: productoSeleccionadoEntrada.id || null
         };
 
-        // Adjuntar area_id si está disponible (localStorage o producto)
-        const areaIdFromStorage = localStorage.getItem('area_id');
-        entradaData.area_id = areaIdFromStorage || (productoSeleccionadoEntrada && productoSeleccionadoEntrada.area_id) || null;
-
         // Registrar la entrada
         const entradaRegistrada = await agregarRegistroEntrada(entradaData);
 
@@ -321,10 +327,29 @@ export function limpiarFiltros() {
 export async function sincronizarEntradas() {
     try {
         mostrarAlertaBurbuja("Sincronizando entradas...", "info");
+        console.log("🔄 Iniciando sincronización bidireccional de entradas");
+
+        // Verificar estado de la cola antes de sincronizar
+        const colaActual = JSON.parse(localStorage.getItem('syncQueueEntradas') || '[]');
+        console.log(`📋 Cola de sincronización antes: ${colaActual.length} elementos`);
+
+        // Primero sincronizar desde Supabase a local (obtener cambios remotos)
+        console.log("⬇️ Sincronizando desde Supabase a local...");
         await sincronizarEntradasDesdeSupabase();
+
+        // Luego procesar la cola local a Supabase (enviar cambios locales)
+        console.log("⬆️ Procesando cola local a Supabase...");
+        await procesarColaSincronizacionEntradas();
+
+        // Verificar estado de la cola después de sincronizar
+        const colaDespues = JSON.parse(localStorage.getItem('syncQueueEntradas') || '[]');
+        console.log(`📋 Cola de sincronización después: ${colaDespues.length} elementos`);
+
         await actualizarTablaEntradas();
+        mostrarAlertaBurbuja("Entradas sincronizadas correctamente", "success");
+        console.log("✅ Sincronización bidireccional completada");
     } catch (error) {
-        console.error("Error al sincronizar entradas:", error);
+        console.error("❌ Error al sincronizar entradas:", error);
         mostrarAlertaBurbuja("Error al sincronizar entradas", "error");
     }
 }
@@ -371,6 +396,7 @@ function configurarEventListeners() {
     const btnBuscarCodigo = document.getElementById('buscarPorCodigo');
     const btnBuscarNombre = document.getElementById('buscarPorNombre');
     const btnBuscarMarca = document.getElementById('buscarPorMarca');
+    const btnBuscarCodigoCorto = document.getElementById('buscarPorCodigoCorto');
 
     if (btnBuscarCodigo) {
         btnBuscarCodigo.addEventListener('click', () => buscarProducto('codigo'));
@@ -382,6 +408,10 @@ function configurarEventListeners() {
 
     if (btnBuscarMarca) {
         btnBuscarMarca.addEventListener('click', () => buscarProducto('marca'));
+    }
+
+    if (btnBuscarCodigoCorto) {
+        btnBuscarCodigoCorto.addEventListener('click', () => buscarProducto('codigoCorto'));
     }
 
     // Botón registrar entrada
@@ -450,17 +480,20 @@ async function buscarProducto(tipo) {
     const terminos = {
         codigo: document.getElementById('busquedaCodigo')?.value?.trim(),
         nombre: document.getElementById('busquedaNombre')?.value?.trim(),
-        marca: document.getElementById('busquedaMarca')?.value?.trim()
+        marca: document.getElementById('busquedaMarca')?.value?.trim(),
+        codigoCorto: document.getElementById('busquedaCodigoCorto')?.value?.trim()
     };
 
     const termino = terminos[tipo];
     if (!termino) {
-        mostrarAlertaBurbuja(`Ingrese un ${tipo} para buscar`, "warning");
+        const tipoDisplay = tipo === 'codigoCorto' ? 'código corto' : tipo;
+        mostrarAlertaBurbuja(`Ingrese un ${tipoDisplay} para buscar`, "warning");
         return;
     }
 
     try {
-        const producto = await buscarProductoParaEntrada(termino, tipo);
+        const tipoBusqueda = tipo === 'codigoCorto' ? 'codigo' : tipo;
+        const producto = await buscarProductoParaEntrada(termino, tipoBusqueda);
         mostrarDatosProductoEntrada(producto);
     } catch (error) {
         console.error(`Error al buscar producto por ${tipo}:`, error);

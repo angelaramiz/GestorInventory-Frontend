@@ -1959,16 +1959,10 @@ export function inicializarDBEntradas() {
 // Función para agregar una entrada al registro
 export async function agregarRegistroEntrada(entradaData) {
     try {
-        // Priorizar area indicada en entradaData, luego obtener de almacenamiento
-        const areaId = entradaData.area_id || obtenerAreaId();
-        if (!areaId) {
-            console.warn("No se encontró ID de área; la entrada se guardará sin area_id (null)");
-        }
-
-        // Preparar los datos de la entrada
+        // Preparar los datos de la entrada (sin area_id para entradas)
         const entrada = {
             ...entradaData,
-            area_id: areaId || null,
+            area_id: null, // Las entradas no requieren área específica
             fecha_entrada: entradaData.fecha_entrada || new Date().toISOString().split('T')[0],
             created_at: new Date().toISOString(),
             usuario_id: localStorage.getItem('usuario_id'),
@@ -2013,12 +2007,6 @@ export async function cargarEntradasEnTabla(filtros = {}) {
             await inicializarDBEntradas();
         }
 
-        const areaId = obtenerAreaId();
-        if (!areaId) {
-            console.warn("No se encontró área_id al cargar entradas");
-            return [];
-        }
-
         const transaction = dbEntradas.transaction(["registro_entradas"], "readonly");
         const objectStore = transaction.objectStore("registro_entradas");
 
@@ -2028,8 +2016,7 @@ export async function cargarEntradasEnTabla(filtros = {}) {
             request.onsuccess = function (event) {
                 let entradas = event.target.result;
 
-                // Filtrar por área
-                entradas = entradas.filter(entrada => entrada.area_id === areaId);
+                // No filtrar por área ya que las entradas son generales
 
                 // Aplicar filtros adicionales si existen
                 if (filtros.codigo) {
@@ -2072,15 +2059,16 @@ export async function cargarEntradasEnTabla(filtros = {}) {
 let syncQueueEntradas = JSON.parse(localStorage.getItem('syncQueueEntradas') || '[]');
 
 export function agregarAColaSincronizacionEntradas(data) {
-    const areaId = obtenerAreaId();
-    if (!areaId) {
-        console.error("No se encontró el área_id al intentar agregar entrada a la cola de sincronización");
-        mostrarAlertaBurbuja("Error: No se pudo determinar el área para sincronizar", "error");
-        return;
-    }
-
+    // Las entradas no requieren area_id específico
     const dataSupabase = { ...data };
-    dataSupabase.area_id = dataSupabase.area_id || areaId;
+    dataSupabase.area_id = null; // Asegurar que sea null
+
+    // Agregar timestamps si no existen
+    const now = new Date().toISOString();
+    if (!dataSupabase.created_at) {
+        dataSupabase.created_at = now;
+    }
+    dataSupabase.updated_at = now;
 
     syncQueueEntradas.push(dataSupabase);
     localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
@@ -2088,92 +2076,133 @@ export function agregarAColaSincronizacionEntradas(data) {
     if (navigator.onLine) procesarColaSincronizacionEntradas();
 }
 
-// Procesar la cola de sincronización de entradas
+// Procesar la cola de sincronización de entradas con sincronización bidireccional
 export async function procesarColaSincronizacionEntradas() {
     if (!navigator.onLine) return;
 
-    while (syncQueueEntradas.length > 0) {
-        const item = syncQueueEntradas.shift();
-        try {
-            const supabase = await getSupabase();
+    try {
+        // Primero sincronizar desde Supabase a local (para obtener cambios remotos)
+        await sincronizarEntradasDesdeSupabase();
 
-            if (!item.area_id) {
-                const areaId = obtenerAreaId();
-                if (!areaId) {
-                    console.error("No se encontró ID de área para la entrada:", item);
-                    syncQueueEntradas.unshift(item);
-                    mostrarAlertaBurbuja("Error: falta área en entrada", "error");
-                    break;
+        // Luego procesar la cola local a Supabase
+        while (syncQueueEntradas.length > 0) {
+            const item = syncQueueEntradas.shift();
+            try {
+                const supabase = await getSupabase();
+
+                // Las entradas no requieren area_id específico
+                const datosParaSupabase = { ...item };
+                delete datosParaSupabase.is_temp_id;
+                delete datosParaSupabase.area_id; // La tabla registro_entradas no tiene area_id
+
+                // Asegurar que solo enviamos las columnas que existen en la tabla
+                const columnasPermitidas = ['codigo', 'nombre', 'marca', 'categoria', 'unidad', 'cantidad', 'fecha_entrada', 'comentarios', 'producto_id', 'created_at', 'updated_at'];
+                const datosFiltrados = {};
+                columnasPermitidas.forEach(col => {
+                    if (datosParaSupabase.hasOwnProperty(col)) {
+                        datosFiltrados[col] = datosParaSupabase[col];
+                    }
+                });
+
+                // Agregar timestamp de actualización si no existe
+                if (!datosFiltrados.updated_at) {
+                    datosFiltrados.updated_at = new Date().toISOString();
                 }
-                item.area_id = areaId;
+
+                const usuarioId = localStorage.getItem('usuario_id');
+
+                const { data, error } = await supabase
+                    .from('registro_entradas')
+                    .insert({
+                        ...datosFiltrados,
+                        usuario_id: usuarioId
+                    })
+                    .select();
+
+                if (error) {
+                    console.error("Error al sincronizar entrada con Supabase:", error, datosParaSupabase);
+                    throw error;
+                }
+
+                // Actualizar IndexedDB con el ID permanente
+                const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
+                const objectStore = transaction.objectStore("registro_entradas");
+
+                // Primero eliminar el registro temporal
+                await new Promise((resolve, reject) => {
+                    const request = objectStore.delete(item.id);
+                    request.onsuccess = resolve;
+                    request.onerror = () => reject(request.error);
+                });
+
+                // Verificar si ya existe un registro con el ID de Supabase
+                const existingRecord = await new Promise((resolve) => {
+                    const getRequest = objectStore.get(data[0].id);
+                    getRequest.onsuccess = () => resolve(getRequest.result);
+                    getRequest.onerror = () => resolve(null);
+                });
+
+                // Preparar el item actualizado
+                const itemActualizado = {
+                    ...item,
+                    id: data[0].id,
+                    is_temp_id: false,
+                    synced_at: new Date().toISOString()
+                };
+
+                // Si ya existe un registro con el mismo ID, actualizarlo; si no, agregarlo
+                await new Promise((resolve, reject) => {
+                    const request = existingRecord ? objectStore.put(itemActualizado) : objectStore.add(itemActualizado);
+                    request.onsuccess = resolve;
+                    request.onerror = () => reject(request.error);
+                });
+
+                console.log("Entrada sincronizada correctamente:", data[0]);
+
+            } catch (error) {
+                console.error("Error al procesar cola de sincronización de entradas:", error);
+                console.error("Item que causó el error:", item);
+                console.error("Datos enviados a Supabase:", datosFiltrados);
+
+                // Re-agregar el item al inicio de la cola para reintentar
+                syncQueueEntradas.unshift(item);
+                break;
             }
-
-            const datosParaSupabase = { ...item };
-            delete datosParaSupabase.is_temp_id;
-
-            const { data, error } = await supabase
-                .from('registro_entradas')
-                .upsert({
-                    ...datosParaSupabase,
-                    usuario_id: localStorage.getItem('usuario_id')
-                })
-                .select();
-
-            if (error) {
-                console.error("Error al sincronizar entrada con Supabase:", error, datosParaSupabase);
-                throw error;
-            }
-
-            // Actualizar IndexedDB con el ID permanente
-            const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
-            const objectStore = transaction.objectStore("registro_entradas");
-
-            await new Promise((resolve, reject) => {
-                const request = objectStore.delete(item.id);
-                request.onsuccess = resolve;
-                request.onerror = () => reject(request.error);
-            });
-
-            const itemActualizado = {
-                ...item,
-                id: data[0].id,
-                is_temp_id: false,
-                area_id: data[0].area_id || item.area_id
-            };
-
-            await new Promise((resolve, reject) => {
-                const request = objectStore.add(itemActualizado);
-                request.onsuccess = resolve;
-                request.onerror = () => reject(request.error);
-            });
-
-            console.log("Entrada sincronizada correctamente:", data[0]);
-
-        } catch (error) {
-            console.error("Error al procesar cola de sincronización de entradas:", error);
-            syncQueueEntradas.unshift(item);
-            break;
         }
-    }
 
-    localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
+        localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
+
+        // Actualizar timestamp de última sincronización después de procesar la cola
+        if (syncQueueEntradas.length === 0) {
+            localStorage.setItem('lastSyncEntradas', new Date().toISOString());
+        }
+    } catch (error) {
+        console.error("Error general en procesamiento de cola de sincronización:", error);
+        mostrarAlertaBurbuja("Error en sincronización de entradas", "error");
+    }
 }
 
 // Sincronizar entradas desde Supabase
 export async function sincronizarEntradasDesdeSupabase() {
     try {
-        const areaId = obtenerAreaId();
-        if (!areaId) {
-            console.warn("No se encontró área_id para sincronizar entradas");
+        const supabase = await getSupabase();
+        const usuarioId = localStorage.getItem('usuario_id');
+
+        if (!usuarioId) {
+            console.warn("No hay usuario_id para sincronizar entradas");
             return;
         }
 
-        const supabase = await getSupabase();
+        // Obtener timestamp de última sincronización
+        const lastSync = localStorage.getItem('lastSyncEntradas') || '1970-01-01T00:00:00.000Z';
+
+        // Obtener entradas modificadas desde la última sincronización
         const { data: entradas, error } = await supabase
             .from('registro_entradas')
             .select('*')
-            .eq('area_id', areaId)
-            .order('fecha_entrada', { ascending: false });
+            .eq('usuario_id', usuarioId)
+            .gte('updated_at', lastSync)
+            .order('updated_at', { ascending: true });
 
         if (error) {
             console.error("Error al obtener entradas de Supabase:", error);
@@ -2184,58 +2213,69 @@ export async function sincronizarEntradasDesdeSupabase() {
             await inicializarDBEntradas();
         }
 
-        // Limpiar datos locales y cargar los de Supabase
-        const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
-        const objectStore = transaction.objectStore("registro_entradas");
+        if (entradas && entradas.length > 0) {
+            const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
+            const objectStore = transaction.objectStore("registro_entradas");
 
-        // Limpiar registros existentes del área actual
-        const index = objectStore.index("area_id");
-        const deleteRequest = index.openCursor(IDBKeyRange.only(areaId));
+            // Procesar cada entrada remota
+            for (const entradaRemota of entradas) {
+                await new Promise((resolve, reject) => {
+                    // Buscar si existe localmente
+                    const getRequest = objectStore.get(entradaRemota.id);
 
-        deleteRequest.onsuccess = function (event) {
-            const cursor = event.target.result;
-            if (cursor) {
-                cursor.delete();
-                cursor.continue();
+                    getRequest.onsuccess = function(event) {
+                        const entradaLocal = event.target.result;
+
+                        if (!entradaLocal) {
+                            // No existe localmente, agregar
+                            const entradaConFlags = {
+                                ...entradaRemota,
+                                is_temp_id: false,
+                                synced_at: new Date().toISOString()
+                            };
+                            const addRequest = objectStore.put(entradaConFlags); // Usar put en lugar de add para mayor robustez
+                            addRequest.onsuccess = resolve;
+                            addRequest.onerror = () => reject(addRequest.error);
+                        } else {
+                            // Existe localmente, comparar timestamps
+                            const remoteTime = new Date(entradaRemota.updated_at || entradaRemota.created_at);
+                            const localTime = new Date(entradaLocal.updated_at || entradaLocal.created_at);
+
+                            if (remoteTime > localTime) {
+                                // La versión remota es más nueva, actualizar local
+                                const entradaActualizada = {
+                                    ...entradaRemota,
+                                    is_temp_id: false,
+                                    synced_at: new Date().toISOString()
+                                };
+                                const updateRequest = objectStore.put(entradaActualizada);
+                                updateRequest.onsuccess = resolve;
+                                updateRequest.onerror = () => reject(updateRequest.error);
+                            } else {
+                                // La versión local es más nueva o igual, mantener local
+                                resolve();
+                            }
+                        }
+                    };
+
+                    getRequest.onerror = () => reject(getRequest.error);
+                });
             }
-        };
 
-        // Esperar a que termine la limpieza y luego agregar nuevos datos
-        await new Promise((resolve) => {
-            deleteRequest.onsuccess = function (event) {
-                const cursor = event.target.result;
-                if (cursor) {
-                    cursor.delete();
-                    cursor.continue();
-                } else {
-                    resolve();
-                }
-            };
-        });
+            // Actualizar timestamp de última sincronización
+            localStorage.setItem('lastSyncEntradas', new Date().toISOString());
 
-        // Agregar las entradas sincronizadas
-        for (const entrada of entradas) {
-            const entradaConFlags = {
-                ...entrada,
-                is_temp_id: false
-            };
-
-            await new Promise((resolve, reject) => {
-                const request = objectStore.add(entradaConFlags);
-                request.onsuccess = resolve;
-                request.onerror = () => reject(request.error);
-            });
+            console.log(`${entradas.length} entradas sincronizadas desde Supabase`);
+            if (entradas.length > 0) {
+                mostrarAlertaBurbuja(`${entradas.length} entradas sincronizadas correctamente`, "success");
+            }
         }
-
-        console.log(`${entradas.length} entradas sincronizadas desde Supabase`);
-        mostrarAlertaBurbuja(`${entradas.length} entradas sincronizadas correctamente`, "success");
 
         return entradas;
 
     } catch (error) {
-        console.error("Error al sincronizar entradas desde Supabase:", error);
-        mostrarAlertaBurbuja("Error al sincronizar entradas desde el servidor", "error");
-        throw error;
+        console.error("Error en sincronización bidireccional de entradas:", error);
+        mostrarAlertaBurbuja("Error al sincronizar entradas", "error");
     }
 }
 

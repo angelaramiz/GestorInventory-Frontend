@@ -1,7 +1,7 @@
 // tabla-productos.js - Manejo del agregado de productos por tabla
 
 import { db } from '../db/db-operations.js';
-import { buscarProducto } from '../core/product-operations.js';
+import { buscarProducto } from '../products/product-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from '../utils/logs.js';
 import { getSupabase } from '../auth/auth.js';
 import { sanitizarProducto } from '../utils/sanitizacion.js';

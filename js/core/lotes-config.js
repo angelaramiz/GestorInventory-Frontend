@@ -4,7 +4,7 @@
 export const CONFIG_LOTES_AVANZADO = {
     // Configuración del escáner
     escaner: {
-        fps: 10,
+        fps: 5,
         qrboxWidth: 300,
         qrboxHeight: 200,
         useBarCodeDetector: true,

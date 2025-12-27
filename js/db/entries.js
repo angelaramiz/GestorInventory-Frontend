@@ -183,56 +183,60 @@ export async function agregarRegistroEntrada(entradaData) {
 // Función para cargar entradas en la tabla
 export async function cargarEntradasEnTabla(filtros = {}) {
     try {
+        // Verificar que la base de datos esté inicializada
         if (!dbEntradas) {
-            console.error("Base de datos de entradas no inicializada");
-            return;
+            console.warn("Base de datos de entradas no inicializada, esperando...");
+            // Esperar un poco y reintentar
+            await new Promise(resolve => setTimeout(resolve, 100));
+            if (!dbEntradas) {
+                console.error("Base de datos de entradas sigue sin inicializarse");
+                return [];
+            }
         }
 
         const transaction = dbEntradas.transaction(["registro_entradas"], "readonly");
         const objectStore = transaction.objectStore("registro_entradas");
-        const request = objectStore.getAll();
 
-        request.onsuccess = function (event) {
-            let entradas = event.target.result;
+        return new Promise((resolve, reject) => {
+            const request = objectStore.getAll();
 
-            // Aplicar filtros si existen
-            if (filtros.fechaDesde) {
-                entradas = entradas.filter(e => e.fecha_entrada >= filtros.fechaDesde);
-            }
-            if (filtros.fechaHasta) {
-                entradas = entradas.filter(e => e.fecha_entrada <= filtros.fechaHasta);
-            }
-            if (filtros.proveedor) {
-                entradas = entradas.filter(e => e.proveedor && e.proveedor.toLowerCase().includes(filtros.proveedor.toLowerCase()));
-            }
+            request.onsuccess = function (event) {
+                let entradas = event.target.result || [];
 
-            // Ordenar por fecha de entrada descendente
-            entradas.sort((a, b) => new Date(b.fecha_entrada) - new Date(a.fecha_entrada));
+                // Aplicar filtros si existen
+                if (filtros.fechaDesde) {
+                    entradas = entradas.filter(e => e.fecha_entrada >= filtros.fechaDesde);
+                }
+                if (filtros.fechaHasta) {
+                    entradas = entradas.filter(e => e.fecha_entrada <= filtros.fechaHasta);
+                }
+                if (filtros.proveedor) {
+                    entradas = entradas.filter(e => e.proveedor && e.proveedor.toLowerCase().includes(filtros.proveedor.toLowerCase()));
+                }
+                if (filtros.codigo) {
+                    entradas = entradas.filter(e => e.codigo && e.codigo.toLowerCase().includes(filtros.codigo.toLowerCase()));
+                }
+                if (filtros.nombre) {
+                    entradas = entradas.filter(e => e.nombre && e.nombre.toLowerCase().includes(filtros.nombre.toLowerCase()));
+                }
+                if (filtros.marca) {
+                    entradas = entradas.filter(e => e.marca && e.marca.toLowerCase().includes(filtros.marca.toLowerCase()));
+                }
 
-            // Mostrar en tabla (asumiendo que hay una tabla con id 'entradasTableBody')
-            const tbody = document.getElementById('entradasTableBody');
-            if (tbody) {
-                tbody.innerHTML = '';
-                entradas.forEach(entrada => {
-                    const row = tbody.insertRow();
-                    row.insertCell().textContent = entrada.fecha_entrada;
-                    row.insertCell().textContent = entrada.nombre;
-                    row.insertCell().textContent = entrada.cantidad;
-                    row.insertCell().textContent = entrada.unidad;
-                    row.insertCell().textContent = entrada.proveedor || '';
-                    row.insertCell().textContent = entrada.numero_factura || '';
-                    row.insertCell().textContent = entrada.comentarios || '';
-                });
-            }
-        };
+                // Ordenar por fecha de entrada descendente
+                entradas.sort((a, b) => new Date(b.fecha_entrada) - new Date(a.fecha_entrada));
 
-        request.onerror = function (event) {
-            console.error("Error al cargar entradas:", event.target.error);
-            mostrarMensaje("Error al cargar entradas", "error");
-        };
+                resolve(entradas);
+            };
+
+            request.onerror = function (event) {
+                console.error("Error al cargar entradas:", event.target.error);
+                reject(event.target.error);
+            };
+        });
     } catch (error) {
         console.error("Error en cargarEntradasEnTabla:", error);
-        mostrarMensaje("Error al cargar entradas", "error");
+        return [];
     }
 }
 

@@ -152,14 +152,36 @@ const agregarEstilosBurbuja = () => {
 agregarEstilosBurbuja();
 
 // Ventana modal con transición para escáner
-export function mostrarModalEscaneo(inputId) {
+export async function mostrarModalEscaneo(inputId) {
+    // Si hay un reader en la página, detener su scanner y ocultarlo temporalmente
+    try {
+        const pageReader = document.getElementById('reader');
+        if (pageReader) {
+            // Intentar detener cualquier scanner que esté usando el reader de la página
+            try { await detenerEscaner(); } catch (e) { console.warn('No se pudo detener scanner previo antes de abrir modal:', e); }
+            // Ocultar el reader de la página para evitar duplicados
+            pageReader.dataset._prevDisplay = pageReader.style.display || '';
+            pageReader.style.display = 'none';
+            pageReader.dataset._hiddenByScannerModal = '1';
+        }
+    } catch (e) {
+        console.warn('Error al preparar reader de página antes de abrir modal:', e);
+    }
+
+    // Verificar si ya existe una modal activa y eliminarla
+    const existingModal = document.getElementById("scanner-modal");
+    if (existingModal) {
+        console.warn("Modal del scanner ya existe, eliminando la anterior");
+        existingModal.remove();
+    }
+
     const modalHtml = `
         <div id="scanner-modal" class="scanner-modal">
             <div class="scanner-modal-content">
                 <span class="scanner-close-btn">&times;</span>
                 <h2>Escanear Código</h2>
                 <div id="scanner-container-modal">
-                    <div id="reader"></div>
+                    <div id="reader-modal"></div>
                 </div>
                 <div class="scanner-loader">Cargando cámara...</div>
             </div>
@@ -187,16 +209,65 @@ export function mostrarModalEscaneo(inputId) {
 
     // Cerrar modal
     closeButton.onclick = () => cerrarModalEscaneo(modal);
-    window.onclick = event => {
-        if (event.target === modal) cerrarModalEscaneo(modal);
+
+    // Limpiar event listener anterior del window si existe
+    const existingHandler = window._scannerModalClickHandler;
+    if (existingHandler) {
+        window.removeEventListener('click', existingHandler);
+    }
+
+    // Crear nuevo event listener para el window
+    window._scannerModalClickHandler = (event) => {
+        if (event.target === modal) {
+            cerrarModalEscaneo(modal);
+        }
     };
+    window.addEventListener('click', window._scannerModalClickHandler);
 }
 
-export function cerrarModalEscaneo(modal) {
+export async function cerrarModalEscaneo(modal) {
+    if (!modal) return;
+
     modal.classList.remove("scanner-modal-show");
-    setTimeout(() => {
-        detenerEscaner();
-        modal.remove();
+    setTimeout(async () => {
+        try {
+            await detenerEscaner();
+        } catch (error) {
+            console.warn("Error al detener scanner en cerrarModalEscaneo:", error);
+        }
+
+        // Limpiar event listener del window
+        if (window._scannerModalClickHandler) {
+            window.removeEventListener('click', window._scannerModalClickHandler);
+            window._scannerModalClickHandler = null;
+        }
+
+        // Asegurar que la modal se elimine completamente
+        if (modal && modal.parentNode) {
+            modal.remove();
+        }
+
+        // Limpiar cualquier modal residual que pueda existir
+        const residualModals = document.querySelectorAll('#scanner-modal');
+        residualModals.forEach(residualModal => {
+            if (residualModal !== modal) {
+                console.warn("Eliminando modal residual del scanner");
+                residualModal.remove();
+            }
+        });
+
+        // Restaurar el reader de la página si fue ocultado
+        try {
+            const pageReader = document.getElementById('reader');
+            if (pageReader && pageReader.dataset._hiddenByScannerModal) {
+                const prev = pageReader.dataset._prevDisplay || '';
+                pageReader.style.display = prev;
+                delete pageReader.dataset._hiddenByScannerModal;
+                delete pageReader.dataset._prevDisplay;
+            }
+        } catch (e) {
+            console.warn('Error al restaurar reader de página después de cerrar modal:', e);
+        }
     }, 300);
 }
 

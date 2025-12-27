@@ -4,7 +4,7 @@
 // Importar configuración de Supabase
 import { getSupabase } from '../auth/auth.js';
 // Importar función de búsqueda de IndexedDB
-import { buscarPorCodigoParcial } from '../core/product-operations.js';
+import { buscarPorCodigoParcial } from '../products/product-operations.js';
 // Importar funciones de sincronización y guardado
 import { mostrarMensaje } from '../core/main.js';
 import { mostrarAlertaBurbuja } from '../utils/logs.js';
@@ -341,7 +341,7 @@ function inicializarEscanerLotesAvanzado() {
     scannerLotesAvanzado = new Html5Qrcode("reader-lotes-avanzado");
 
     const config = {
-        fps: 10,
+        fps: 5,
         qrbox: { width: 300, height: 200 },
         experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
@@ -398,7 +398,7 @@ function iniciarEscanerLotesAvanzadoHtml5Qrcode() {
     scannerLotesAvanzado.start(
         { facingMode: "environment" },
         {
-            fps: 10,
+            fps: 5,
             qrbox: { width: 300, height: 200 },
             experimentalFeatures: {
                 useBarCodeDetectorIfSupported: true

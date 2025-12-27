@@ -1,7 +1,7 @@
 // Importaciones
 import { db, dbInventario, inicializarDB, inicializarDBInventario, cargarCSV, descargarCSV, cargarDatosEnTabla, cargarDatosInventarioEnTablaPlantilla, resetearBaseDeDatos, generarPlantillaInventario, descargarInventarioPDF, descargarInventarioCSV, sincronizarProductosDesdeBackend, subirProductosAlBackend, inicializarSuscripciones, sincronizarInventarioDesdeSupabase, obtenerUbicacionEnUso, procesarColaSincronizacion, guardarAreaIdPersistente, obtenerAreaId, inicializarDBEntradas, procesarColaSincronizacionEntradas } from '../db/db-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from '../utils/logs.js';
-import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from '../core/product-operations.js';
+import { agregarProducto, buscarProducto, buscarProductoParaEditar, buscarProductoInventario, guardarCambios, eliminarProducto, guardarInventario, modificarInventario, seleccionarUbicacionAlmacen, iniciarInventario, verificarYSeleccionarUbicacion } from '../products/product-operations.js';
 import { toggleEscaner, detenerEscaner } from '../scanner/scanner.js';
 import { isTokenExpired, mostrarDialogoSesionExpirada, verificarTokenAutomaticamente, configurarInterceptorSupabase } from '../auth/auth.js';
 import { BASE_URL } from '../core/configuraciones.js';
@@ -404,9 +404,9 @@ async function init() {
         // Event listener para el botón de cerrar escáner
         const cerrarEscanerBtn = document.getElementById('cerrarEscaner');
         if (cerrarEscanerBtn) {
-            cerrarEscanerBtn.addEventListener('click', () => {
+            cerrarEscanerBtn.addEventListener('click', async () => {
                 console.log('Cerrando escáner'); // Debug
-                detenerEscaner();
+                await detenerEscaner();
             });
         }
 

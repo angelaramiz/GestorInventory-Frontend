@@ -2,7 +2,7 @@
 import { agregarRegistroEntrada, cargarEntradasEnTabla, sincronizarEntradasDesdeSupabase, eliminarRegistroEntrada, generarReporteEntradas, inicializarDBEntradas, procesarColaSincronizacionEntradas } from '../db/db-operations.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from '../utils/logs.js';
 import { db } from '../db/db-operations.js';
-import { buscarPorCodigoParcial } from './product-operations.js';
+import { buscarPorCodigoParcial } from '../products/product-operations.js';
 
 // Variable para almacenar el producto seleccionado
 let productoSeleccionadoEntrada = null;
@@ -210,7 +210,10 @@ export async function registrarEntrada() {
 // Función para actualizar la tabla de entradas
 export async function actualizarTablaEntradas(filtros = {}) {
     try {
-        const entradas = await cargarEntradasEnTabla(filtros);
+        console.log("Actualizando tabla de entradas con filtros:", filtros);
+        const entradas = await cargarEntradasEnTabla(filtros) || [];
+        console.log("Entradas cargadas:", entradas);
+
         const tbody = document.getElementById('tablaEntradasBody');
 
         if (!tbody) {
@@ -220,7 +223,7 @@ export async function actualizarTablaEntradas(filtros = {}) {
 
         tbody.innerHTML = '';
 
-        if (entradas.length === 0) {
+        if (!Array.isArray(entradas) || entradas.length === 0) {
             tbody.innerHTML = `
                 <tr class="dark-theme-bg">
                     <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500 dark-theme-text-secondary">
@@ -373,8 +376,19 @@ export async function generarReporte() {
 // Función para inicializar la página de registro de entradas
 export async function inicializarRegistroEntradas() {
     try {
+        console.log("Iniciando inicialización de registro de entradas...");
+
         // Inicializar base de datos de entradas
         await inicializarDBEntradas();
+
+        // Verificar que la base de datos esté disponible
+        const { dbEntradas } = await import('../db/db-operations.js');
+        if (!dbEntradas) {
+            console.warn("dbEntradas no está disponible inmediatamente, esperando...");
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+
+        console.log("Base de datos inicializada, cargando entradas...");
 
         // Cargar entradas en la tabla
         await actualizarTablaEntradas();

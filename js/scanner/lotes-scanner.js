@@ -213,7 +213,7 @@ function inicializarEscanerLotes() {
     scannerLotes = new Html5Qrcode("reader-lotes");
     
     const config = {
-        fps: 10,
+        fps: 5,
         qrbox: { width: 300, height: 200 },
         experimentalFeatures: {
             useBarCodeDetectorIfSupported: true

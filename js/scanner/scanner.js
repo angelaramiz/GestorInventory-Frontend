@@ -306,7 +306,8 @@ export async function toggleEscaner(inputId, containerId = null) {
 export async function detenerEscaner() {
     if (!scanner) return;
 
-    // Marcar que estamos deteniendo intencionalmente para ignorar errores de abort
+    // Marcar que estamos det
+    // eniendo intencionalmente para ignorar errores de abort
     scanner._deteniendo = true;
 
     try {

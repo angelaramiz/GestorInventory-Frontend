@@ -48,6 +48,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             Swal.fire('Error', 'Las contraseñas no coinciden', 'error');
             return;
         }
+        
+        // Validación de fortaleza de contraseña
+        if (pw.length < 8) {
+            Swal.fire('Error', 'La contraseña debe tener al menos 8 caracteres', 'error');
+            return;
+        }
+        
+        // Validar que contenga al menos una letra y un número
+        const tieneLetra = /[a-zA-Z]/.test(pw);
+        const tieneNumero = /[0-9]/.test(pw);
+        if (!tieneLetra || !tieneNumero) {
+            Swal.fire('Error', 'La contraseña debe contener al menos una letra y un número', 'error');
+            return;
+        }
 
         try {
             const { error } = await supabase.auth.updateUser({ password: pw });

@@ -1,4 +1,5 @@
 import { getSupabase } from './auth.js';
+import { validatePasswordWithConfirmation } from '../utils/password-validator.js';
 
 // Script para la página templates/reset-password.html
 document.addEventListener('DOMContentLoaded', async () => {
@@ -40,12 +41,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pw = document.getElementById('newPassword').value;
         const pw2 = document.getElementById('confirmPassword').value;
 
-        if (!pw || !pw2) {
-            Swal.fire('Error', 'Ambos campos son obligatorios', 'error');
-            return;
-        }
-        if (pw !== pw2) {
-            Swal.fire('Error', 'Las contraseñas no coinciden', 'error');
+        // Validar contraseña usando utilidad centralizada
+        const validation = validatePasswordWithConfirmation(pw, pw2);
+        if (!validation.isValid) {
+            Swal.fire('Error', validation.error, 'error');
             return;
         }
 

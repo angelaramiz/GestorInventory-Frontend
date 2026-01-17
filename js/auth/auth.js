@@ -8,7 +8,10 @@ import { backendStatusMonitor } from '../utils/backend-status.js';
 let supabase = null;
 let supabaseInitializing = false; // Flag para evitar inicializaciones múltiples
 
-// Configuración de respaldo para cuando no se pueda conectar al servidor
+// SECURITY WARNING: Supabase credentials should ideally come from environment variables
+// or a secure configuration service, not hardcoded in frontend code.
+// These are the public 'anon' keys which have limited permissions via Row Level Security (RLS).
+// Ensure RLS policies are properly configured on the Supabase backend.
 const SUPABASE_CONFIG_BACKUP = {
     supabaseUrl: 'https://mkzyehqtvaopsfjrcgvq.supabase.co',
     supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1renplaHF0dmFvcHNmanJjZ3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODMyMzE0NjQsImV4cCI6MTk5ODgwNzQ2NH0.Sa8HFh2901UiRwuCrY6dNonSs6iml5GxCACGHxILPas'

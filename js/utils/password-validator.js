@@ -1,6 +1,10 @@
 /**
- * Utilidad para validación de contraseñas
+ * @fileoverview Utilidad para validación de contraseñas
+ * @module utils/password-validator
+ * @since 1.0.0
+ * 
  * Centraliza la lógica de validación de contraseñas para evitar duplicación de código
+ * Implementa requisitos de seguridad para contraseñas en toda la aplicación
  */
 
 /**

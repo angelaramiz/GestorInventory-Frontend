@@ -1,16 +1,18 @@
 // Módulo de scanner para lotes-avanzado.js
 
-import { scannerLotesAvanzado, productosEscaneados, isEscaneoLotesAvanzadoActivo, isScannerTransitioning, ultimoCodigoEscaneado, tiempoUltimoEscaneo, TIEMPO_DEBOUNCE, limpiarDebounce, configuracionEscaneo } from './config.js';
+import * as config from './config.js';
 import { mostrarAnimacionProcesamiento, ocultarAnimacionProcesamiento, reproducirSonidoConfirmacion, mostrarMensaje } from './utils.js';
 import { procesarCodigoEscaneadoLotesAvanzado } from './core.js';
+import { cambiarTabModalAvanzado } from './init.js';
+import { setScannerLotesAvanzado, setIsEscaneoLotesAvanzadoActivo, setIsScannerTransitioning, setUltimoCodigoEscaneado, setTiempoUltimoEscaneo } from './config.js';
 
 // Función para iniciar el escaneo por lotes avanzado
 export function iniciarEscaneoLotesAvanzado() {
     // Limpiar arrays de productos
-    productosEscaneados.length = 0;
+    config.productosEscaneados.length = 0;
 
     // Limpiar variables de debounce
-    limpiarDebounce();
+    config.limpiarDebounce();
 
     // Mostrar modal
     document.getElementById('modalEscaneoLotesAvanzado').style.display = 'block';
@@ -31,9 +33,9 @@ export function inicializarEscanerLotesAvanzado() {
         return;
     }
 
-    scannerLotesAvanzado = new Html5Qrcode("reader-lotes-avanzado");
+    setScannerLotesAvanzado(new Html5Qrcode("reader-lotes-avanzado"));
 
-    const config = {
+    const configScanner = {
         fps: 5,
         qrbox: { width: 300, height: 200 },
         experimentalFeatures: {
@@ -42,13 +44,13 @@ export function inicializarEscanerLotesAvanzado() {
     };
 
     // Por defecto, el escáner está pausado
-    isEscaneoLotesAvanzadoActivo = false;
+    setIsEscaneoLotesAvanzadoActivo(false);
 
     // Botón de acción on/off
     const btnAccion = document.getElementById('accionEscaneoLotesAvanzado');
     if (btnAccion) {
         btnAccion.addEventListener('click', function () {
-            if (isEscaneoLotesAvanzadoActivo) {
+            if (config.isEscaneoLotesAvanzadoActivo) {
                 pausarEscanerLotesAvanzado();
             } else {
                 activarEscanerLotesAvanzado();
@@ -60,14 +62,14 @@ export function inicializarEscanerLotesAvanzado() {
 }
 
 export function activarEscanerLotesAvanzado() {
-    if (scannerLotesAvanzado && !isScannerTransitioning) {
-        isScannerTransitioning = true;
+    if (config.scannerLotesAvanzado && !config.isScannerTransitioning) {
+        setIsScannerTransitioning(true);
         // Si el escáner está activo, detenerlo antes de iniciar
-        if (isEscaneoLotesAvanzadoActivo) {
-            scannerLotesAvanzado.stop().then(() => {
+        if (config.isEscaneoLotesAvanzadoActivo) {
+            config.scannerLotesAvanzado.stop().then(() => {
                 iniciarEscanerLotesAvanzadoHtml5Qrcode();
             }).catch(err => {
-                isScannerTransitioning = false;
+                setIsScannerTransitioning(false);
                 console.error("Error al detener escáner:", err);
             });
         } else {
@@ -77,7 +79,7 @@ export function activarEscanerLotesAvanzado() {
 }
 
 function iniciarEscanerLotesAvanzadoHtml5Qrcode() {
-    scannerLotesAvanzado.start(
+    config.scannerLotesAvanzado.start(
         { facingMode: "environment" },
         {
             fps: 5,
@@ -89,27 +91,27 @@ function iniciarEscanerLotesAvanzadoHtml5Qrcode() {
         onEscaneoExitosoLotesAvanzado,
         onErrorEscaneoLotesAvanzado
     ).then(() => {
-        isEscaneoLotesAvanzadoActivo = true;
-        isScannerTransitioning = false;
+        setIsEscaneoLotesAvanzadoActivo(true);
+        setIsScannerTransitioning(false);
         console.log("Escáner de lotes avanzado ACTIVADO");
     }).catch(err => {
-        isScannerTransitioning = false;
+        setIsScannerTransitioning(false);
         console.error("Error al activar escáner de lotes avanzado:", err);
         mostrarMensaje('Error al activar el escáner', 'error');
     });
 }
 
 export function pausarEscanerLotesAvanzado() {
-    if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo && !isScannerTransitioning) {
-        isScannerTransitioning = true;
-        scannerLotesAvanzado.stop().then(() => {
-            isEscaneoLotesAvanzadoActivo = false;
-            isScannerTransitioning = false;
+    if (config.scannerLotesAvanzado && config.isEscaneoLotesAvanzadoActivo && !config.isScannerTransitioning) {
+        setIsScannerTransitioning(true);
+        config.scannerLotesAvanzado.stop().then(() => {
+            setIsEscaneoLotesAvanzadoActivo(false);
+            setIsScannerTransitioning(false);
             console.log("Escáner de lotes avanzado PAUSADO");
             const btnAccion = document.getElementById('accionEscaneoLotesAvanzado');
             if (btnAccion) btnAccion.textContent = 'Activar escáner';
         }).catch(err => {
-            isScannerTransitioning = false;
+            setIsScannerTransitioning(false);
             console.error("Error al pausar escáner de lotes avanzado:", err);
         });
     }
@@ -124,27 +126,27 @@ function onEscaneoExitosoLotesAvanzado(decodedText, decodedResult) {
 
     // Implementar debounce - prevenir registro duplicado de códigos
     const tiempoActual = Date.now();
-    if (ultimoCodigoEscaneado === codigoLimpio &&
-        (tiempoActual - tiempoUltimoEscaneo) < TIEMPO_DEBOUNCE) {
-        console.log(`Código ${codigoLimpio} ignorado por debounce (${tiempoActual - tiempoUltimoEscaneo}ms desde el último escaneo)`);
+    if (config.ultimoCodigoEscaneado === codigoLimpio &&
+        (tiempoActual - config.tiempoUltimoEscaneo) < config.TIEMPO_DEBOUNCE) {
+        console.log(`Código ${codigoLimpio} ignorado por debounce (${tiempoActual - config.tiempoUltimoEscaneo}ms desde el último escaneo)`);
 
         // Reanudar el escáner sin procesar
         setTimeout(() => {
-            if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
-                scannerLotesAvanzado.resume();
+            if (config.scannerLotesAvanzado && config.isEscaneoLotesAvanzadoActivo) {
+                config.scannerLotesAvanzado.resume();
             }
         }, 300); // Reducido de 500ms a 300ms para mayor rapidez
         return;
     }
 
     // Actualizar variables de debounce
-    ultimoCodigoEscaneado = codigoLimpio;
-    tiempoUltimoEscaneo = tiempoActual;
+    setUltimoCodigoEscaneado(codigoLimpio);
+    setTiempoUltimoEscaneo(tiempoActual);
 
     // Detener el escáner completamente al detectar código para evitar errores de UI
-    if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
-        scannerLotesAvanzado.stop().then(() => {
-            isEscaneoLotesAvanzadoActivo = false;
+    if (config.scannerLotesAvanzado && config.isEscaneoLotesAvanzadoActivo) {
+        config.scannerLotesAvanzado.stop().then(() => {
+            setIsEscaneoLotesAvanzadoActivo(false);
             console.log("Escáner detenido para procesamiento");
         }).catch(err => {
             console.error("Error al detener escáner:", err);
@@ -165,15 +167,15 @@ function onErrorEscaneoLotesAvanzado(error) {
 export function pausarEscaneoLotesAvanzado() {
     const btn = document.getElementById('pausarEscaneoLotesAvanzado');
     try {
-        if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
-            scannerLotesAvanzado.stop().then(() => {
-                isEscaneoLotesAvanzadoActivo = false;
+        if (config.scannerLotesAvanzado && config.isEscaneoLotesAvanzadoActivo) {
+            config.scannerLotesAvanzado.stop().then(() => {
+                setIsEscaneoLotesAvanzadoActivo(false);
                 console.log("Escáner pausado desde botón");
                 btn.textContent = 'Reanudar escaneo';
             }).catch(err => {
                 console.error("Error al pausar escáner:", err);
             });
-        } else if (scannerLotesAvanzado && !isEscaneoLotesAvanzadoActivo) {
+        } else if (config.scannerLotesAvanzado && !config.isEscaneoLotesAvanzadoActivo) {
             reanudarEscaneoLotesAvanzado();
         }
     } catch (err) {
@@ -184,7 +186,7 @@ export function pausarEscaneoLotesAvanzado() {
 // Función para reanudar el escaneo
 export function reanudarEscaneoLotesAvanzado() {
     const btn = document.getElementById('pausarEscaneoLotesAvanzado');
-    if (scannerLotesAvanzado && !isEscaneoLotesAvanzadoActivo) {
+    if (config.scannerLotesAvanzado && !config.isEscaneoLotesAvanzadoActivo) {
         activarEscanerLotesAvanzado();
         if (btn) btn.textContent = 'Pausar escaneo';
     }
@@ -193,7 +195,7 @@ export function reanudarEscaneoLotesAvanzado() {
 // Función para reanudar el escáner sin limpiar debounce (para evitar bucles)
 export function reanudarEscannerSinLimpiarDebounce() {
     const btn = document.getElementById('pausarEscaneoLotesAvanzado');
-    if (scannerLotesAvanzado && !isEscaneoLotesAvanzadoActivo) {
+    if (config.scannerLotesAvanzado && !config.isEscaneoLotesAvanzadoActivo) {
         activarEscanerLotesAvanzado();
         if (btn) btn.textContent = 'Pausar escaneo';
     }
@@ -202,7 +204,7 @@ export function reanudarEscannerSinLimpiarDebounce() {
 // Función para reanudar el escáner después del procesamiento
 export function reanudarEscannerDespuesDeProcesamiento() {
     setTimeout(() => {
-        if (scannerLotesAvanzado && !isEscaneoLotesAvanzadoActivo) {
+        if (config.scannerLotesAvanzado && !config.isEscaneoLotesAvanzadoActivo) {
             activarEscanerLotesAvanzado();
         }
     }, 800); // Reducido de 2000ms a 800ms para mayor rapidez
@@ -210,7 +212,7 @@ export function reanudarEscannerDespuesDeProcesamiento() {
 
 // Función para finalizar el escaneo por lotes avanzado
 export function finalizarEscaneoLotesAvanzado() {
-    if (productosEscaneados.length === 0) {
+    if (config.productosEscaneados.length === 0) {
         mostrarMensaje('No hay productos escaneados para finalizar', 'warning');
         return;
     }
@@ -219,9 +221,9 @@ export function finalizarEscaneoLotesAvanzado() {
     agruparProductosPorPrimario();
 
     // Mostrar confirmación
-    const totalProductos = productosEscaneados.length;
-    const pesoTotal = productosEscaneados.reduce((sum, item) => sum + item.peso, 0);
-    const productosPrimarios = productosAgrupados.length;
+    const totalProductos = config.productosEscaneados.length;
+    const pesoTotal = config.productosEscaneados.reduce((sum, item) => sum + item.peso, 0);
+    const productosPrimarios = config.productosAgrupados.length;
 
     // Deshabilitar el botón de iniciar escaneo por lotes avanzado
     const btnIniciar = document.getElementById('iniciarEscaneoLotesAvanzado');
@@ -258,10 +260,10 @@ export function finalizarEscaneoLotesAvanzado() {
 
 // Función para agrupar productos por producto primario
 function agruparProductosPorPrimario() {
-    productosAgrupados.length = 0;
+    config.productosAgrupados.length = 0;
     const grupos = new Map();
 
-    productosEscaneados.forEach(producto => {
+    config.productosEscaneados.forEach(producto => {
         const clavePrimaria = producto.productoPrimario?.codigo || producto.codigo;
         if (!grupos.has(clavePrimaria)) {
             grupos.set(clavePrimaria, {
@@ -275,7 +277,7 @@ function agruparProductosPorPrimario() {
         grupo.pesoTotal += producto.peso;
     });
 
-    productosAgrupados.push(...Array.from(grupos.values()));
+    config.productosAgrupados.push(...Array.from(grupos.values()));
 }
 
 // Función para mostrar resultados de lotes avanzado
@@ -313,17 +315,17 @@ export async function cerrarModalLotesAvanzado() {
     (async () => {
         try {
             // Detener el escáner si está activo
-            if (scannerLotesAvanzado && isEscaneoLotesAvanzadoActivo) {
-                await scannerLotesAvanzado.stop();
-                isEscaneoLotesAvanzadoActivo = false;
+            if (config.scannerLotesAvanzado && config.isEscaneoLotesAvanzadoActivo) {
+                await config.scannerLotesAvanzado.stop();
+                setIsEscaneoLotesAvanzadoActivo(false);
                 console.log("Escáner detenido al cerrar modal");
             }
 
             // Limpiar arrays
-            productosEscaneados.length = 0;
+            config.productosEscaneados.length = 0;
 
             // Limpiar variables de debounce
-            limpiarDebounce();
+            config.limpiarDebounce();
 
             // Ocultar modal
             document.getElementById('modalEscaneoLotesAvanzado').style.display = 'none';

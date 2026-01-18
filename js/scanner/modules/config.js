@@ -50,3 +50,24 @@ export function limpiarDebounce() {
     tiempoUltimoEscaneo = 0;
     console.log('Variables de debounce limpiadas');
 }
+
+// Funciones setter para actualizar variables del módulo
+export function setScannerLotesAvanzado(value) {
+    scannerLotesAvanzado = value;
+}
+
+export function setIsEscaneoLotesAvanzadoActivo(value) {
+    isEscaneoLotesAvanzadoActivo = value;
+}
+
+export function setIsScannerTransitioning(value) {
+    isScannerTransitioning = value;
+}
+
+export function setUltimoCodigoEscaneado(value) {
+    ultimoCodigoEscaneado = value;
+}
+
+export function setTiempoUltimoEscaneo(value) {
+    tiempoUltimoEscaneo = value;
+}

@@ -59,61 +59,31 @@ export async function cargarDiccionarioSubproductos() {
     }
 }
 
-// Función para buscar producto por PLU usando IndexedDB primero, luego Supabase
+// Función para buscar producto por PLU en Supabase
 export async function buscarProductoPorPLU(plu) {
     try {
         console.log(`Buscando producto con PLU: ${plu}`);
 
-        // Primero buscar en IndexedDB usando buscarPorCodigoParcial
-        const resultadoIndexedDB = await new Promise((resolve, reject) => {
-            buscarPorCodigoParcial(plu, (resultados) => {
-                if (resultados && resultados.length > 0) {
-                    // Filtrar por código exacto si es posible
-                    const exacto = resultados.find(r => r.codigo === plu || r.codigo === plu.padStart(12, '0'));
-                    resolve(exacto || resultados[0]);
-                } else {
-                    resolve(null);
-                }
-            }, (error) => {
-                console.warn('Error al buscar en IndexedDB:', error);
-                resolve(null);
-            });
-        });
-
-        if (resultadoIndexedDB) {
-            console.log('Producto encontrado en IndexedDB:', resultadoIndexedDB);
-            return {
-                codigo: resultadoIndexedDB.codigo,
-                nombre: resultadoIndexedDB.nombre,
-                marca: resultadoIndexedDB.marca,
-                unidad: resultadoIndexedDB.unidad,
-                categoria: resultadoIndexedDB.categoria?.nombre || 'Sin categoría'
-            };
-        }
-
-        // Si no se encuentra en IndexedDB, buscar en Supabase
-        console.log(`Producto no encontrado en IndexedDB, buscando en Supabase...`);
-
         // Obtener instancia de Supabase
         const supabase = await getSupabase();
 
-        // Primero intentar buscar con el PLU tal como viene (4 dígitos)
-        let { data, error } = await supabase
-            .from('productos')
-            .select(`
-                codigo,
-                nombre,
-                marca,
-                unidad,
-                categoria:categorias(nombre)
-            `)
-            .eq('codigo', plu)
-            .single();
+        // Crear variaciones del código para búsqueda
+        const variacionesCodigo = [
+            plu,                              // PLU original (4 dígitos)
+            plu.padStart(12, '0'),           // PLU rellenado a 12 dígitos
+            plu.padStart(15, '0'),           // PLU rellenado a 15 dígitos
+            plu.padStart(8, '0'),            // PLU rellenado a 8 dígitos
+            '2' + plu.padStart(14, '0')      // Formato con prefijo 2 (tipo de código)
+        ];
 
-        // Si no se encuentra, intentar con código completo de 12 dígitos (rellenando con ceros)
-        if (error && error.code === 'PGRST116') {
-            const codigoCompleto = plu.padStart(12, '0');
-            console.log(`Intentando con código completo: ${codigoCompleto}`);
+        console.log(`[Supabase] Buscando con variaciones de código:`, variacionesCodigo);
+
+        // Intentar búsquedas progresivas en tabla PRODUCTOS
+        let data = null;
+        let error = null;
+
+        for (const codigo of variacionesCodigo) {
+            console.log(`[Supabase] Búsqueda en productos con código: "${codigo}"`);
 
             ({ data, error } = await supabase
                 .from('productos')
@@ -124,32 +94,65 @@ export async function buscarProductoPorPLU(plu) {
                     unidad,
                     categoria:categorias(nombre)
                 `)
-                .eq('codigo', codigoCompleto)
-                .single());
+                .eq('codigo', codigo)
+                .maybeSingle());
+
+            if (data) {
+                console.log(`✅ Producto encontrado en tabla productos con código "${codigo}":`, data);
+                return {
+                    codigo: data.codigo,
+                    nombre: data.nombre,
+                    marca: data.marca,
+                    unidad: data.unidad,
+                    categoria: data.categoria?.nombre || 'Sin categoría'
+                };
+            }
+
+            if (error && error.code !== 'PGRST116') {
+                console.warn(`⚠️ Error en búsqueda productos con "${codigo}":`, error);
+            }
         }
 
-        if (error) {
-            console.error('Error al buscar producto en Supabase:', error);
-            return null;
+        // Si no encontró en PRODUCTOS, buscar en PRODUCTOS_SUBPRODUCTOS
+        console.log(`[Supabase] Producto no encontrado en tabla productos, buscando en productos_subproductos...`);
+
+        for (const codigo of variacionesCodigo) {
+            console.log(`[Supabase] Búsqueda en productos_subproductos con código: "${codigo}"`);
+
+            ({ data, error } = await supabase
+                .from('productos_subproductos')
+                .select(`
+                    id,
+                    codigo,
+                    nombre,
+                    marca,
+                    unidad,
+                    categoria
+                `)
+                .eq('codigo', codigo)
+                .maybeSingle());
+
+            if (data) {
+                console.log(`✅ Subproducto encontrado en tabla productos_subproductos con código "${codigo}":`, data);
+                return {
+                    codigo: data.codigo,
+                    nombre: data.nombre,
+                    marca: data.marca,
+                    unidad: data.unidad,
+                    categoria: data.categoria || 'Sin categoría'
+                };
+            }
+
+            if (error && error.code !== 'PGRST116') {
+                console.warn(`⚠️ Error en búsqueda productos_subproductos con "${codigo}":`, error);
+            }
         }
 
-        if (data) {
-            console.log('Producto encontrado en Supabase:', data);
-            return {
-                codigo: data.codigo,
-                nombre: data.nombre,
-                marca: data.marca,
-                unidad: data.unidad,
-                categoria: data.categoria?.nombre || 'Sin categoría'
-            };
-        }
-
+        console.warn(`❌ Producto no encontrado para PLU: ${plu} - Variaciones intentadas: ${variacionesCodigo.join(', ')}`);
         return null;
 
     } catch (error) {
         console.error('Error al buscar producto por PLU:', error);
-
-        // En caso de error de conexión, retornar null
         console.warn('No se pudo conectar con el servidor para buscar el producto');
         return null;
     }

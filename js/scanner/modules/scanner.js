@@ -1,7 +1,7 @@
 // Módulo de scanner para lotes-avanzado.js
 
 import { scannerLotesAvanzado, productosEscaneados, isEscaneoLotesAvanzadoActivo, isScannerTransitioning, ultimoCodigoEscaneado, tiempoUltimoEscaneo, TIEMPO_DEBOUNCE, limpiarDebounce, configuracionEscaneo } from './config.js';
-import { mostrarAnimacionProcesamiento, ocultarAnimacionProcesamiento, reproducirSonidoConfirmacion } from './utils.js';
+import { mostrarAnimacionProcesamiento, ocultarAnimacionProcesamiento, reproducirSonidoConfirmacion, mostrarMensaje } from './utils.js';
 import { procesarCodigoEscaneadoLotesAvanzado } from './core.js';
 
 // Función para iniciar el escaneo por lotes avanzado
@@ -348,9 +348,3 @@ export async function cerrarModalLotesAvanzado() {
         }
     })();
 }
-
-// Importar funciones necesarias
-import { productosAgrupados } from './config.js';
-import { actualizarContadoresAvanzado, mostrarMensaje, mostrarDetalleProductoPrimario } from './ui.js';
-import { cambiarTabModalAvanzado } from './init.js';
-import { guardarInventarioLotesAvanzado } from './storage.js';

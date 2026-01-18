@@ -1,10 +1,24 @@
 // Módulo de inicialización para lotes-avanzado.js
 
-import { configuracionEscaneo, inicializarConfiguracion } from './config.js';
+import { configuracionEscaneo, inicializarConfiguracion, isEscaneoLotesAvanzadoActivo, scannerLotesAvanzado } from './config.js';
 import { cargarDiccionarioSubproductos } from './processor.js';
+import { iniciarEscaneoLotesAvanzado, cerrarModalLotesAvanzado, pausarEscaneoLotesAvanzado, finalizarEscaneoLotesAvanzado, reanudarEscaneoLotesAvanzado } from './scanner.js';
+import { cerrarModalInfoProducto, guardarInfoProducto } from './core.js';
+import { guardarInventarioLotesAvanzado } from './storage.js';
 
 // Función para inicializar el sistema de lotes avanzado
 export function inicializarSistemaLotesAvanzado() {
+    console.log('inicializarSistemaLotesAvanzado() llamada, document.readyState:', document.readyState);
+    
+    // Usar setTimeout para asegurar que el DOM esté completamente listo
+    setTimeout(() => {
+        _inicializarElementos();
+    }, 100);
+}
+
+function _inicializarElementos() {
+    console.log('_inicializarElementos() ejecutada');
+    
     // Inicializar configuración
     inicializarConfiguracion();
 
@@ -40,13 +54,29 @@ export function inicializarSistemaLotesAvanzado() {
     }
 
     // Event listeners para las pestañas principales
-    document.getElementById('tabInventarioManual')?.addEventListener('click', () => {
-        cambiarPestanaPrincipal('manual');
-    });
+    const tabManual = document.getElementById('tabInventarioManual');
+    const tabAvanzado = document.getElementById('tabLotesAvanzado');
+    
+    
+    console.log('Botones encontrados:', { tabManual: !!tabManual, tabAvanzado: !!tabAvanzado });
+    
+    if (tabManual) {
+        tabManual.addEventListener('click', () => {
+            console.log('Cambiando a pestaña manual');
+            cambiarPestanaPrincipal('manual');
+        });
+    } else {
+        console.warn('No se encontró el botón tabInventarioManual');
+    }
 
-    document.getElementById('tabLotesAvanzado')?.addEventListener('click', () => {
-        cambiarPestanaPrincipal('avanzado');
-    });
+    if (tabAvanzado) {
+        tabAvanzado.addEventListener('click', () => {
+            console.log('Cambiando a pestaña avanzado');
+            cambiarPestanaPrincipal('avanzado');
+        });
+    } else {
+        console.warn('No se encontró el botón tabLotesAvanzado');
+    }
 
     // Event listeners para configuración
     document.getElementById('confirmarProductosSimilares')?.addEventListener('change', function () {
@@ -95,10 +125,19 @@ export function inicializarSistemaLotesAvanzado() {
 
 // Función para cambiar entre pestañas principales
 export function cambiarPestanaPrincipal(tipo) {
+    console.log('Cambiando pestaña a:', tipo);
+    
     const tabManual = document.getElementById('tabInventarioManual');
     const tabAvanzado = document.getElementById('tabLotesAvanzado');
     const contenidoManual = document.getElementById('contenidoInventarioManual');
     const contenidoAvanzado = document.getElementById('contenidoLotesAvanzado');
+    
+    console.log('Elementos encontrados:', {
+        tabManual: !!tabManual,
+        tabAvanzado: !!tabAvanzado,
+        contenidoManual: !!contenidoManual,
+        contenidoAvanzado: !!contenidoAvanzado
+    });
 
     if (tipo === 'manual') {
         // Activar pestaña manual
@@ -108,6 +147,7 @@ export function cambiarPestanaPrincipal(tipo) {
         // Mostrar contenido manual
         contenidoManual.style.display = 'block';
         contenidoAvanzado.style.display = 'none';
+        console.log('Pestaña manual activada');
     } else if (tipo === 'avanzado') {
         // Activar pestaña avanzado
         tabManual.className = 'px-6 py-3 bg-gray-200 text-gray-700 rounded-t-lg hover:bg-gray-300 font-semibold';
@@ -116,6 +156,7 @@ export function cambiarPestanaPrincipal(tipo) {
         // Mostrar contenido avanzado
         contenidoManual.style.display = 'none';
         contenidoAvanzado.style.display = 'block';
+        console.log('Pestaña avanzado activada');
     }
 }
 
@@ -154,6 +195,3 @@ export function cambiarTabModalAvanzado(tab) {
         }
     }
 }
-
-// Importar funciones necesarias para evitar dependencias circulares
-import { iniciarEscaneoLotesAvanzado, cerrarModalLotesAvanzado, pausarEscaneoLotesAvanzado, finalizarEscaneoLotesAvanzado, cerrarModalInfoProducto, guardarInfoProducto, guardarInventarioLotesAvanzado, isEscaneoLotesAvanzadoActivo, scannerLotesAvanzado, reanudarEscaneoLotesAvanzado } from './scanner.js';

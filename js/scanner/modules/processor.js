@@ -1,9 +1,10 @@
 // Módulo de procesamiento para lotes-avanzado.js
 
-import { getSupabase } from '../../auth/token-config.js';
-import { buscarPorCodigoParcial } from '../../db/db-operations.js';
-import { sanitizarEntrada, precioKiloTemporal } from './utils.js';
-import { diccionarioSubproductos, configuracionEscaneo, productosEscaneados, preciosPorKiloGuardados, limpiarDebounce, TIEMPO_DEBOUNCE, ultimoCodigoEscaneado, tiempoUltimoEscaneo } from './config.js';
+import { getSupabase } from '../../auth/auth.js';
+import { buscarPorCodigoParcial } from '../../products/product-search.js';
+import { mostrarAlertaBurbuja } from './utils.js';
+import { sanitizarEntrada } from './utils.js';
+import { diccionarioSubproductos, configuracionEscaneo, productosEscaneados, preciosPorKiloGuardados, limpiarDebounce, TIEMPO_DEBOUNCE, ultimoCodigoEscaneado, tiempoUltimoEscaneo, precioKiloTemporal } from './config.js';
 
 // Función para cargar diccionario de subproductos desde Supabase
 export async function cargarDiccionarioSubproductos() {

@@ -1,8 +1,11 @@
 // Módulo core para funciones compartidas entre scanner y ui
 
-import { productosEscaneados, configuracionEscaneo, preciosPorKiloGuardados } from './config.js';
+import { productosEscaneados, configuracionEscaneo, preciosPorKiloGuardados, diccionarioSubproductos } from './config.js';
 import { mostrarAnimacionProcesamiento, ocultarAnimacionProcesamiento, reproducirSonidoConfirmacion, mostrarMensaje, mostrarAlertaBurbuja, generarIdUnico } from './utils.js';
-import { buscarProductoPorPLU, verificarProductoExistente, verificarRegistroReciente, extraerDatosCodeCODE128, diccionarioSubproductos } from './processor.js';
+import { buscarProductoPorPLU, verificarProductoExistente, verificarRegistroReciente, extraerDatosCodeCODE128 } from './processor.js';
+import { actualizarContadoresAvanzado, actualizarListadoProductosAvanzado } from './ui.js';
+import { limpiarDebounce } from './config.js';
+import { reanudarEscannerDespuesDeProcesamiento } from './scanner.js';
 
 // Función para procesar el código escaneado en modo avanzado
 export async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
@@ -349,8 +352,3 @@ function mostrarVentanaConfirmacionProducto(producto, datosExtraidos, productoEx
         }
     }
 }
-
-// Importar funciones necesarias
-import { actualizarContadoresAvanzado, actualizarListadoProductosAvanzado } from './ui.js';
-import { limpiarDebounce } from './config.js';
-import { reanudarEscannerDespuesDeProcesamiento } from './scanner.js';

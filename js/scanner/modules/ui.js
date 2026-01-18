@@ -1,6 +1,6 @@
 // Módulo de UI para lotes-avanzado.js
 
-import { productosEscaneados, productosAgrupados, configuracionEscaneo } from './config.js';
+import { productosEscaneados, productosAgrupados, configuracionEscaneo, limpiarDebounce } from './config.js';
 import { mostrarMensaje, mostrarAlertaBurbuja } from './utils.js';
 
 // Función para actualizar contadores
@@ -145,7 +145,3 @@ export function mostrarDetalleProductoPrimario(grupo) {
         }
     });
 }
-
-// Funciones auxiliares que necesitan ser importadas o definidas
-import { limpiarDebounce } from './config.js';
-import { reanudarEscannerDespuesDeProcesamiento } from './scanner.js';

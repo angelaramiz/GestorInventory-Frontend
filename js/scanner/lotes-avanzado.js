@@ -1,3 +1,4 @@
+// VERSIÓN: 2026-01-18 12:00:00 - Fix: Switch tabs para lotes avanzado
 // Funcionalidad de escaneo por lotes avanzado
 // Mejora del sistema de lotes con detección automática y agrupación de productos
 
@@ -5,6 +6,17 @@
 import { inicializarSistemaLotesAvanzado, cambiarPestanaPrincipal } from './modules/init.js';
 import { cargarDiccionarioSubproductos } from './modules/processor.js';
 import { guardarInventarioLotesAvanzado } from './modules/storage.js';
+
+// Inicializar sistema de lotes avanzado cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM loaded - Inicializando sistema de lotes avanzado');
+        inicializarSistemaLotesAvanzado();
+    });
+} else {
+    console.log('DOM already loaded - Inicializando sistema de lotes avanzado');
+    inicializarSistemaLotesAvanzado();
+}
 
 // Función para actualizar tabla automáticamente después de guardar
 export async function actualizarTablaInventarioAutomaticamente() {
@@ -20,12 +32,3 @@ export async function actualizarTablaInventarioAutomaticamente() {
         console.warn('No se pudo actualizar la tabla automáticamente:', e);
     }
 }
-
-// Exportar funciones principales para uso externo
-export {
-    inicializarSistemaLotesAvanzado,
-    cambiarPestanaPrincipal,
-    cargarDiccionarioSubproductos,
-    guardarInventarioLotesAvanzado,
-    actualizarTablaInventarioAutomaticamente
-};

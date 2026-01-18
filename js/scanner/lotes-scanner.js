@@ -1,4 +1,5 @@
 // Funcionalidad de escaneo por lotes para productos tipo Kg
+// VERSION: 2026-01-18T10:10:00Z - Corregido formato de código 13 dígitos a PRECIO
 import { mostrarMensaje } from '../utils/logs.js';
 import { sanitizarEntrada } from '../utils/sanitizacion.js';
 
@@ -127,7 +128,7 @@ export function establecerProductoActual(producto) {
 export function manejarTipoProducto(unidad) {
     const tabsContainer = document.getElementById('tabsContainer');
     
-    if (unidad && unidad.toLowerCase().includes('kg')) {
+    if (unidad && typeof unidad === 'string' && unidad.toLowerCase().includes('kg')) {
         // Producto tipo Kg - mostrar pestañas
         tabsContainer.style.display = 'block';
         // Por defecto mostrar la pestaña de inventario normal
@@ -396,17 +397,35 @@ function extraerDatosCodeCODE128(codigo) {
         };
             
     } else if (codigo.length === 13 && codigo.startsWith('2')) {
-        // Formato alternativo: 2 + 4 dígitos PLU + 7 dígitos peso + 1 dígito control
+        // Formato alternativo: 2 + 4 dígitos PLU + 7 dígitos precio en centavos + 1 dígito control
         plu = codigo.substring(1, 5);
-        const pesoStr = codigo.substring(5, 12);
-        pesoGramos = parseInt(pesoStr);
+        const precioCentavosStr = codigo.substring(5, 12);
+        const precioCentavos = parseInt(precioCentavosStr);
         digitoControl = codigo.substring(12, 13);
-        
-        console.log(`Patrón 13 dígitos detectado:
+
+        console.log(`Patrón 13 dígitos detectado (PRECIO):
             - PLU: ${plu}
-            - Peso en gramos: ${pesoGramos}
+            - Precio en centavos: ${precioCentavos}
             - Dígito control: ${digitoControl}`);
-            
+
+        // Convertir centavos a pesos
+        const precioPorcion = precioCentavos / 100;
+
+        // Calcular peso basado en precio por porción y precio por kilo
+        const pesoCalculado = precioPorcion / precioKiloActual;
+
+        // Validar que el peso esté en rango razonable (0.001kg a 50kg)
+        if (pesoCalculado <= 0 || pesoCalculado > 50) {
+            console.log(`Peso calculado fuera de rango: ${pesoCalculado}kg (precio: $${precioPorcion.toFixed(2)}, precio/kilo: $${precioKiloActual.toFixed(2)})`);
+            return null;
+        }
+
+        return {
+            plu: plu,
+            peso: pesoCalculado,
+            precioPorcion: precioPorcion,
+            digitoControl: digitoControl
+        };
     } else if (codigo.length >= 9 && codigoLimpio.startsWith('2')) {
         // Formato original: 2 + 4 dígitos PLU + precio variable + 2 centavos + 1 control
         const match = codigoLimpio.match(/^2(\d{4})(\d+)(\d{2})(\d)$/);

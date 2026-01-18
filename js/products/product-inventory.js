@@ -397,15 +397,100 @@ function cargarInventarioLocal() {
 }
 
 // Función para seleccionar ubicación de almacén
-export async function seleccionarUbicacionAlmacen() {
-    return new Promise((resolve) => {
-        // Aquí iría la lógica para mostrar un modal o selector de ubicación
-        // Por ahora, retornamos un valor por defecto o null
-        const ubicacionGuardada = localStorage.getItem('ubicacion_actual');
-        if (ubicacionGuardada) {
-            resolve(JSON.parse(ubicacionGuardada));
-        } else {
-            // Mostrar selector de ubicación o retornar null
+export async function seleccionarUbicacionAlmacen(forzarNuevaSeleccion = true) {
+    return new Promise(async (resolve) => {
+        try {
+            // Si no se fuerza nueva selección y hay una ubicación guardada, devolverla
+            if (!forzarNuevaSeleccion) {
+                const ubicacionGuardada = localStorage.getItem('ubicacion_actual');
+                if (ubicacionGuardada) {
+                    resolve(JSON.parse(ubicacionGuardada));
+                    return;
+                }
+            }
+
+            // Obtener las áreas disponibles
+            const { obtenerAreasPorCategoria } = await import('../db/db-operations.js');
+            const areas = await obtenerAreasPorCategoria();
+
+            if (!areas || areas.length === 0) {
+                mostrarMensaje("No hay áreas disponibles para tu categoría", "error");
+                resolve(null);
+                return;
+            }
+
+            // Crear modal para seleccionar área
+            const modal = document.createElement('div');
+            modal.id = 'modal-seleccionar-area';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Seleccionar Área de Trabajo</h2>
+                    <p class="text-gray-600 mb-4">Por favor, selecciona el área donde trabajarás hoy:</p>
+                    <div id="areas-list" class="space-y-2 mb-6 max-h-96 overflow-y-auto">
+                        ${areas.map(area => `
+                            <button class="w-full p-3 text-left border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-500 transition area-btn" data-area-id="${area.id}" data-area-name="${area.nombre || area.name}">
+                                <span class="font-semibold text-gray-800">${area.nombre || area.name}</span>
+                                ${area.descripcion || area.description ? `<p class="text-sm text-gray-600 mt-1">${area.descripcion || area.description}</p>` : ''}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <button id="cerrar-modal-area" class="w-full py-2 px-4 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition">
+                        Cancelar
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            console.log('Modal de selección de área creado y añadido al DOM');
+
+            // Event listeners para botones de área
+            const botonesArea = modal.querySelectorAll('.area-btn');
+            console.log('Botones de área encontrados:', botonesArea.length);
+            
+            botonesArea.forEach((btn, index) => {
+                btn.addEventListener('click', () => {
+                    const areaId = btn.getAttribute('data-area-id');
+                    const areaName = btn.getAttribute('data-area-name');
+                    
+                    console.log(`Área seleccionada: ${areaName} (ID: ${areaId})`);
+                    
+                    // Guardar en localStorage
+                    localStorage.setItem('area_id', areaId);
+                    localStorage.setItem('ubicacion_almacen', areaName);
+                    const ubicacion = { id: areaId, nombre: areaName };
+                    localStorage.setItem('ubicacion_actual', JSON.stringify(ubicacion));
+                    
+                    // Eliminar modal
+                    modal.remove();
+                    
+                    // Resolver con la ubicación seleccionada
+                    resolve(ubicacion);
+                });
+            });
+
+            // Event listener para cerrar modal
+            const cerrarBtn = modal.querySelector('#cerrar-modal-area');
+            if (cerrarBtn) {
+                cerrarBtn.addEventListener('click', () => {
+                    console.log('Cancelando selección de área');
+                    modal.remove();
+                    resolve(null);
+                });
+            }
+
+            // Cerrar modal si se hace clic fuera
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    console.log('Cerrando modal al hacer clic fuera');
+                    modal.remove();
+                    resolve(null);
+                }
+            });
+
+        } catch (error) {
+            console.error("Error al seleccionar ubicación:", error);
+            mostrarMensaje("Error al cargar las áreas disponibles", "error");
             resolve(null);
         }
     });
@@ -416,8 +501,8 @@ export async function verificarYSeleccionarUbicacion() {
     const ubicacionActual = localStorage.getItem('ubicacion_actual');
 
     if (!ubicacionActual) {
-        // Si no hay ubicación seleccionada, intentar seleccionar una
-        const ubicacion = await seleccionarUbicacionAlmacen();
+        // Si no hay ubicación seleccionada, intentar seleccionar una (sin forzar si no existe aún)
+        const ubicacion = await seleccionarUbicacionAlmacen(true);
         if (ubicacion) {
             localStorage.setItem('ubicacion_actual', JSON.stringify(ubicacion));
             mostrarMensaje(`Ubicación seleccionada: ${ubicacion.nombre}`, "success");

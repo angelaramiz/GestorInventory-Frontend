@@ -216,6 +216,25 @@
         }, 1000);
     }
     </script>
+    <script>
+        // Forzar actualización del Service Worker y limpieza de cache
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                registrations.forEach(registration => {
+                    console.log('Desregistrando Service Worker antiguo:', registration);
+                    registration.unregister();
+                });
+            });
+            
+            // Limpiar caches
+            caches.keys().then(cacheNames => {
+                cacheNames.forEach(cacheName => {
+                    console.log('Eliminando cache:', cacheName);
+                    caches.delete(cacheName);
+                });
+            });
+        }
+    </script>
 </body>
 
 </html>

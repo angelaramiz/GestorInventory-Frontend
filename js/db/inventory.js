@@ -3,7 +3,9 @@
 
 import { dbInventario } from './db-init.js';
 import { agregarAColaSincronizacion } from './sync-queue.js';
+import { mostrarAlertaBurbuja } from '../utils/logs.js';
 import { mostrarMensaje } from '../utils/logs.js';
+import { getSupabase } from '../auth/auth.js';
 
 // Variables para el ordenamiento y paginación del inventario
 let inventarioCompleto = [];
@@ -228,9 +230,9 @@ function agregarOrdenamientoAColumnas() {
 
     headers.forEach((header, index) => {
         if (index < columnas.length) {
+            const columna = columnas[index];
             header.style.cursor = 'pointer';
             header.addEventListener('click', () => {
-                const columna = columnas[index];
                 if (ordenColumnaInventario.columna === columna) {
                     ordenColumnaInventario.ascendente = !ordenColumnaInventario.ascendente;
                 } else {

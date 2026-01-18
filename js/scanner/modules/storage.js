@@ -1,7 +1,9 @@
 // Módulo de storage para lotes-avanzado.js
 
 import { productosAgrupados } from './config.js';
-import { getSupabase } from '../../auth/token-config.js';
+import { getSupabase } from '../../auth/auth.js';
+import { mostrarMensaje } from './utils.js';
+import { cerrarModalLotesAvanzado } from './scanner.js';
 
 // Función para generar comentarios detallados del inventario
 function generarComentariosDetallados(grupo, ubicacionNombre, fechaEscaneo) {
@@ -179,12 +181,4 @@ async function guardarEnIndexedDBConReintento(inventarioData, maxReintentos = 3)
             }
         }
     }
-}
-
-// Funciones que se asumen existen en el ecosistema
-import { mostrarMensaje } from './utils.js';
-
-function cerrarModalLotesAvanzado() {
-    // Asumir que existe en otro módulo
-    console.log('Cerrando modal de lotes avanzado');
 }

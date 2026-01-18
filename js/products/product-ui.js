@@ -139,10 +139,11 @@ export function mostrarFormularioInventario(producto) {
         esTipoKg: unidad.toLowerCase().includes('kg')
     });
 
-    import('./lotes-scanner.js').then(module => {
+    import('../scanner/lotes-scanner.js').then(module => {
         console.log('Debug - Módulo lotes-scanner cargado:', module);
         if (module.manejarTipoProducto) {
-            module.manejarTipoProducto(producto);
+            const unidad = producto.unidad || '';
+            module.manejarTipoProducto(unidad);
         } else {
             console.warn('Debug - manejarTipoProducto no encontrado en lotes-scanner');
         }

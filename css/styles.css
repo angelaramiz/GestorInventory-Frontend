@@ -1,4 +1,39 @@
 /* ===== ESTILOS BÁSICOS EXISTENTES ===== */
+/* Menú lateral - Mantener z-index alto para estar SOBRE el contenido */
+#sideMenu {
+    z-index: 9999 !important;
+}
+
+/* Modal de Escáner - Debe estar SOBRE el menú */
+#modalEscanerPZ {
+    z-index: 9998 !important;
+}
+
+/* Contenedor del escáner QR - Asegurar visibilidad y tamaño correcto */
+#qr-scanner {
+    min-height: 400px !important;
+    height: 400px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Estilos para elementos generados por HTML5QrCode dentro del contenedor */
+#qr-scanner > div {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#qr-scanner video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
 .spinner {
     border: 4px solid rgba(0, 0, 0, 0.1);
     width: 36px;
@@ -1001,6 +1036,7 @@
 .theme-dark #sideMenu {
     background-color: #374151 !important;
     border-right: 1px solid #4b5563 !important;
+    z-index: 9999 !important;
 }
 
 .theme-dark #sideMenu h2 {

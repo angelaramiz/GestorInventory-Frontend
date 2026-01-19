@@ -5,6 +5,7 @@ import { cargarDiccionarioSubproductos } from './processor.js';
 import { iniciarEscaneoLotesAvanzado, cerrarModalLotesAvanzado, pausarEscaneoLotesAvanzado, finalizarEscaneoLotesAvanzado, reanudarEscaneoLotesAvanzado } from './scanner.js';
 import { cerrarModalInfoProducto, guardarInfoProducto } from './core.js';
 import { guardarInventarioLotesAvanzado } from './storage.js';
+import { inicializarSeleccionInventario } from './selection.js';
 
 // Función para inicializar el sistema de lotes avanzado
 export function inicializarSistemaLotesAvanzado() {
@@ -56,7 +57,7 @@ function _inicializarElementos() {
     // Event listeners para las pestañas principales
     const tabManual = document.getElementById('tabInventarioManual');
     const tabAvanzado = document.getElementById('tabLotesAvanzado');
-    
+
     
     console.log('Botones encontrados:', { tabManual: !!tabManual, tabAvanzado: !!tabAvanzado });
     
@@ -94,8 +95,8 @@ function _inicializarElementos() {
         console.log('Configuración sonido cambiada:', this.checked);
     });
 
-    // Event listener para iniciar escaneo por lotes avanzado
-    document.getElementById('iniciarEscaneoLotesAvanzado')?.addEventListener('click', iniciarEscaneoLotesAvanzado);
+    // Inicializar selección de tipo de inventario (FASE 1)
+    inicializarSeleccionInventario();
 
     // Event listeners para el modal de escaneo
     document.getElementById('cerrarModalLotesAvanzado')?.addEventListener('click', cerrarModalLotesAvanzado);

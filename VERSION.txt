@@ -1,6 +1,0 @@
-2026-01-18T10:10:00Z
-Cambios:
-- Corregido formato de código 13 dígitos: interpretado como PRECIO EN CENTAVOS, no peso
-- Ahora calcula el peso: peso = precio_porcion / precio_por_kilo
-- Incrementada versión del Service Worker a v4
-- Limpieza de cache forzada en index.html

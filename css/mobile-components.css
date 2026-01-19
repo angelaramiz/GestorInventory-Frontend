@@ -1,5 +1,14 @@
 /* ===== COMPONENTES MÓVILES ADICIONALES ===== */
 
+/* Menú lateral - Asegurar z-index correcto (sin cambiar ancho) */
+#sideMenu {
+    z-index: 9999 !important;
+}
+
+#sideMenu.translate-x-0 {
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15) !important;
+}
+
 /* Botón flotante para acciones rápidas */
 .mobile-fab {
     position: fixed;

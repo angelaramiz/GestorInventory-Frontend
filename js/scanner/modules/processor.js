@@ -92,7 +92,7 @@ export async function buscarProductoPorPLU(plu) {
                     nombre,
                     marca,
                     unidad,
-                    categoria:categorias(nombre)
+                    categoria
                 `)
                 .eq('codigo', codigo)
                 .maybeSingle());
@@ -104,7 +104,7 @@ export async function buscarProductoPorPLU(plu) {
                     nombre: data.nombre,
                     marca: data.marca,
                     unidad: data.unidad,
-                    categoria: data.categoria?.nombre || 'Sin categoría'
+                    categoria: data.categoria || 'Sin categoría'
                 };
             }
 
@@ -113,40 +113,8 @@ export async function buscarProductoPorPLU(plu) {
             }
         }
 
-        // Si no encontró en PRODUCTOS, buscar en PRODUCTOS_SUBPRODUCTOS
-        console.log(`[Supabase] Producto no encontrado en tabla productos, buscando en productos_subproductos...`);
-
-        for (const codigo of variacionesCodigo) {
-            console.log(`[Supabase] Búsqueda en productos_subproductos con código: "${codigo}"`);
-
-            ({ data, error } = await supabase
-                .from('productos_subproductos')
-                .select(`
-                    id,
-                    codigo,
-                    nombre,
-                    marca,
-                    unidad,
-                    categoria
-                `)
-                .eq('codigo', codigo)
-                .maybeSingle());
-
-            if (data) {
-                console.log(`✅ Subproducto encontrado en tabla productos_subproductos con código "${codigo}":`, data);
-                return {
-                    codigo: data.codigo,
-                    nombre: data.nombre,
-                    marca: data.marca,
-                    unidad: data.unidad,
-                    categoria: data.categoria || 'Sin categoría'
-                };
-            }
-
-            if (error && error.code !== 'PGRST116') {
-                console.warn(`⚠️ Error en búsqueda productos_subproductos con "${codigo}":`, error);
-            }
-        }
+        // Si no encontró en PRODUCTOS, retornar null
+        // Ya no se busca en productos_subproductos
 
         console.warn(`❌ Producto no encontrado para PLU: ${plu} - Variaciones intentadas: ${variacionesCodigo.join(', ')}`);
         return null;

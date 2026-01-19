@@ -1,0 +1,321 @@
+/**
+ * FASE 6: Módulo de Escaneo con HTML5QrCode
+ * Gestiona la lógica de escaneo de códigos de barras
+ */
+
+import { buscarProductoPorPLU } from './processor.js';
+import { guardarProductoEscaneado, obtenerResumenEscaneo } from './pz-inventario-temporal.js';
+import { mostrarResultadoEscaneo, mostrarEstadoEscaneo } from './pz-scanner-ui.js';
+
+let scanner = null;
+let estadoEscaneo = {
+    activo: false,
+    productoVirtualActual: null,
+    productoFisicoEscaneado: null,
+    intentos: 0,
+    maxIntentos: 3
+};
+let handlersRegistrados = false; // Flag para evitar registro duplicado
+let codigoYaProcesado = false; // Flag para evitar procesar el mismo código múltiples veces
+
+/**
+ * Inicializa el escáner con HTML5QrCode
+ * @returns {Promise<boolean>}
+ */
+export async function inicializarEscaner() {
+    return new Promise((resolve, reject) => {
+        try {
+            if (typeof Html5QrcodeScanner === 'undefined') {
+                console.error('❌ HTML5QrCode no cargado');
+                reject(new Error('HTML5QrCode no disponible'));
+                return;
+            }
+
+            const elementoScannerExiste = document.getElementById('qr-scanner');
+            if (!elementoScannerExiste) {
+                console.error('❌ Elemento #qr-scanner no encontrado');
+                reject(new Error('Elemento qr-scanner no encontrado'));
+                return;
+            }
+
+            // Verificar que el contenedor tiene dimensiones
+            const rect = elementoScannerExiste.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) {
+                console.error('❌ Contenedor #qr-scanner no tiene dimensiones');
+                reject(new Error('Contenedor sin dimensiones'));
+                return;
+            }
+
+            console.log(`📐 Dimensiones del contenedor: ${rect.width}x${rect.height}`);
+
+            // Calcular qrbox dinámicamente (80% del contenedor, pero máximo 250px)
+            const qrboxSize = Math.min(Math.floor(rect.height * 0.8), Math.floor(rect.width * 0.8), 250);
+            console.log(`📦 Tamaño qrbox calculado: ${qrboxSize}px`);
+
+            scanner = new Html5QrcodeScanner('qr-scanner', {
+                fps: 15,
+                qrbox: qrboxSize,
+                aspectRatio: 1.0,
+                showTorchButtonIfSupported: true,
+                showZoomSliderIfSupported: true,
+                disableFlip: false
+            });
+
+            console.log('✅ Escáner HTML5QrCode inicializado');
+            resolve(true);
+        } catch (error) {
+            console.error('❌ Error inicializando escáner:', error);
+            reject(error);
+        }
+    });
+}
+
+/**
+ * Inicia el escaneo
+ * @param {Object} productoVirtual - Producto virtual a escanear
+ * @param {Object} callbacks - {onConfirmar, onRechazar, onSaltar}
+ */
+export function iniciarEscaneo(productoVirtual, callbacks = {}) {
+    if (!scanner) {
+        console.error('❌ Escáner no inicializado');
+        return;
+    }
+
+    // Detener scanner anterior si está activo
+    if (estadoEscaneo.activo) {
+        try {
+            scanner.clear();
+            console.log('🧹 Scanner anterior limpiado');
+        } catch (error) {
+            console.warn('Advertencia limpiando scanner anterior:', error);
+        }
+    }
+
+    estadoEscaneo.activo = true;
+    estadoEscaneo.productoVirtualActual = productoVirtual;
+    estadoEscaneo.intentos = 0;
+    handlersRegistrados = false; // Reset para nuevo producto
+    codigoYaProcesado = false; // Reset para nuevo producto
+
+    console.log(`🔍 Iniciando escaneo para: Producto Virtual #${productoVirtual.numero} (${productoVirtual.cantidad}pz)`);
+
+    scanner.render(
+        async (decodedText, decodedResult) => {
+            // ⏹️ PARCHE: Si el código ya fue procesado, ignorar
+            if (codigoYaProcesado) {
+                console.log('⏸️ Código ya fue procesado, ignorando detección duplicada');
+                return;
+            }
+
+            console.log(`📱 Código detectado: ${decodedText}`);
+            codigoYaProcesado = true; // Marcar como procesado
+            
+            // ⏹️ PARCHE: Detener scanner inmediatamente después de detectar
+            try {
+                scanner.clear();
+                console.log('🧹 Scanner detenido inmediatamente después de detectar código');
+            } catch (error) {
+                console.warn('Advertencia deteniendo scanner:', error);
+            }
+
+            try {
+                // Buscar producto en Supabase
+                const producto = await buscarProductoPorPLU(decodedText);
+
+                if (producto) {
+                    estadoEscaneo.productoFisicoEscaneado = producto;
+                    console.log(`✅ Producto encontrado: ${producto.nombre} (${producto.codigo})`);
+
+                    // Mostrar resultado en UI
+                    mostrarResultadoEscaneo({
+                        nombre: producto.nombre,
+                        codigo: producto.codigo || decodedText,
+                        marca: producto.marca || 'Sin marca',
+                        categoria: producto.categoria || 'Sin categoría'
+                    });
+
+                    // Registrar handlers para botones (solo si aún no están registrados)
+                    if (!handlersRegistrados) {
+                        registrarHandlersConfirmacion(callbacks);
+                        handlersRegistrados = true;
+                    }
+                } else {
+                    estadoEscaneo.intentos++;
+                    const mensaje = `❌ Producto no encontrado. Intento ${estadoEscaneo.intentos}/${estadoEscaneo.maxIntentos}`;
+                    console.warn(mensaje);
+                    mostrarEstadoEscaneo(mensaje, 'error');
+
+                    if (estadoEscaneo.intentos >= estadoEscaneo.maxIntentos) {
+                        mostrarEstadoEscaneo('Máximo de intentos alcanzado', 'error');
+                        codigoYaProcesado = false; // Reset para permitir reintentar
+                    } else {
+                        codigoYaProcesado = false; // Reset para reintentar
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error en escaneo:', error);
+                mostrarEstadoEscaneo('Error en escaneo: ' + error.message, 'error');
+            }
+        },
+        (error) => {
+            // Error de escaneo (generalmente ignorado)
+            console.debug('Info escaneo:', error);
+        }
+    );
+}
+
+/**
+ * Detiene el escaneo
+ */
+export function detenerEscaneo() {
+    if (scanner) {
+        try {
+            scanner.clear();
+            estadoEscaneo.activo = false;
+            console.log('✅ Escaneo detenido');
+        } catch (error) {
+            console.warn('Advertencia al detener escáner:', error);
+        }
+    }
+}
+
+/**
+ * Confirma el producto escaneado y lo guarda
+ * @param {Object} productoFisico - Producto físico escaneado
+ * @returns {Promise<number>} ID guardado en BD
+ */
+export async function confirmarEscaneo(productoFisico) {
+    if (!estadoEscaneo.productoVirtualActual) {
+        throw new Error('No hay producto virtual seleccionado');
+    }
+
+    const datosEscaneo = {
+        virtual_id: estadoEscaneo.productoVirtualActual.id || 0,
+        codigo_producto: productoFisico.codigo || 'N/A',
+        nombre: productoFisico.nombre,
+        cantidad: estadoEscaneo.productoVirtualActual.cantidad,
+        caducidad: estadoEscaneo.productoVirtualActual.caducidad,
+        seccion: productoFisico.seccion || 1,
+        nivel: productoFisico.nivel || 1
+    };
+
+    try {
+        const id = await guardarProductoEscaneado(datosEscaneo);
+        console.log(`✅ Producto confirmado y guardado (ID: ${id})`);
+        
+        // Actualizar estado
+        estadoEscaneo.productoVirtualActual = null;
+        estadoEscaneo.productoFisicoEscaneado = null;
+
+        return id;
+    } catch (error) {
+        console.error('❌ Error confirmando escaneo:', error);
+        throw error;
+    }
+}
+
+/**
+ * Rechaza el producto escaneado y permite reintentar
+ */
+export function rechazarEscaneo() {
+    estadoEscaneo.productoFisicoEscaneado = null;
+    estadoEscaneo.intentos = 0;
+
+    console.log('❌ Escaneo rechazado. Reiniciando...');
+
+    // Reiniciar escáner
+    if (estadoEscaneo.productoVirtualActual) {
+        iniciarEscaneo(estadoEscaneo.productoVirtualActual);
+    }
+}
+
+/**
+ * Registra handlers para los botones de confirmación de escaneo
+ */
+function registrarHandlersConfirmacion(callbacks) {
+    let btnConfirmar = document.getElementById('btnConfirmarEscanerPZ');
+    let btnReintentar = document.getElementById('btnReintentoEscanerPZ');
+    let btnSaltar = document.getElementById('btnSaltarProductoPZ');
+
+    // Limpiar listeners anteriores clonando CON contenido (cloneNode(true))
+    if (btnConfirmar) {
+        const nuevoConfirmar = btnConfirmar.cloneNode(true); // true = clonar con contenido e hijos
+        btnConfirmar.parentNode.replaceChild(nuevoConfirmar, btnConfirmar);
+        btnConfirmar = nuevoConfirmar; // Actualizar referencia
+        
+        btnConfirmar.addEventListener('click', async () => {
+            console.log('🖱️ Usuario hizo clic en Confirmar Escaneo');
+            if (callbacks.onConfirmar) {
+                console.log('🔄 Ejecutando callback onConfirmar...');
+                try {
+                    await callbacks.onConfirmar();
+                    console.log('✅ Callback onConfirmar completado');
+                } catch (error) {
+                    console.error('❌ Error en callback onConfirmar:', error);
+                }
+            }
+        });
+    }
+
+    if (btnReintentar) {
+        const nuevoReintentar = btnReintentar.cloneNode(true); // true = clonar con contenido e hijos
+        btnReintentar.parentNode.replaceChild(nuevoReintentar, btnReintentar);
+        btnReintentar = nuevoReintentar; // Actualizar referencia
+        
+        btnReintentar.addEventListener('click', () => {
+            console.log('🖱️ Usuario hizo clic en Reintentar');
+            estadoEscaneo.intentos = 0; // Reset intentos
+            iniciarEscaneo(estadoEscaneo.productoVirtualActual, callbacks);
+            if (callbacks && callbacks.onReintentar) {
+                callbacks.onReintentar();
+            }
+        });
+    }
+
+    if (btnSaltar) {
+        const nuevoSaltar = btnSaltar.cloneNode(true); // true = clonar con contenido e hijos
+        btnSaltar.parentNode.replaceChild(nuevoSaltar, btnSaltar);
+        btnSaltar = nuevoSaltar; // Actualizar referencia
+        
+        btnSaltar.addEventListener('click', () => {
+            console.log('🖱️ Usuario hizo clic en Saltar');
+            if (callbacks && callbacks.onSaltar) {
+                callbacks.onSaltar();
+            }
+        });
+    }
+}
+
+/**
+ * Obtiene el estado actual del escaneo
+ * @returns {Object}
+ */
+export function obtenerEstadoEscaneo() {
+    return {
+        ...estadoEscaneo,
+        resumen: {
+            productoVirtualActual: estadoEscaneo.productoVirtualActual?.numero,
+            tieneProductoFisico: estadoEscaneo.productoFisicoEscaneado !== null,
+            intentosRestantes: Math.max(0, estadoEscaneo.maxIntentos - estadoEscaneo.intentos)
+        }
+    };
+}
+
+/**
+ * Finaliza el escaneo y obtiene resumen
+ * @returns {Promise<Object>}
+ */
+export async function finalizarEscaneo() {
+    detenerEscaneo();
+    
+    try {
+        const resumen = await obtenerResumenEscaneo();
+        console.log('📊 Escaneo finalizado:', resumen);
+        return resumen;
+    } catch (error) {
+        console.error('❌ Error finalizando escaneo:', error);
+        throw error;
+    }
+}
+
+export { estadoEscaneo };

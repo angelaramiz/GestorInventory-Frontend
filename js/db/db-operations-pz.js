@@ -63,6 +63,58 @@ export async function inicializarDBPZ() {
 }
 
 /**
+ * Limpia toda la base de datos de PZ (elimina todas las secciones y productos)
+ * ⚠️ IRREVERSIBLE - Borra todos los datos guardados
+ * @returns {Promise<void>}
+ */
+export async function limpiarBaseDatosPZ() {
+    if (!db) await inicializarDBPZ();
+
+    return new Promise((resolve, reject) => {
+        try {
+            const transaction = db.transaction([STORE_SECCIONES, STORE_PRODUCTOS_VIRTUALES], 'readwrite');
+            
+            // Limpiar secciones
+            const storeSecciones = transaction.objectStore(STORE_SECCIONES);
+            const clearSecciones = storeSecciones.clear();
+            
+            clearSecciones.onsuccess = () => {
+                console.log('✅ Todas las secciones eliminadas de IndexedDB');
+            };
+            
+            clearSecciones.onerror = () => {
+                console.error('❌ Error limpiando secciones:', clearSecciones.error);
+            };
+            
+            // Limpiar productos
+            const storeProductos = transaction.objectStore(STORE_PRODUCTOS_VIRTUALES);
+            const clearProductos = storeProductos.clear();
+            
+            clearProductos.onsuccess = () => {
+                console.log('✅ Todos los productos eliminados de IndexedDB');
+            };
+            
+            clearProductos.onerror = () => {
+                console.error('❌ Error limpiando productos:', clearProductos.error);
+            };
+            
+            transaction.oncomplete = () => {
+                console.log('🧹 Base de datos PZ completamente limpiada');
+                resolve();
+            };
+            
+            transaction.onerror = () => {
+                console.error('❌ Error en transacción de limpieza:', transaction.error);
+                reject(transaction.error);
+            };
+        } catch (error) {
+            console.error('❌ Error limpiando base de datos:', error);
+            reject(error);
+        }
+    });
+}
+
+/**
  * Guarda todos los productos de una sección en IndexedDB
  * @param {Object} seccion - Objeto sección con niveles y productos
  * @param {number} seccionId - ID de la sección en BD
@@ -276,31 +328,6 @@ export async function eliminarSeccion(seccionId) {
 
         transaction.onerror = () => {
             console.error('❌ Error eliminando sección:', transaction.error);
-            reject(transaction.error);
-        };
-    });
-}
-
-/**
- * Limpia toda la BD
- * @returns {Promise<boolean>}
- */
-export async function limpiarBaseDatosPZ() {
-    if (!db) await inicializarDBPZ();
-
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction([STORE_PRODUCTOS_VIRTUALES, STORE_SECCIONES], 'readwrite');
-
-        transaction.objectStore(STORE_PRODUCTOS_VIRTUALES).clear();
-        transaction.objectStore(STORE_SECCIONES).clear();
-
-        transaction.oncomplete = () => {
-            console.log('✅ Base de datos PZ limpiada completamente');
-            resolve(true);
-        };
-
-        transaction.onerror = () => {
-            console.error('❌ Error limpiando BD:', transaction.error);
             reject(transaction.error);
         };
     });

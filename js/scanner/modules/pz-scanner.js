@@ -5,10 +5,11 @@
 
 import { buscarProductoPorPLU } from './processor.js';
 import { guardarProductoEscaneado, obtenerResumenEscaneo } from './pz-inventario-temporal.js';
-import { mostrarResultadoEscaneo, mostrarEstadoEscaneo } from './pz-scanner-ui.js';
+import { mostrarResultadoEscaneo, mostrarEstadoEscaneo, mostrarModalProductoNoEncontrado } from './pz-scanner-ui.js';
+import { getSupabase } from '../../auth/auth.js';
 
 let scanner = null;
-let estadoEscaneo = {
+export let estadoEscaneo = {
     activo: false,
     productoVirtualActual: null,
     productoFisicoEscaneado: null,
@@ -97,7 +98,7 @@ export function iniciarEscaneo(productoVirtual, callbacks = {}) {
     handlersRegistrados = false; // Reset para nuevo producto
     codigoYaProcesado = false; // Reset para nuevo producto
 
-    console.log(`🔍 Iniciando escaneo para: Producto Virtual #${productoVirtual.numero} (${productoVirtual.cantidad}pz)`);
+    console.log(`🔍 Iniciando escaneo para: ${productoVirtual.nombre || 'Producto Virtual'} (Sección ${productoVirtual.seccion}, ${productoVirtual.cantidad}${productoVirtual.unidad})`);
 
     scanner.render(
         async (decodedText, decodedResult) => {
@@ -140,17 +141,25 @@ export function iniciarEscaneo(productoVirtual, callbacks = {}) {
                         handlersRegistrados = true;
                     }
                 } else {
-                    estadoEscaneo.intentos++;
-                    const mensaje = `❌ Producto no encontrado. Intento ${estadoEscaneo.intentos}/${estadoEscaneo.maxIntentos}`;
-                    console.warn(mensaje);
-                    mostrarEstadoEscaneo(mensaje, 'error');
-
-                    if (estadoEscaneo.intentos >= estadoEscaneo.maxIntentos) {
-                        mostrarEstadoEscaneo('Máximo de intentos alcanzado', 'error');
-                        codigoYaProcesado = false; // Reset para permitir reintentar
-                    } else {
-                        codigoYaProcesado = false; // Reset para reintentar
-                    }
+                    // Producto no encontrado - Mostrar modal con opciones
+                    codigoYaProcesado = false;
+                    console.warn(`❌ Producto no encontrado: ${decodedText}`);
+                    
+                    mostrarModalProductoNoEncontrado(decodedText, {
+                        onReintentar: () => {
+                            console.log('🔄 Reiniciando escaneo para:', decodedText);
+                            limpiarResultadoEscaneo();
+                            reanudarEscaneo();
+                        },
+                        onRegistrar: async (nuevoProducto) => {
+                            console.log('➕ Registrando nuevo producto:', nuevoProducto);
+                            await registrarProductoYReescanear(nuevoProducto, decodedText, callbacks);
+                        },
+                        onSaltar: () => {
+                            console.log('⏭️ Saltando producto:', decodedText);
+                            saltarProductoActual(callbacks);
+                        }
+                    });
                 }
             } catch (error) {
                 console.error('❌ Error en escaneo:', error);
@@ -318,4 +327,100 @@ export async function finalizarEscaneo() {
     }
 }
 
-export { estadoEscaneo };
+/**
+ * Limpia la tarjeta de resultado del escaneo
+ */
+export function limpiarResultadoEscaneo() {
+    const tarjeta = document.getElementById('tarjetaProductoEscaneado');
+    if (tarjeta) {
+        tarjeta.style.display = 'none';
+    }
+}
+
+/**
+ * Reanuda el escaneo
+ */
+export function reanudarEscaneo() {
+    if (scanner && estadoEscaneo.activo) {
+        console.log('▶️ Reanudando escaneo...');
+        codigoYaProcesado = false;
+    }
+}
+
+/**
+ * Registra un nuevo producto en Supabase y reintenta el escaneo
+ * @param {Object} nuevoProducto - {codigo, nombre, marca, categoria, unidad}
+ * @param {string} codigoEscaneado - Código que se intentó escanear
+ * @param {Object} callbacks - Callbacks del escaneo
+ */
+async function registrarProductoYReescanear(nuevoProducto, codigoEscaneado, callbacks) {
+    try {
+        console.log('💾 Registrando producto en Supabase:', nuevoProducto);
+        mostrarEstadoEscaneo('⏳ Guardando producto...', 'info');
+        
+        // Obtener cliente Supabase
+        const supabase = await getSupabase();
+        
+        // Insertar en tabla productos
+        const { data, error } = await supabase
+            .from('productos')
+            .insert([{
+                codigo: nuevoProducto.codigo,
+                nombre: nuevoProducto.nombre,
+                marca: nuevoProducto.marca || '',
+                categoria: nuevoProducto.categoria || '',
+                unidad: nuevoProducto.unidad || 'Pz'
+            }]);
+        
+        if (error) {
+            console.error('❌ Error guardando producto:', error);
+            mostrarEstadoEscaneo('❌ Error al guardar: ' + error.message, 'error');
+            return;
+        }
+        
+        console.log('✅ Producto guardado:', data);
+        mostrarEstadoEscaneo('✅ Producto guardado. Reiniciando escaneo...', 'exito');
+        
+        // Esperar un bit y reintentar
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        limpiarResultadoEscaneo();
+        reanudarEscaneo();
+        
+    } catch (error) {
+        console.error('❌ Error en registrarProductoYReescanear:', error);
+        mostrarEstadoEscaneo('❌ Error: ' + error.message, 'error');
+    }
+}
+
+/**
+ * Marca el producto actual como saltado y avanza al siguiente
+ * @param {Object} callbacks - Callbacks del escaneo
+ */
+async function saltarProductoActual(callbacks) {
+    try {
+        console.log('⏭️ Saltando producto actual');
+        mostrarEstadoEscaneo('⏭️ Producto marcado como pendiente', 'advertencia');
+        
+        // Marcar como pendiente_revision
+        estadoEscaneo.productoPendiente = {
+            virtualId: estadoEscaneo.productoVirtualActual?.id,
+            estado: 'pendiente_revision',
+            timestamp: new Date().toISOString()
+        };
+        
+        console.log('📌 Producto pendiente guardado:', estadoEscaneo.productoPendiente);
+        
+        // Limpiar resultado
+        limpiarResultadoEscaneo();
+        
+        // Avanzar al siguiente producto
+        if (callbacks?.onSaltar) {
+            callbacks.onSaltar();
+        }
+        
+    } catch (error) {
+        console.error('❌ Error saltando producto:', error);
+        mostrarEstadoEscaneo('❌ Error: ' + error.message, 'error');
+    }
+}

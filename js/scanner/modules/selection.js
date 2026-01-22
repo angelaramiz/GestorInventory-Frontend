@@ -24,7 +24,7 @@ export function inicializarSeleccionInventario() {
         btnKG.addEventListener('click', () => {
             console.log('⚖️ Seleccionado: Inventario por KG');
             modalSeleccion.style.display = 'none';
-            
+
             // Importar y ejecutar flujo KG existente
             import('./scanner.js').then((module) => {
                 if (typeof module.iniciarEscaneoLotesAvanzado === 'function') {
@@ -41,7 +41,7 @@ export function inicializarSeleccionInventario() {
         btnPZ.addEventListener('click', () => {
             console.log('📋 Seleccionado: Inventario por PZ (Secciones y Niveles)');
             modalSeleccion.style.display = 'none';
-            
+
             // Importar y ejecutar flujo PZ (cuando esté listo)
             import('./pz-modo.js').then((module) => {
                 if (typeof module.iniciarInventarioPZ === 'function') {

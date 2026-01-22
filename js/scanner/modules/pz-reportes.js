@@ -38,8 +38,9 @@ export function generarReporte(productosVirtuales, productosEscaneados = []) {
             nombre_fisico: escaneo.nombre || 'Desconocido',
             
             // Del conteo manual (FASE 3) - FUSIONADO
-            cantidad: virtual?.cantidad || 0,
-            caducidad: virtual?.caducidad || 'N/A',
+            // Si hay virtual, usar su cantidad; si no, usar la del escaneo (para productos escaneados sin conteo)
+            cantidad: virtual?.cantidad || escaneo.cantidad || 0,
+            caducidad: virtual?.caducidad || escaneo.caducidad || 'N/A',
             
             // Estado del inventario
             estado: estado, // ✅ inventariado, ⚠️ incompleto
@@ -434,39 +435,140 @@ export async function guardarEnSupabase(reporte, productosVirtuales, productosEs
             </div>
         `;
 
-        const { data, error } = await supabase
-            .from('inventario')
-            .insert(datosSupabase);
+        // FASE 9.1: Inserción en Supabase con manejo de duplicados
+        let productosGuardados = 0;
+        let erroresInsersion = [];
 
-        if (error) {
-            console.error('❌ Error al guardar:', error);
-            mensajeEstado.innerHTML = `
-                <div style="position: fixed; top: 20px; right: 20px; background: #ef4444; color: white; padding: 15px 20px; border-radius: 8px; z-index: 10001;">
-                    ❌ Error: ${error.message}
-                </div>
-            `;
-            return false;
+        for (const producto of datosSupabase) {
+            try {
+                const { data, error } = await supabase
+                    .from('inventario')
+                    .insert([producto]);
+
+                if (error) {
+                    // Manejar error de duplicado (constraint violation)
+                    if (error.code === '23505' || error.message.includes('duplicate')) {
+                        console.warn(`⚠️ Producto duplicado (${producto.id}), intentando actualizar...`);
+                        
+                        // Intentar actualizar en lugar de insertar
+                        const { updateError } = await supabase
+                            .from('inventario')
+                            .update(producto)
+                            .match({ id: producto.id });
+                        
+                        if (!updateError) {
+                            productosGuardados++;
+                            console.log(`✅ Producto actualizado: ${producto.id}`);
+                        } else {
+                            erroresInsersion.push({
+                                id: producto.id,
+                                error: updateError.message
+                            });
+                            console.error(`❌ Error actualizando: ${updateError.message}`);
+                        }
+                    } else {
+                        erroresInsersion.push({
+                            id: producto.id,
+                            error: error.message
+                        });
+                        console.error(`❌ Error insertando ${producto.id}:`, error.message);
+                    }
+                } else {
+                    productosGuardados++;
+                    console.log(`✅ Producto guardado: ${producto.id}`);
+                }
+            } catch (err) {
+                erroresInsersion.push({
+                    id: producto.id,
+                    error: err.message
+                });
+                console.error(`❌ Error procesando ${producto.id}:`, err);
+            }
         }
 
-        console.log('✅ Guardado exitoso en Supabase');
-        mensajeEstado.innerHTML = `
-            <div style="position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 15px 20px; border-radius: 8px; z-index: 10001;">
-                ✅ ${datosSupabase.length} productos guardados
-            </div>
-        `;
+        // FASE 9.2: Mostrar resultados
+        if (erroresInsersion.length === 0) {
+            console.log('✅ FASE 9: Guardado exitoso en Supabase');
+            mensajeEstado.innerHTML = `
+                <div style="position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 15px 20px; border-radius: 8px; z-index: 10001;">
+                    ✅ ${productosGuardados}/${datosSupabase.length} productos guardados
+                </div>
+            `;
+        } else {
+            console.warn(`⚠️ ${productosGuardados} guardados, ${erroresInsersion.length} errores`);
+            mensajeEstado.innerHTML = `
+                <div style="position: fixed; top: 20px; right: 20px; background: #f59e0b; color: white; padding: 15px 20px; border-radius: 8px; z-index: 10001;">
+                    ⚠️ ${productosGuardados} guardados, ${erroresInsersion.length} con error
+                </div>
+            `;
+        }
+
+        // FASE 9.3: Limpieza post-guardado
+        console.log('🧹 FASE 9: Iniciando limpieza post-guardado...');
 
         // Limpiar el reporte después de guardar exitosamente
         const reporteContenedor = document.getElementById('reporteContenedor');
         if (reporteContenedor) {
             setTimeout(() => {
                 reporteContenedor.innerHTML = '';
-                console.log('🧹 Reporte limpiado');
+                console.log('🧹 Reporte limpiado de pantalla');
             }, 2000);
         }
 
-        setTimeout(() => mensajeEstado.remove(), 3000);
+        // Limpiar datos en localStorage
         localStorage.removeItem('estadoPZ');
         localStorage.removeItem('productosVirtuales');
+        console.log('🧹 localStorage limpiado');
+
+        // Limpiar IndexedDB después de guardado exitoso
+        try {
+            const { inicializarDBPZ, obtenerTodasLasSecciones, eliminarSeccion } = await import('../../db/db-operations-pz.js');
+            await inicializarDBPZ();
+            const secciones = await obtenerTodasLasSecciones();
+            
+            console.log(`📊 Limpiando ${secciones.length} secciones de IndexedDB`);
+            
+            for (const seccion of secciones) {
+                await eliminarSeccion(seccion.id);
+            }
+            console.log('✅ IndexedDB limpiada');
+        } catch (dbError) {
+            console.warn('⚠️ No se pudo limpiar IndexedDB:', dbError.message);
+        }
+
+        // Mostrar resumen final
+        setTimeout(() => {
+            const resumenHTML = `
+                <div style="position: fixed; bottom: 20px; right: 20px; background: white; border: 2px solid #10b981; border-radius: 12px; padding: 20px; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10001;">
+                    <h3 style="margin: 0 0 15px 0; color: #10b981; font-size: 18px;">📋 Resumen de Guardado</h3>
+                    <div style="font-size: 14px; line-height: 1.8;">
+                        <div>✅ Productos guardados: <strong>${productosGuardados}</strong></div>
+                        <div>⚠️ Con errores: <strong>${erroresInsersion.length}</strong></div>
+                        <div>📅 Fecha: ${new Date().toLocaleString('es-ES')}</div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" style="margin-top: 15px; width: 100%; padding: 10px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        ✅ Cerrar
+                    </button>
+                </div>
+            `;
+            
+            const resumenContenedor = document.createElement('div');
+            resumenContenedor.innerHTML = resumenHTML;
+            document.body.appendChild(resumenContenedor);
+            
+            // Auto-cerrar después de 8 segundos
+            setTimeout(() => {
+                const boton = resumenContenedor.querySelector('button');
+                if (boton) {
+                    boton.click();
+                }
+                // Volver a pantalla principal
+                console.log('🏠 Volviendo a pantalla principal...');
+                location.reload();
+            }, 8000);
+        }, 2500);
+
+        setTimeout(() => mensajeEstado.remove(), 3000);
 
         return true;
 

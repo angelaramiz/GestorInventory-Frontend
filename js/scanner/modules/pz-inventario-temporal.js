@@ -88,10 +88,21 @@ export async function guardarProductoEscaneado(datos) {
                     virtual_id: datos.virtual_id,
                     codigo_producto: datos.codigo_producto,
                     nombre: datos.nombre,
+                    
+                    // NUEVOS CAMPOS: Información del producto escaneado
+                    marca: datos.marca || '',
+                    categoria: datos.categoria || '',
+                    unidad: datos.unidad || 'unidad',
+                    
+                    // Datos del conteo manual
                     cantidad: datos.cantidad,
                     caducidad: datos.caducidad,
+                    
+                    // Ubicación
                     seccion: datos.seccion,
                     nivel: datos.nivel,
+                    
+                    // Estado y timestamp
                     estado: 'confirmado', // pendiente, confirmado, rechazado
                     timestamp: new Date().toISOString(),
                     fecha_escaneo: new Date().toLocaleString('es-ES')

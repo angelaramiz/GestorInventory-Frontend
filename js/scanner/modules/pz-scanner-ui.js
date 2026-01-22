@@ -183,3 +183,161 @@ export function mostrarEstadoEscaneo(mensaje, tipo = 'info') {
         alerta.remove();
     }, 3000);
 }
+/**
+ * Muestra el modal de producto no encontrado
+ * @param {string} codigo - Código que no se encontró
+ * @param {Object} callbacks - Funciones callback {onReintentar, onRegistrar, onSaltar}
+ */
+export function mostrarModalProductoNoEncontrado(codigo, callbacks) {
+    console.log('❌ Mostrando modal: Producto no encontrado para código', codigo);
+    
+    const modal = document.getElementById('modalProductoNoEncontrado');
+    const codigoElement = document.getElementById('codigoNoEncontrado');
+    
+    if (modal && codigoElement) {
+        codigoElement.textContent = codigo;
+        modal.style.display = 'flex';
+        
+        // Obtener referencias a botones
+        const btnReintentar = document.getElementById('btnReintentoProductoNoEncontrado');
+        const btnRegistrar = document.getElementById('btnRegistrarProductoNoEncontrado');
+        const btnSaltar = document.getElementById('btnSaltarProductoNoEncontrado');
+        
+        // IMPORTANTE: Limpiar listeners anteriores para evitar duplicados
+        if (btnReintentar) {
+            const nuevoReintentar = btnReintentar.cloneNode(true);
+            btnReintentar.parentNode.replaceChild(nuevoReintentar, btnReintentar);
+            
+            nuevoReintentar.addEventListener('click', () => {
+                console.log('🔄 Usuario seleccionó: Reintentar');
+                cerrarModalProductoNoEncontrado();
+                if (callbacks?.onReintentar) {
+                    callbacks.onReintentar();
+                }
+            }, { once: true });
+        }
+        
+        if (btnRegistrar) {
+            const nuevoRegistrar = btnRegistrar.cloneNode(true);
+            btnRegistrar.parentNode.replaceChild(nuevoRegistrar, btnRegistrar);
+            
+            nuevoRegistrar.addEventListener('click', () => {
+                console.log('➕ Usuario seleccionó: Registrar producto');
+                cerrarModalProductoNoEncontrado();
+                mostrarModalRegistrarProductoRapido(codigo, callbacks);
+            }, { once: true });
+        }
+        
+        if (btnSaltar) {
+            const nuevoSaltar = btnSaltar.cloneNode(true);
+            btnSaltar.parentNode.replaceChild(nuevoSaltar, btnSaltar);
+            
+            nuevoSaltar.addEventListener('click', () => {
+                console.log('⏭️ Usuario seleccionó: Saltar');
+                cerrarModalProductoNoEncontrado();
+                if (callbacks?.onSaltar) {
+                    callbacks.onSaltar();
+                }
+            }, { once: true });
+        }
+    } else {
+        console.error('❌ No se encontraron elementos del modal:', { modal: !!modal, codigoElement: !!codigoElement });
+    }
+}
+
+/**
+ * Cierra el modal de producto no encontrado
+ */
+export function cerrarModalProductoNoEncontrado() {
+    const modal = document.getElementById('modalProductoNoEncontrado');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Muestra el modal para registrar producto rápido
+ * @param {string} codigo - Código de barras capturado
+ * @param {Object} callbacks - Funciones callback {onGuardar, onCancelar}
+ */
+export function mostrarModalRegistrarProductoRapido(codigo, callbacks) {
+    console.log('➕ Mostrando modal: Registrar producto para código', codigo);
+    
+    const modal = document.getElementById('modalRegistrarProductoRapido');
+    const inputCodigo = document.getElementById('inputCodigoProductoRapido');
+    const inputNombre = document.getElementById('inputNombreProductoRapido');
+    const inputMarca = document.getElementById('inputMarcaProductoRapido');
+    const inputCategoria = document.getElementById('inputCategoriaProductoRapido');
+    const selectUnidad = document.getElementById('selectUnidadProductoRapido');
+    const btnGuardar = document.getElementById('btnGuardarProductoRapido');
+    const btnCancelar = document.getElementById('btnCancelarRegistroRapido');
+    
+    if (modal) {
+        // Pre-llenar código
+        if (inputCodigo) inputCodigo.value = codigo;
+        
+        // Limpiar campos
+        if (inputNombre) inputNombre.value = '';
+        if (inputMarca) inputMarca.value = '';
+        if (inputCategoria) inputCategoria.value = '';
+        if (selectUnidad) selectUnidad.value = 'Pz';
+        
+        // Mostrar modal
+        modal.style.display = 'flex';
+        
+        // Focus en nombre
+        if (inputNombre) inputNombre.focus();
+        
+        // IMPORTANTE: Limpiar listeners anteriores usando cloneNode
+        if (btnGuardar) {
+            const nuevoGuardar = btnGuardar.cloneNode(true);
+            btnGuardar.parentNode.replaceChild(nuevoGuardar, btnGuardar);
+            
+            nuevoGuardar.addEventListener('click', async () => {
+                const nombre = inputNombre?.value?.trim();
+                
+                if (!nombre) {
+                    alert('⚠️ Por favor ingresa el nombre del producto');
+                    return;
+                }
+                
+                const nuevoProducto = {
+                    codigo: codigo,
+                    nombre: nombre,
+                    marca: inputMarca?.value?.trim() || '',
+                    categoria: inputCategoria?.value?.trim() || '',
+                    unidad: selectUnidad?.value || 'Pz'
+                };
+                
+                console.log('💾 Guardando producto:', nuevoProducto);
+                cerrarModalRegistrarProductoRapido();
+                
+                if (callbacks?.onRegistrar) {
+                    await callbacks.onRegistrar(nuevoProducto);
+                }
+            }, { once: true });
+        }
+        
+        if (btnCancelar) {
+            const nuevoCancelar = btnCancelar.cloneNode(true);
+            btnCancelar.parentNode.replaceChild(nuevoCancelar, btnCancelar);
+            
+            nuevoCancelar.addEventListener('click', () => {
+                console.log('❌ Usuario canceló registro');
+                cerrarModalRegistrarProductoRapido();
+            }, { once: true });
+        }
+    } else {
+        console.error('❌ No se encontró elemento modalRegistrarProductoRapido');
+    }
+}
+
+/**
+ * Cierra el modal de registrar producto rápido
+ */
+export function cerrarModalRegistrarProductoRapido() {
+    const modal = document.getElementById('modalRegistrarProductoRapido');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}

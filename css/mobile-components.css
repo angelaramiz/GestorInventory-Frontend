@@ -594,3 +594,559 @@
         -webkit-tap-highlight-color: transparent;
     }
 }
+
+/* ===== FASE 11: UX/UI REFINAMIENTO PZ ===== */
+
+/* Modal PZ - Estilos mejorados */
+#modalInventarioPZ {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Panel de control PZ */
+.pz-panel-control {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    animation: panelAppear 0.4s ease-out;
+}
+
+@keyframes panelAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pz-contador {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.pz-contador strong {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+/* Tabla de cálculo PZ */
+.pz-tabla-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pz-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.pz-tabla thead {
+    background: linear-gradient(90deg, #f3f4f6 0%, #e5e7eb 100%);
+    font-weight: 600;
+    color: #374151;
+}
+
+.pz-tabla th {
+    padding: 12px;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #d1d5db;
+}
+
+.pz-tabla td {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+}
+
+.pz-tabla tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.pz-tabla tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.pz-tabla tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Estados de filas */
+.pz-fila-verde {
+    background-color: #f0fdf4 !important;
+    border-left: 4px solid #10b981;
+}
+
+.pz-fila-amarillo {
+    background-color: #fffbeb !important;
+    border-left: 4px solid #f59e0b;
+}
+
+.pz-fila-rojo {
+    background-color: #fef2f2 !important;
+    border-left: 4px solid #ef4444;
+}
+
+.pz-fila-azul {
+    background-color: #eff6ff !important;
+    border-left: 4px solid #3b82f6;
+}
+
+/* Inputs PZ */
+.pz-input-group {
+    margin-bottom: 15px;
+}
+
+.pz-input-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.pz-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.pz-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background-color: #f8fafc;
+}
+
+.pz-input:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Botones PZ con animaciones */
+.pz-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pz-btn:active {
+    transform: scale(0.98);
+}
+
+.pz-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.pz-btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    transform: translateY(-2px);
+}
+
+.pz-btn-secondary {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    color: #374151;
+}
+
+.pz-btn-secondary:hover {
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.pz-btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.pz-btn-success:hover {
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    transform: translateY(-2px);
+}
+
+.pz-btn-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+}
+
+.pz-btn-warning:hover {
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    transform: translateY(-2px);
+}
+
+.pz-btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.pz-btn-danger:hover {
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    transform: translateY(-2px);
+}
+
+.pz-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Indicadores de progreso */
+.pz-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.pz-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+/* Badge de estado */
+.pz-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.pz-badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.pz-badge-warning {
+    background: #fed7aa;
+    color: #92400e;
+}
+
+.pz-badge-danger {
+    background: #fecaca;
+    color: #991b1b;
+}
+
+.pz-badge-info {
+    background: #bfdbfe;
+    color: #1e3a8a;
+}
+
+/* Tarjeta de producto */
+.pz-card-producto {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pz-card-producto:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.pz-card-producto.selected {
+    border-color: #667eea;
+    background: #f8fafc;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Dark mode - Tema oscuro */
+@media (prefers-color-scheme: dark) {
+    .pz-tabla {
+        background: #1f2937;
+        color: #f3f4f6;
+    }
+
+    .pz-tabla thead {
+        background: #111827;
+    }
+
+    .pz-tabla th {
+        color: #e5e7eb;
+        border-bottom-color: #374151;
+    }
+
+    .pz-tabla td {
+        border-bottom-color: #374151;
+        color: #e5e7eb;
+    }
+
+    .pz-tabla tbody tr:hover {
+        background-color: #2d3748;
+    }
+
+    .pz-input {
+        background: #2d3748;
+        border-color: #4b5563;
+        color: #f3f4f6;
+    }
+
+    .pz-input:focus {
+        border-color: #667eea;
+        background-color: #1a202c;
+    }
+
+    .pz-card-producto {
+        background: #1f2937;
+        border-color: #4b5563;
+        color: #f3f4f6;
+    }
+
+    .pz-card-producto:hover {
+        border-color: #667eea;
+        background: #2d3748;
+    }
+
+    .pz-panel-control {
+        background: linear-gradient(135deg, #4c1d95 0%, #5a21b5 100%);
+    }
+
+    .pz-btn-secondary {
+        background: linear-gradient(135deg, #4b5563 0%, #2d3748 100%);
+        color: #e5e7eb;
+    }
+
+    .pz-btn-secondary:hover {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    }
+}
+
+/* Responsividad tablet (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .pz-tabla th,
+    .pz-tabla td {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .pz-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
+
+/* Responsividad desktop */
+@media (min-width: 1025px) {
+    .pz-btn {
+        min-width: 120px;
+    }
+
+    .pz-tabla th,
+    .pz-tabla td {
+        padding: 14px;
+    }
+}
+
+/* Animación de carga */
+.pz-loading {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: pzLoadingBounce 1.4s infinite;
+}
+
+.pz-loading:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.pz-loading:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes pzLoadingBounce {
+    0%, 80%, 100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+/* Spinner de carga */
+.pz-spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: pzSpin 1s linear infinite;
+}
+
+@keyframes pzSpin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Transiciones suaves */
+.pz-transition-all {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pz-transition-fast {
+    transition: all 0.15s ease;
+}
+
+/* Sombras */
+.pz-shadow-sm {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.pz-shadow-md {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.pz-shadow-lg {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.pz-shadow-xl {
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Espacios de padding */
+.pz-p-1 { padding: 4px; }
+.pz-p-2 { padding: 8px; }
+.pz-p-3 { padding: 12px; }
+.pz-p-4 { padding: 16px; }
+.pz-p-5 { padding: 20px; }
+
+/* Bordes */
+.pz-border-round-sm { border-radius: 4px; }
+.pz-border-round-md { border-radius: 8px; }
+.pz-border-round-lg { border-radius: 12px; }
+.pz-border-round-full { border-radius: 9999px; }
+
+/* ===== MODALES PZ - PRODUCTO NO ENCONTRADO ===== */
+
+/* Modal de Producto No Encontrado */
+#modalProductoNoEncontrado {
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    animation: fadeInModal 0.3s ease-out;
+}
+
+#modalProductoNoEncontrado[style*="flex"] {
+    display: flex !important;
+}
+
+/* Modal Registrar Producto Rápido */
+#modalRegistrarProductoRapido {
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    animation: fadeInModal 0.3s ease-out;
+}
+
+#modalRegistrarProductoRapido[style*="flex"] {
+    display: flex !important;
+}
+
+/* Animación de aparición modal */
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Estilos del contenido del modal */
+#modalProductoNoEncontrado .bg-red-50 {
+    background-color: #fef2f2;
+}
+
+#modalProductoNoEncontrado .border-red-300 {
+    border-color: #fca5a5;
+}
+
+#modalProductoNoEncontrado .text-red-900 {
+    color: #7f1d1d;
+}
+
+#modalProductoNoEncontrado .text-red-700 {
+    color: #b91c1c;
+}
+
+/* Input readonly en formulario */
+#inputCodigoProductoRapido {
+    background-color: #f3f4f6 !important;
+    cursor: not-allowed;
+}
+
+/* Focus effects */
+#modalRegistrarProductoRapido input:focus,
+#modalRegistrarProductoRapido select:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+/* Responsive para móviles */
+@media (max-width: 640px) {
+    #modalProductoNoEncontrado .bg-white,
+    #modalRegistrarProductoRapido .bg-white {
+        margin: 16px;
+        max-width: calc(100% - 32px);
+    }
+    
+    #modalRegistrarProductoRapido {
+        max-height: 90vh;
+    }
+}
+

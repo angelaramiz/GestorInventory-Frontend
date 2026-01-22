@@ -22,8 +22,8 @@ export async function procesarCodigoEscaneadoLotesAvanzado(codigo, resultado) {
             return;
         }
 
-        // 2. Buscar producto por PLU
-        const producto = await buscarProductoPorPLU(datosExtraidos.plu);
+        // 2. Buscar producto usando el código completo (no solo el PLU)
+        const producto = await buscarProductoPorPLU(codigo);
 
         if (!producto) {
             mostrarAnimacionProcesamiento('Producto no encontrado', 'error');

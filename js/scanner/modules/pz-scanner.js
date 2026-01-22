@@ -3,7 +3,7 @@
  * Gestiona la lógica de escaneo de códigos de barras
  */
 
-import { buscarProductoPorPLU } from './processor.js';
+import { buscarProductoPorPLU, extraerDatosCodeCODE128 } from './processor.js';
 import { guardarProductoEscaneado, obtenerResumenEscaneo } from './pz-inventario-temporal.js';
 import { mostrarResultadoEscaneo, mostrarEstadoEscaneo, mostrarModalProductoNoEncontrado } from './pz-scanner-ui.js';
 import { getSupabase } from '../../auth/auth.js';
@@ -120,8 +120,23 @@ export function iniciarEscaneo(productoVirtual, callbacks = {}) {
             }
 
             try {
+                // Extraer PLU del código CODE128
+                let pluABuscar = decodedText;
+                
+                // Si es un código CODE128 (empieza con 02), extraer el PLU
+                if (decodedText.startsWith('02') && decodedText.length > 14) {
+                    const datosExtraidos = extraerDatosCodeCODE128(decodedText);
+                    if (datosExtraidos) {
+                        pluABuscar = datosExtraidos.plu;
+                        console.log(`📦 PLU extraído del CODE128: ${pluABuscar}`);
+                    }
+                } else {
+                    // Si no es CODE128, asumir que decodedText es el PLU o código directo
+                    console.log(`📦 Usando código directamente: ${pluABuscar}`);
+                }
+
                 // Buscar producto en Supabase
-                const producto = await buscarProductoPorPLU(decodedText);
+                const producto = await buscarProductoPorPLU(pluABuscar);
 
                 if (producto) {
                     estadoEscaneo.productoFisicoEscaneado = producto;

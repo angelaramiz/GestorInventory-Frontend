@@ -351,7 +351,10 @@ async function init() {
 
         const botonBuscarEditar = document.getElementById("buscarEditar");
         if (botonBuscarEditar) {
-            botonBuscarEditar.addEventListener("click", buscarProductoParaEditar);
+            botonBuscarEditar.addEventListener("click", (e) => {
+                e.preventDefault();
+                buscarProductoParaEditar();
+            });
         }
 
         // Event listeners para los botones de edición

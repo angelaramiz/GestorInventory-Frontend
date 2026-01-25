@@ -2822,3 +2822,157 @@
         padding: 0.5rem !important;
     }
 }
+
+/* ===== OPTIMIZACIÓN DE MODALES PARA MÓVILES ===== */
+
+/* Clase helper para elementos touchables */
+.touch-target {
+    min-height: 48px !important;
+    min-width: 48px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Optimización de modales en general */
+@media (max-width: 640px) {
+    /* Modal base responsivo */
+    .dark-modal {
+        max-height: 90vh !important;
+        border-radius: 12px !important;
+    }
+
+    /* Inputs y selects más grandes */
+    .dark-modal input,
+    .dark-modal textarea,
+    .dark-modal select {
+        font-size: 16px !important;
+        padding: 12px !important;
+        min-height: 48px !important;
+    }
+
+    /* Botones responsivos */
+    .dark-modal button {
+        font-size: 14px !important;
+        padding: 12px 16px !important;
+        min-height: 48px !important;
+    }
+
+    /* Tablas responsivas */
+    .dark-modal-table {
+        font-size: 12px !important;
+    }
+
+    .dark-modal-table th,
+    .dark-modal-table td {
+        padding: 8px 4px !important;
+    }
+
+    /* Encabezados de modal compactos */
+    .dark-modal h2 {
+        font-size: 18px !important;
+    }
+
+    .dark-modal h3 {
+        font-size: 14px !important;
+    }
+
+    /* Labels más claros */
+    .dark-modal label {
+        font-size: 13px !important;
+        margin-bottom: 6px !important;
+    }
+
+    /* Panel de control en grid 2x2 */
+    .dark-modal-section {
+        padding: 12px !important;
+    }
+
+    /* Grid responsivo */
+    .grid.grid-cols-2 {
+        gap: 8px !important;
+    }
+
+    .grid.grid-cols-4 {
+        gap: 8px !important;
+    }
+
+    /* Espaciado vertical reducido en móviles */
+    .dark-modal .space-y-4 {
+        gap: 12px !important;
+    }
+
+    .dark-modal .space-y-6 {
+        gap: 16px !important;
+    }
+
+    /* Iconos responsivos */
+    .dark-modal .text-3xl {
+        font-size: 24px !important;
+    }
+
+    .dark-modal .text-2xl {
+        font-size: 20px !important;
+    }
+}
+
+/* Optimización específica para tablets */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .dark-modal input,
+    .dark-modal textarea,
+    .dark-modal select {
+        font-size: 15px !important;
+        padding: 10px !important;
+    }
+
+    .dark-modal button {
+        font-size: 13px !important;
+        padding: 10px 14px !important;
+    }
+}
+
+/* Prevenir zoom en inputs en móviles iOS */
+@supports (-webkit-touch-callout: none) {
+    .dark-modal input,
+    .dark-modal textarea,
+    .dark-modal select {
+        font-size: 16px !important;
+    }
+}
+
+/* ===== ESTILOS PARA SWEETALERT2 EN TEMA OSCURO ===== */
+.swal-dark-popup {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    border: 1px solid #334155 !important;
+}
+
+.swal-dark-title {
+    color: #f1f5f9 !important;
+}
+
+.swal-dark-html {
+    color: #f1f5f9 !important;
+}
+
+.swal-dark-confirm {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+.swal-dark-confirm:hover {
+    background-color: #1d4ed8 !important;
+}
+
+.swal-dark-cancel {
+    background-color: #4b5563 !important;
+    color: #ffffff !important;
+}
+
+.swal-dark-cancel:hover {
+    background-color: #3f4653 !important;
+}
+
+.swal-dark-actions {
+    gap: 0.5rem !important;
+}

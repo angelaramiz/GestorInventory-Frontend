@@ -171,7 +171,7 @@ export function pausarEscaneoLotesAvanzado() {
             config.scannerLotesAvanzado.stop().then(() => {
                 setIsEscaneoLotesAvanzadoActivo(false);
                 console.log("Escáner pausado desde botón");
-                btn.textContent = 'Reanudar escaneo';
+                if (btn) btn.textContent = 'Reanudar escaneo';
             }).catch(err => {
                 console.error("Error al pausar escáner:", err);
             });

@@ -1,9 +1,45 @@
-// product-search.js
-// Funciones relacionadas con la búsqueda de productos
-
 import { db } from '../db/db-operations.js';
 import { mostrarMensaje } from '../utils/logs.js';
 import { mostrarResultados, mostrarResultadosInventario, mostrarResultadosEdicion, mostrarFormularioInventario } from './product-ui.js';
+
+// Función para buscar en Supabase como fallback
+async function buscarEnSupabase(codigo, nombre, marca) {
+    try {
+        const { getSupabase } = await import('../auth/auth.js');
+        const supabase = await getSupabase();
+        
+        let query = supabase
+            .from('productos')
+            .select(`
+                codigo,
+                nombre,
+                marca,
+                unidad,
+                categoria
+            `);
+
+        // Búsqueda por código usando LIKE para flexibilidad
+        if (codigo) {
+            query = query.like('codigo', '%' + String(codigo) + '%');
+        } else if (nombre) {
+            query = query.ilike('nombre', '%' + nombre + '%');
+        } else if (marca) {
+            query = query.ilike('marca', '%' + marca + '%');
+        }
+
+        const { data, error } = await query.limit(10);
+
+        if (error) {
+            console.warn('[product-search] Error en búsqueda Supabase:', error);
+            return [];
+        }
+
+        return data || [];
+    } catch (err) {
+        console.warn('[product-search] No se pudo conectar a Supabase:', err);
+        return [];
+    }
+}
 
 // Helper: detectar si estamos en la página de registro de entradas
 function isRegistroEntradasView() {
@@ -65,7 +101,12 @@ export function buscarPorCodigoParcial(codigoCorto, tipo, callback) {
                 mostrarResultados(resultados);
             }
         } else if (tipo === "Edicion") {
-            mostrarResultadosEdicion(resultados);
+            // Para edición, mostrar la modal directamente del primer resultado encontrado
+            if (resultados && resultados.length > 0) {
+                window.seleccionarProducto(resultados[0].codigo);
+            } else {
+                mostrarMensaje("No se encontraron productos con ese código", "warning");
+            }
         } else if (tipo === "Inventario") {
             mostrarResultadosInventario(resultados);
         }
@@ -83,6 +124,12 @@ export function buscarPorCodigoParcial(codigoCorto, tipo, callback) {
 
 // Función para buscar producto (consulta)
 export function buscarProducto(codigo, formato) {
+    // Filtrar si se recibe un evento en lugar de código
+    if (codigo && typeof codigo === 'object' && codigo.type) {
+        // Se pasó un evento, ignorarlo y leer del DOM
+        codigo = undefined;
+    }
+
     // Preferir el `codigo` pasado por argumento si existe; solo leer del DOM si no se proporcionó
     let codigoB = (codigo !== undefined && codigo !== null && String(codigo).trim() !== '')
         ? String(codigo)
@@ -105,14 +152,11 @@ export function buscarProducto(codigo, formato) {
         buscarPorCodigoParcial(codigoB, "Consulta");
         return;  // Detener la ejecución aquí para evitar la búsqueda normal
     } else if (tipoFormato === "upc_a") {
-        // Para formato UPC-A, extraer los 4 dígitos después del primer "2"
-        if (codigoB.startsWith('2') && codigoB.length >= 6) {
-            const codigoExtraido = codigoB.substring(1, 5); // Extraer 4 dígitos después del "2"
-            console.log(`Código UPC-A detectado, extrayendo: ${codigoExtraido}`);
-            mostrarMensaje(`Código UPC-A detectado, buscando: ${codigoExtraido}`, "success");
-            buscarPorCodigoParcial(codigoExtraido, "Consulta");
-            return;
-        }
+        // Para formato UPC-A, buscar directamente por el código completo
+        console.log(`Código UPC-A detectado: ${codigoB}`);
+        mostrarMensaje(`Código UPC-A detectado, buscando: ${codigoB}`, "success");
+        buscarPorCodigoExacto(codigoB, "Consulta");
+        return;
     }
 
     // Búsqueda normal en la base de datos
@@ -120,7 +164,7 @@ export function buscarProducto(codigo, formato) {
     const objectStore = transaction.objectStore("productos");
     const request = objectStore.getAll();
 
-    request.onsuccess = function (event) {
+    request.onsuccess = async function (event) {
         const productos = event.target.result || [];
         let resultados = [];
 
@@ -139,12 +183,59 @@ export function buscarProducto(codigo, formato) {
             });
         }
 
-        mostrarResultados(resultados);
+        // Si no hay resultados en IndexedDB, buscar en Supabase
+        if (resultados.length === 0) {
+            console.log('[product-search] Sin resultados en IndexedDB, buscando en Supabase...');
+            const resultadosSupabase = await buscarEnSupabase(codigoB, nombre, categoria);
+            resultados = resultadosSupabase;
+        }
+
+        if (isRegistroEntradasView()) {
+            handleResultsForRegistroEntradas(resultados, null);
+        } else {
+            mostrarResultados(resultados);
+        }
     };
 
     request.onerror = function () {
         mostrarMensaje("Error al buscar en la base de datos", "error");
     };
+}
+
+// Función auxiliar para buscar por código exacto (UPC-A)
+async function buscarPorCodigoExacto(codigo, tipo) {
+    // Primero buscar en IndexedDB
+    const transaction = db.transaction(["productos"], "readonly");
+    const objectStore = transaction.objectStore("productos");
+    const request = objectStore.getAll();
+
+    return new Promise(async (resolve) => {
+        request.onsuccess = async function (event) {
+            const productos = event.target.result || [];
+            let resultados = productos.filter(p => p.codigo === String(codigo));
+
+            // Si no hay resultados, buscar en Supabase
+            if (resultados.length === 0) {
+                console.log('[product-search] Código no encontrado en IndexedDB, buscando en Supabase...');
+                resultados = await buscarEnSupabase(codigo, '', '');
+            }
+
+            // Mostrar resultados según tipo
+            if (tipo === "Consulta") {
+                if (isRegistroEntradasView()) {
+                    handleResultsForRegistroEntradas(resultados, null);
+                } else {
+                    mostrarResultados(resultados);
+                }
+            } else if (tipo === "Edicion") {
+                mostrarResultadosEdicion(resultados);
+            } else if (tipo === "Inventario") {
+                mostrarResultadosInventario(resultados);
+            }
+            
+            resolve(resultados);
+        };
+    });
 }
 
 // Función para buscar producto para editar
@@ -158,37 +249,72 @@ export function buscarProductoParaEditar(codigo, formato) {
         tipoFormato = 'manual';
     }
 
-    // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias en códigos UPC-A
-    if (codigoB.length === 4) {
-        buscarPorCodigoParcial(codigoB, "Edicion");
+    if (!codigoB) {
+        mostrarMensaje("Por favor ingrese un código o PLU", "warning");
         return;
-    } else if (tipoFormato === "upc_a") {
-        // Para formato UPC-A, extraer los 4 dígitos después del primer "2"
-        if (codigoB.startsWith('2') && codigoB.length >= 6) {
-            const codigoExtraido = codigoB.substring(1, 5);
-            console.log(`Código UPC-A detectado para edición, extrayendo: ${codigoExtraido}`);
-            buscarPorCodigoParcial(codigoExtraido, "Edicion");
-            return;
-        }
     }
 
-    // Búsqueda normal para edición
+    console.log(`[buscarProductoParaEditar] Buscando: ${codigoB}, tipo: ${tipoFormato}`);
+
+    // Si el usuario ingresa un código de 4 dígitos, buscar por coincidencias parciales
+    if (codigoB.length === 4) {
+        console.log('[buscarProductoParaEditar] Detectado código corto (4 dígitos), buscar parcial');
+        buscarPorCodigoParcial(codigoB, "Edicion", (resultados) => {
+            if (!resultados || resultados.length === 0) {
+                // Si no hay resultados locales, buscar en Supabase
+                (async () => {
+                    const supabaseResults = await buscarEnSupabase(codigoB, '', '');
+                    if (supabaseResults.length > 0) {
+                        window.seleccionarProducto(supabaseResults[0].codigo);
+                    } else {
+                        mostrarMensaje(`No se encontró el producto con código ${codigoB}`, "warning");
+                    }
+                })();
+            }
+        });
+        return;
+    }
+
+    // Búsqueda exacta primero en IndexedDB
     const transaction = db.transaction(["productos"], "readonly");
     const objectStore = transaction.objectStore("productos");
-    const request = objectStore.getAll();
+    const request = objectStore.get(codigoB);
 
-    request.onsuccess = function (event) {
-        const productos = event.target.result || [];
-        let resultados = [];
+    request.onsuccess = async function (event) {
+        let producto = event.target.result;
 
-        if (codigoB) {
-            resultados = productos.filter(producto => producto.codigo === codigoB);
+        // Si no está en IndexedDB, buscar en Supabase con LIKE para flexibilidad
+        if (!producto) {
+            console.log('[buscarProductoParaEditar] No encontrado en IndexedDB, buscando en Supabase...');
+            const resultados = await buscarEnSupabase(codigoB, '', '');
+            if (resultados.length > 0) {
+                producto = resultados[0];
+                console.log('[buscarProductoParaEditar] Encontrado en Supabase:', producto.codigo);
+            } else {
+                // Si todavía no encuentra, buscar por coincidencia parcial en IndexedDB
+                console.log('[buscarProductoParaEditar] No encontrado en Supabase, buscando coincidencias parciales...');
+                buscarPorCodigoParcial(codigoB, "Edicion", (resultados) => {
+                    if (resultados && resultados.length > 0) {
+                        window.seleccionarProducto(resultados[0].codigo);
+                    } else {
+                        mostrarMensaje(`No se encontró el producto con código ${codigoB}`, "warning");
+                    }
+                });
+                return;
+            }
         }
 
-        mostrarResultadosEdicion(resultados);
+        if (producto) {
+            console.log('[buscarProductoParaEditar] Mostrando modal para:', producto.codigo);
+            // Mostrar el modal con el producto encontrado
+            window.seleccionarProducto(producto.codigo);
+        } else {
+            mostrarMensaje(`No se encontró el producto con código ${codigoB}`, "warning");
+        }
     };
 
     request.onerror = function () {
+        console.error('[buscarProductoParaEditar] Error al buscar en IndexedDB:', request.error);
         mostrarMensaje("Error al buscar en la base de datos", "error");
     };
 }

@@ -123,6 +123,12 @@ export async function guardarCambios() {
         const marca = document.getElementById("marcaEditar").value;
         const unidad = document.getElementById("unidadEditar").value || "";
 
+        // Validar campos obligatorios
+        if (!codigoNuevo || !nombre || !categoria || !marca) {
+            mostrarMensaje("Error: Todos los campos son obligatorios", "error");
+            return;
+        }
+
         // Sanitizar y validar el producto
         const productoSanitizado = sanitizarProducto({
             codigo: codigoNuevo,
@@ -137,9 +143,12 @@ export async function guardarCambios() {
             return;
         }
 
+        console.log(`[guardarCambios] Actualizando producto: ${codigoAntiguo} -> ${codigoNuevo}`);
+
         // Subir los cambios a Supabase
         const supabase = await getSupabase();
         if (supabase) {
+            // Actualizar en Supabase
             const { error } = await supabase
                 .from('productos')
                 .update({
@@ -152,26 +161,54 @@ export async function guardarCambios() {
                 .eq('codigo', codigoAntiguo);
 
             if (error) {
-                console.error("Error al actualizar producto en Supabase:", error);
-                mostrarMensaje("Error al actualizar en servidor", "error");
+                console.error("[guardarCambios] Error al actualizar en Supabase:", error);
+                mostrarMensaje("Error al actualizar en servidor: " + error.message, "error");
                 return;
             }
 
-            mostrarMensaje(`Producto actualizado correctamente en Supabase.`, "success");
+            console.log(`[guardarCambios] Producto actualizado en Supabase`);
+
+            // Actualizar también en IndexedDB
+            try {
+                const transaction = db.transaction(["productos"], "readwrite");
+                const objectStore = transaction.objectStore("productos");
+                
+                // Eliminar el producto antiguo si cambió el código
+                if (codigoAntiguo !== codigoNuevo) {
+                    objectStore.delete(codigoAntiguo);
+                }
+                
+                // Agregar/actualizar con el código nuevo
+                objectStore.put({
+                    codigo: codigoNuevo,
+                    nombre: nombre,
+                    categoria: categoria,
+                    marca: marca,
+                    unidad: unidad
+                });
+
+                console.log(`[guardarCambios] Producto actualizado en IndexedDB`);
+            } catch (indexedDBError) {
+                console.warn("[guardarCambios] Error al actualizar IndexedDB:", indexedDBError);
+            }
+
+            mostrarMensaje(`✅ Producto actualizado correctamente`, "success");
             document.getElementById("formularioEdicion").style.display = "none";
 
-            // Verificar si estamos en la página correcta antes de cargar la tabla
-            if (document.getElementById("databaseBody")) {
-                // Recargar la tabla de productos
-                const { cargarDatosEnTabla } = await import('../db/db-operations.js');
-                cargarDatosEnTabla();
-            }
+            // Limpiar los campos
+            document.getElementById("codigoEditar").value = "";
+            document.getElementById("codigoEditado").value = "";
+            document.getElementById("nombreEditar").value = "";
+            document.getElementById("categoriaEditar").value = "";
+            document.getElementById("marcaEditar").value = "";
+            document.getElementById("unidadEditar").value = "";
+
         } else {
             mostrarMensaje("Error de conexión con el servidor", "error");
         }
     } catch (error) {
-        console.error("Error al editar el producto:", error);
-        mostrarMensaje("Error inesperado al editar el producto.", "error");
+        console.error("[guardarCambios] Error:", error);
+        mostrarMensaje("Error inesperado al editar el producto: " + error.message, "error");
     }
 }
 

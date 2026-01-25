@@ -49,9 +49,11 @@ export async function inicializarEscaner() {
 
             console.log(`📐 Dimensiones del contenedor: ${rect.width}x${rect.height}`);
 
-            // Calcular qrbox dinámicamente (80% del contenedor, pero máximo 250px)
-            const qrboxSize = Math.min(Math.floor(rect.height * 0.8), Math.floor(rect.width * 0.8), 250);
-            console.log(`📦 Tamaño qrbox calculado: ${qrboxSize}px`);
+            // Calcular qrbox dinámicamente (70% del contenedor más pequeño, máx 160px para móvil)
+            const minDimension = Math.min(rect.width, rect.height);
+            const maxQrbox = window.innerWidth < 768 ? 160 : 250; // 160px en móvil, 250px en desktop
+            const qrboxSize = Math.min(Math.floor(minDimension * 0.7), maxQrbox);
+            console.log(`📦 Tamaño qrbox calculado: ${qrboxSize}px (máx permitido: ${maxQrbox}px, contenedor: ${rect.height}px)`);
 
             scanner = new Html5QrcodeScanner('qr-scanner', {
                 fps: 15,

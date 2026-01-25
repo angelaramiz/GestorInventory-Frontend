@@ -20,6 +20,45 @@
     
     <!-- Cargar Supabase como script tradicional -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
+    
+    <!-- CSS para ocultar controles de HTML5QrCode en móvil -->
+    <style>
+        /* En móvil: ocultar solo los controles, mantener el video visible */
+        @media (max-width: 640px) {
+            #qr-scanner {
+                max-height: 160px !important;
+                overflow: hidden !important;
+            }
+            
+            /* Ocultar botones y controles específicos */
+            #qr-scanner button {
+                display: none !important;
+            }
+            
+            /* Ocultar el div del "Powered by ScanApp" y similares */
+            #qr-scanner div[style*="position: absolute"] {
+                display: none !important;
+            }
+            
+            /* Ocultar zoom slider */
+            #qr-scanner .html5-qrcode-zoom-slider {
+                display: none !important;
+            }
+            
+            /* Mostrar el contenedor de video */
+            #qr-scanner .html5-qrcode-element {
+                display: block !important;
+                max-height: 160px !important;
+                overflow: hidden !important;
+            }
+            
+            /* Asegurar que el video es visible */
+            #qr-scanner video {
+                max-height: 160px !important;
+                object-fit: contain !important;
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 dark-theme-body">
@@ -291,88 +330,90 @@
             </div>
 
             <!-- MODAL DE SELECCIÓN KG/PZ (FASE 1) -->
-            <div id="modalSeleccionInventario" style="display: none;" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-8 shadow-2xl max-w-md w-full dark-modal">
-                    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800 dark-modal-title">
-                        📦 Selecciona Tipo de Inventario
-                    </h2>
-                    
-                    <p class="text-gray-600 text-center mb-8 dark-modal-text">
-                        ¿Qué tipo de inventario deseas realizar?
-                    </p>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Opción KG -->
-                        <button id="btnInventarioKG" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 px-4 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-primary">
-                            <div class="text-3xl mb-2">⚖️</div>
-                            <div class="text-lg font-semibold">Por KG</div>
-                            <div class="text-xs text-blue-100 mt-1">Pesaje continuo</div>
-                        </button>
+            <div id="modalSeleccionInventario" style="display: none;" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-lg shadow-2xl max-w-md w-full dark-modal max-h-screen overflow-y-auto">
+                    <div class="p-4 sm:p-8">
+                        <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800 dark-modal-title">
+                            📦 Selecciona Tipo
+                        </h2>
                         
-                        <!-- Opción PZ -->
-                        <button id="btnInventarioPZ" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-6 px-4 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-secondary">
-                            <div class="text-3xl mb-2">📋</div>
-                            <div class="text-lg font-semibold">Por PZ</div>
-                            <div class="text-xs text-purple-100 mt-1">Por secciones</div>
+                        <p class="text-sm sm:text-base text-gray-600 text-center mb-6 sm:mb-8 dark-modal-text">
+                            ¿Qué tipo de inventario deseas realizar?
+                        </p>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <!-- Opción KG -->
+                            <button id="btnInventarioKG" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 sm:py-6 px-3 sm:px-4 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-primary text-sm sm:text-base touch-target">
+                                <div class="text-2xl sm:text-3xl mb-2">⚖️</div>
+                                <div class="font-semibold">Por KG</div>
+                                <div class="text-xs text-blue-100 mt-1">Pesaje continuo</div>
+                            </button>
+                            
+                            <!-- Opción PZ -->
+                            <button id="btnInventarioPZ" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 sm:py-6 px-3 sm:px-4 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-secondary text-sm sm:text-base touch-target">
+                                <div class="text-2xl sm:text-3xl mb-2">📋</div>
+                                <div class="font-semibold">Por PZ</div>
+                                <div class="text-xs text-purple-100 mt-1">Por secciones</div>
+                            </button>
+                        </div>
+                        
+                        <button id="btnCancelarSeleccion" class="w-full mt-4 sm:mt-6 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg transition duration-200 dark-btn-cancel text-sm sm:text-base touch-target">
+                            Cancelar
                         </button>
                     </div>
-                    
-                    <button id="btnCancelarSeleccion" class="w-full mt-6 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-200 dark-btn-cancel">
-                        Cancelar
-                    </button>
                 </div>
             </div>
 
             <!-- MODAL MODO PZ - INVENTARIO POR SECCIONES Y NIVELES (FASE 2) -->
             <div id="modalInventarioPZ" style="display: none;" class="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
-                <div class="min-h-screen flex items-center justify-center p-4">
-                    <div class="bg-white rounded-lg shadow-2xl w-full max-w-6xl dark-modal">
+                <div class="min-h-screen flex items-center justify-center p-2 sm:p-4">
+                    <div class="bg-white rounded-lg shadow-2xl w-full max-w-6xl dark-modal max-h-screen overflow-y-auto">
                         <!-- Encabezado del Modal -->
-                        <div class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-6 rounded-t-lg flex justify-between items-center">
-                            <div>
-                                <h2 class="text-3xl font-bold">📋 Inventario por PZ</h2>
-                                <p id="tituloSeccionNivel" class="text-purple-100 mt-2">Sección 1 - Nivel 1</p>
+                        <div class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-3 sm:p-6 rounded-t-lg flex justify-between items-start sm:items-center gap-2">
+                            <div class="min-w-0 flex-1">
+                                <h2 class="text-lg sm:text-3xl font-bold">📋 Inventario PZ</h2>
+                                <p id="tituloSeccionNivel" class="text-xs sm:text-sm text-purple-100 mt-1 sm:mt-2">Sección 1 - Nivel 1</p>
                             </div>
-                            <button id="cerrarModalPZ" class="text-white hover:bg-purple-600 p-2 rounded-full transition">
+                            <button id="cerrarModalPZ" class="text-white hover:bg-purple-600 p-2 rounded-full transition flex-shrink-0">
                                 ✕
                             </button>
                         </div>
 
                         <!-- Contenido del Modal -->
-                        <div class="p-6">
+                        <div class="p-3 sm:p-6 space-y-4 sm:space-y-6">
                             <!-- PANEL DE CONTROL (PARTE SUPERIOR) -->
-                            <div class="bg-purple-50 p-4 rounded-lg mb-6 dark-modal-section">
-                                <h3 class="font-bold text-lg text-gray-800 mb-3 dark-modal-label">📊 Panel de Control</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div class="bg-white p-3 rounded border border-purple-200 dark-card">
-                                        <p class="text-xs text-gray-600">Sección Actual</p>
-                                        <p id="indicadorSeccion" class="text-2xl font-bold text-purple-600">1</p>
+                            <div class="bg-purple-50 p-3 sm:p-4 rounded-lg dark-modal-section">
+                                <h3 class="font-bold text-base sm:text-lg text-gray-800 mb-2 sm:mb-3 dark-modal-label">📊 Panel</h3>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+                                    <div class="bg-white p-2 sm:p-3 rounded border border-purple-200 dark-card">
+                                        <p class="text-xs text-gray-600">Sección</p>
+                                        <p id="indicadorSeccion" class="text-lg sm:text-2xl font-bold text-purple-600">1</p>
                                     </div>
-                                    <div class="bg-white p-3 rounded border border-purple-200 dark-card">
-                                        <p class="text-xs text-gray-600">Nivel Actual</p>
-                                        <p id="indicadorNivel" class="text-2xl font-bold text-purple-600">1</p>
+                                    <div class="bg-white p-2 sm:p-3 rounded border border-purple-200 dark-card">
+                                        <p class="text-xs text-gray-600">Nivel</p>
+                                        <p id="indicadorNivel" class="text-lg sm:text-2xl font-bold text-purple-600">1</p>
                                     </div>
-                                    <div class="bg-white p-3 rounded border border-purple-200 dark-card">
+                                    <div class="bg-white p-2 sm:p-3 rounded border border-purple-200 dark-card">
                                         <p class="text-xs text-gray-600">Producto #</p>
-                                        <p id="indicadorProducto" class="text-2xl font-bold text-purple-600">1</p>
+                                        <p id="indicadorProducto" class="text-lg sm:text-2xl font-bold text-purple-600">1</p>
                                     </div>
-                                    <div class="bg-white p-3 rounded border border-purple-200 dark-card">
-                                        <p class="text-xs text-gray-600">Total Productos</p>
-                                        <p id="indicadorTotal" class="text-2xl font-bold text-purple-600">0</p>
+                                    <div class="bg-white p-2 sm:p-3 rounded border border-purple-200 dark-card">
+                                        <p class="text-xs text-gray-600">Total</p>
+                                        <p id="indicadorTotal" class="text-lg sm:text-2xl font-bold text-purple-600">0</p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- HOJA DE CÁLCULO (TABLA VISUAL) -->
-                            <div class="bg-gray-50 p-4 rounded-lg mb-6 overflow-x-auto dark-modal-section">
-                                <h3 class="font-bold text-lg text-gray-800 mb-3 dark-modal-label">📑 Hoja de Cálculo</h3>
-                                <table class="w-full border-collapse border border-gray-300 dark-modal-table">
+                            <div class="bg-gray-50 p-2 sm:p-4 rounded-lg overflow-x-auto dark-modal-section">
+                                <h3 class="font-bold text-base sm:text-lg text-gray-800 mb-2 sm:mb-3 dark-modal-label">📑 Hoja</h3>
+                                <table class="w-full border-collapse border border-gray-300 dark-modal-table text-xs sm:text-sm">
                                     <thead>
                                         <tr class="bg-purple-200 dark-table-header">
-                                            <th class="border border-gray-300 p-2 text-left text-sm font-bold">#</th>
-                                            <th class="border border-gray-300 p-2 text-left text-sm font-bold">Producto</th>
-                                            <th class="border border-gray-300 p-2 text-left text-sm font-bold">Cantidad</th>
-                                            <th class="border border-gray-300 p-2 text-left text-sm font-bold">Caducidad</th>
+                                            <th class="border border-gray-300 p-1 sm:p-2 text-left font-bold">#</th>
+                                            <th class="border border-gray-300 p-1 sm:p-2 text-left font-bold">Producto</th>
+                                            <th class="border border-gray-300 p-1 sm:p-2 text-left font-bold">Cant</th>
+                                            <th class="border border-gray-300 p-1 sm:p-2 text-left font-bold">Caduc</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tablaPZ">
@@ -382,8 +423,8 @@
                             </div>
 
                             <!-- SECCIÓN DE ENTRADA DE DATOS -->
-                            <div class="bg-indigo-50 p-6 rounded-lg mb-6 dark-modal-section">
-                                <h3 class="font-bold text-lg text-gray-800 mb-4 dark-modal-label">📥 Ingresa Datos del Producto</h3>
+                            <div class="bg-indigo-50 p-3 sm:p-6 rounded-lg dark-modal-section">
+                                <h3 class="font-bold text-base sm:text-lg text-gray-800 mb-3 sm:mb-4 dark-modal-label">📥 Ingresa Datos</h3>
                                 
                                 <div class="space-y-4">
                                     <!-- Label dinámico -->
@@ -420,18 +461,18 @@
                             </div>
 
                             <!-- CONTROLES DE NAVEGACIÓN -->
-                            <div class="grid grid-cols-2 gap-4">
-                                <button id="btnNivelMas1" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-secondary">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                                <button id="btnNivelMas1" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-secondary text-sm sm:text-base touch-target">
                                     📈 Nivel +1
                                 </button>
-                                <button id="btnSiguienteSeccion" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-success">
-                                    ✅ Siguiente Sección
+                                <button id="btnSiguienteSeccion" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-success text-sm sm:text-base touch-target">
+                                    ✅ Siguiente
                                 </button>
                             </div>
 
                             <!-- Botón Finalizar Conteo -->
-                            <button id="btnFinalizarConteo" class="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-primary">
-                                🏁 Finalizar Conteo por Secciones
+                            <button id="btnFinalizarConteo" class="w-full mt-4 sm:mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-lg transition duration-200 transform hover:scale-105 dark-btn-primary text-sm sm:text-base touch-target">
+                                🏁 Finalizar Conteo
                             </button>
                         </div>
                     </div>
@@ -479,12 +520,14 @@
                         <!-- Área de Escáner -->
                         <div class="space-y-4">
                             <h3 class="text-lg font-semibold text-gray-900">📱 Escáner QR/Código de Barras</h3>
-                            <div id="qr-scanner" class="w-full mx-auto bg-gray-100 rounded-lg border-2 border-dashed border-gray-300" style="min-height: 400px; height: 400px; max-width: 100%;"></div>
-                            <div class="flex justify-center gap-3">
-                                <button id="btnIniciarEscanerPZ" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">
+                            <div id="qr-scanner" class="w-full mx-auto bg-gray-100 rounded-lg border-2 border-dashed border-gray-300" style="width: 100%; min-height: 200px; height: 200px; max-height: 30vh; max-width: 100%; overflow: hidden;"></div>
+                            
+                            <!-- Botones debajo del escáner -->
+                            <div class="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
+                                <button id="btnIniciarEscanerPZ" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition flex-1 sm:flex-none">
                                     ▶️ Iniciar Escaneo
                                 </button>
-                                <button id="btnPauseEscanerPZ" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg transition hidden">
+                                <button id="btnPauseEscanerPZ" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg transition hidden flex-1 sm:flex-none">
                                     ⏸️ Pausar
                                 </button>
                             </div>

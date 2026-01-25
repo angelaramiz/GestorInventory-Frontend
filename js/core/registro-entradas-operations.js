@@ -3,6 +3,7 @@ import { agregarRegistroEntrada, cargarEntradasEnTabla, sincronizarEntradasDesde
 import { mostrarMensaje, mostrarAlertaBurbuja } from '../utils/logs.js';
 import { db } from '../db/db-operations.js';
 import { buscarPorCodigoParcial } from '../products/product-operations.js';
+import { sincronizarProductosLocalesHaciaSupabase } from '../db/sync-bidirectional.js';
 
 // Variable para almacenar el producto seleccionado
 let productoSeleccionadoEntrada = null;
@@ -408,20 +409,24 @@ export async function sincronizarEntradas() {
         const colaActual = JSON.parse(localStorage.getItem('syncQueueEntradas') || '[]');
         console.log(`📋 Cola de sincronización antes: ${colaActual.length} elementos`);
 
-        // Primero sincronizar desde Supabase a local (obtener cambios remotos)
+        // Primero procesar la cola local a Supabase (enviar cambios locales)
+        console.log("⬆️ Procesando cola local a Supabase...");
+        await procesarColaSincronizacionEntradas();
+
+        // Luego sincronizar desde Supabase a local (obtener cambios remotos)
         console.log("⬇️ Sincronizando desde Supabase a local...");
         await sincronizarEntradasDesdeSupabase();
 
-        // Luego procesar la cola local a Supabase (enviar cambios locales)
-        console.log("⬆️ Procesando cola local a Supabase...");
-        await procesarColaSincronizacionEntradas();
+        // Sincronizar productos locales que se hayan agregado
+        console.log("📦 Sincronizando productos locales...");
+        await sincronizarProductosLocalesHaciaSupabase();
 
         // Verificar estado de la cola después de sincronizar
         const colaDespues = JSON.parse(localStorage.getItem('syncQueueEntradas') || '[]');
         console.log(`📋 Cola de sincronización después: ${colaDespues.length} elementos`);
 
         await actualizarTablaEntradas();
-        mostrarAlertaBurbuja("Entradas sincronizadas correctamente", "success");
+        mostrarAlertaBurbuja("Entradas y productos sincronizados correctamente", "success");
         console.log("✅ Sincronización bidireccional completada");
     } catch (error) {
         console.error("❌ Error al sincronizar entradas:", error);

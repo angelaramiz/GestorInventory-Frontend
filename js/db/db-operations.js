@@ -8,5 +8,5 @@ export { sincronizarBidireccional, sincronizarDesdeSupabase, sincronizarProducto
 export { sincronizarProductosDesdeBackend, subirProductosAlBackend, cargarDatosEnTabla, cargarCSV, descargarCSV } from './products.js';
 export { cargarDatosInventarioEnTablaPlantilla, descargarInventarioCSV, descargarInventarioPDF, sincronizarInventarioDesdeSupabase } from './inventory.js';
 export { obtenerUbicacionEnUso, obtenerAreasPorCategoria, guardarAreaIdPersistente, obtenerAreaId } from './areas.js';
-export { agregarAColaSincronizacionEntradas, procesarColaSincronizacionEntradas, sincronizarEntradasDesdeSupabase, agregarRegistroEntrada, cargarEntradasEnTabla, eliminarRegistroEntrada, generarReporteEntradas } from './entries.js';
+export { agregarAColaSincronizacionEntradas, procesarColaSincronizacionEntradas, sincronizarEntradasDesdeSupabase, agregarRegistroEntrada, cargarEntradasEnTabla, eliminarRegistroEntrada, generarReporteEntradas, agregarAColaProductosRegistroEntradas, procesarColaProductosRegistroEntradas } from './entries.js';
 export { resetearBaseDeDatos, generarPlantillaInventario } from './utils.js';

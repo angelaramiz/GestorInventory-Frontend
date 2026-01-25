@@ -424,3 +424,106 @@ export async function generarReporteEntradas(filtros = {}) {
         mostrarMensaje("Error al generar reporte", "error");
     }
 }
+
+// ============================================================
+// COLA DE SINCRONIZACIÓN PARA PRODUCTOS AGREGADOS EN REGISTRO
+// ============================================================
+
+let syncQueueProductos = JSON.parse(localStorage.getItem('syncQueueProductos') || '[]');
+
+// Función para agregar un producto a la cola de sincronización
+export function agregarAColaProductosRegistroEntradas(productData) {
+    // Preparar solo los campos que existen en la tabla productos de Supabase
+    const dataSupabase = {
+        codigo: productData.codigo,
+        nombre: productData.nombre,
+        marca: productData.marca || '',
+        categoria: productData.categoria || '',
+        unidad: productData.unidad || '',
+        categoria_id: productData.categoria_id || '00000000-0000-0000-0000-000000000001',
+        usuario_id: productData.usuario_id || localStorage.getItem('usuario_id'),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+        // ❌ NO INCLUIR: area_id, lote, numero_factura, is_temp_id, etc
+    };
+
+    syncQueueProductos.push(dataSupabase);
+    localStorage.setItem('syncQueueProductos', JSON.stringify(syncQueueProductos));
+
+    if (navigator.onLine) {
+        procesarColaProductosRegistroEntradas();
+    }
+}
+
+// Función para procesar la cola de productos
+export async function procesarColaProductosRegistroEntradas() {
+    if (!navigator.onLine) {
+        console.warn("No hay conexión a internet, sincronización de productos pospuesta");
+        return;
+    }
+
+    try {
+        const supabase = await getSupabase();
+        if (!supabase) {
+            console.error("Supabase no disponible para sincronización de productos");
+            return;
+        }
+
+        const maxReintentos = 3;
+        const colaLocal = [...syncQueueProductos];
+
+        for (let i = 0; i < colaLocal.length; i++) {
+            const item = colaLocal[i];
+            let intentoActual = 0;
+            let sincronizado = false;
+
+            while (intentoActual < maxReintentos && !sincronizado) {
+                try {
+                    console.log(`📤 Enviando producto a Supabase (intento ${intentoActual + 1}/${maxReintentos}):`, item);
+
+                    // Intentar upsert en Supabase usando código como identificador
+                    const { data, error } = await supabase
+                        .from('productos')
+                        .upsert(item, { onConflict: 'codigo' })
+                        .select();
+
+                    if (error) {
+                        console.error(`⚠️ Error en intento ${intentoActual + 1}:`, error.message);
+                        intentoActual++;
+
+                        if (intentoActual < maxReintentos) {
+                            const tiempoEspera = Math.pow(2, intentoActual) * 1000;
+                            console.log(`⏳ Reintentando en ${tiempoEspera}ms...`);
+                            await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+                        } else {
+                            throw new Error(`Upsert fallido después de ${maxReintentos} intentos: ${error.message}`);
+                        }
+                    } else {
+                        console.log(`✅ Producto sincronizado en Supabase:`, data);
+                        sincronizado = true;
+                        
+                        // Remover de la cola
+                        syncQueueProductos = syncQueueProductos.filter(p => p.codigo !== item.codigo);
+                        localStorage.setItem('syncQueueProductos', JSON.stringify(syncQueueProductos));
+                    }
+                } catch (error) {
+                    console.error(`❌ Error procesando producto (intento ${intentoActual + 1}):`, error);
+                    intentoActual++;
+
+                    if (intentoActual >= maxReintentos) {
+                        console.warn(`🔄 Producto devuelto a la cola después de ${maxReintentos} intentos`);
+                    }
+                }
+            }
+        }
+
+        if (syncQueueProductos.length === 0) {
+            console.log("✅ Sincronización de productos completada");
+            mostrarMensaje("Productos sincronizados correctamente", "success");
+        } else {
+            console.warn(`⚠️ Cola de productos aún contiene ${syncQueueProductos.length} elementos`);
+        }
+    } catch (error) {
+        console.error('❌ Error en procesarColaProductosRegistroEntradas:', error);
+    }
+}

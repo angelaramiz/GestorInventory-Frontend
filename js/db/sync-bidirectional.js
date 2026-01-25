@@ -237,12 +237,28 @@ export async function sincronizarProductosLocalesHaciaSupabase() {
                 const shouldUpsert = !remote || new Date(local.last_modified || '1970-01-01') > new Date(remote.last_modified);
 
                 if (shouldUpsert) {
+                    // Preparar solo los campos válidos de la tabla productos
+                    const productoParaSupabase = {
+                        codigo: local.codigo,
+                        nombre: local.nombre,
+                        marca: local.marca || '',
+                        categoria: local.categoria || '',
+                        unidad: local.unidad || '',
+                        categoria_id: local.categoria_id || '00000000-0000-0000-0000-000000000001',
+                        last_modified: new Date().toISOString()
+                        // ❌ NO INCLUIR: area_id, lote, numero_factura, is_temp_id, etc
+                    };
+
+                    console.log(`📤 Sincronizando producto ${local.codigo} a Supabase...`, productoParaSupabase);
+
                     const { error: upsertError } = await supabase
                         .from('productos')
-                        .upsert(local);
+                        .upsert(productoParaSupabase, { onConflict: 'codigo' });
 
                     if (upsertError) {
                         console.error('Error subiendo producto:', upsertError);
+                    } else {
+                        console.log(`✅ Producto ${local.codigo} sincronizado exitosamente`);
                     }
                 }
             } catch (error) {

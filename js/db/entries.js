@@ -5,38 +5,48 @@ import { dbEntradas } from './db-init.js';
 import { getSupabase } from '../auth/auth.js';
 import { mostrarMensaje } from '../utils/logs.js';
 
-// Cola de sincronización específica para entradas
-let syncQueueEntradas = JSON.parse(localStorage.getItem('syncQueueEntradas') || '[]');
+// Función para obtener entradas no sincronizadas directamente de IndexedDB
+export async function obtenerEntradasNoSincronizadas() {
+    try {
+        if (!dbEntradas) {
+            console.warn("Base de datos de entradas no inicializada");
+            return [];
+        }
 
+        const transaction = dbEntradas.transaction(["registro_entradas"], "readonly");
+        const objectStore = transaction.objectStore("registro_entradas");
+
+        return new Promise((resolve, reject) => {
+            const request = objectStore.getAll();
+
+            request.onsuccess = function (event) {
+                const entradas = event.target.result || [];
+                // Filtrar solo las entradas con is_temp_id: true (no sincronizadas)
+                const noSincronizadas = entradas.filter(entrada => entrada.is_temp_id === true);
+                console.log(`📋 Encontradas ${noSincronizadas.length} entradas no sincronizadas en IndexedDB`);
+                resolve(noSincronizadas);
+            };
+
+            request.onerror = function (event) {
+                console.error("Error al obtener entradas no sincronizadas:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+    } catch (error) {
+        console.error("Error en obtenerEntradasNoSincronizadas:", error);
+        return [];
+    }
+}
+
+// Función para agregar a la cola de sincronización (simplificada, solo dispara procesamiento)
 export function agregarAColaSincronizacionEntradas(data) {
-    // Preparar solo los campos que existen en la tabla de Supabase
-    const dataSupabase = {
-        id: data.id,
-        codigo: data.codigo,
-        nombre: data.nombre,
-        marca: data.marca || '',
-        categoria: data.categoria || '',
-        unidad: data.unidad || '',
-        cantidad: data.cantidad,
-        fecha_entrada: data.fecha_entrada,
-        comentarios: data.comentarios || '',
-        usuario_id: data.usuario_id,
-        producto_id: data.producto_id || null,
-        categoria_id: data.categoria_id || '00000000-0000-0000-0000-000000000001',
-        created_at: data.created_at,
-        updated_at: new Date().toISOString()
-        // ❌ NO INCLUIR: area_id, lote, numero_factura, is_temp_id
-    };
-
-    syncQueueEntradas.push(dataSupabase);
-    localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
-
+    // Ya no usamos cola localStorage, solo procesamos si estamos online
     if (navigator.onLine) {
         procesarColaSincronizacionEntradas();
     }
 }
 
-// Procesar la cola de sincronización de entradas con sincronización bidireccional
+// Procesar la cola de sincronización de entradas consultando directamente IndexedDB
 export async function procesarColaSincronizacionEntradas() {
     if (!navigator.onLine) {
         console.warn("No hay conexión a internet, sincronización pospuesta");
@@ -50,20 +60,42 @@ export async function procesarColaSincronizacionEntradas() {
             return;
         }
 
+        // Obtener entradas no sincronizadas directamente de IndexedDB
+        const entradasNoSincronizadas = await obtenerEntradasNoSincronizadas();
+        
+        if (entradasNoSincronizadas.length === 0) {
+            console.log("✅ No hay entradas pendientes de sincronización");
+            return;
+        }
+
         const maxReintentos = 3;
-        let reintentos = 0;
 
-        while (syncQueueEntradas.length > 0 && reintentos < maxReintentos) {
-            const item = syncQueueEntradas.shift();
+        for (const item of entradasNoSincronizadas) {
             let intentoActual = 0;
+            let sincronizado = false;
 
-            // Reintentar hasta 3 veces por elemento
-            while (intentoActual < maxReintentos) {
+            while (intentoActual < maxReintentos && !sincronizado) {
                 try {
                     console.log(`📤 Enviando entrada a Supabase (intento ${intentoActual + 1}/${maxReintentos}):`, item);
                     
-                    // itemParaSupabase ya contiene solo los campos válidos de la tabla
-                    const itemParaSupabase = item;
+                    // Preparar datos para Supabase (filtrar campos no válidos)
+                    const itemParaSupabase = {
+                        id: item.id,
+                        codigo: item.codigo,
+                        nombre: item.nombre,
+                        marca: item.marca || '',
+                        categoria: item.categoria || '',
+                        unidad: item.unidad || '',
+                        cantidad: item.cantidad,
+                        fecha_entrada: item.fecha_entrada,
+                        comentarios: item.comentarios || '',
+                        usuario_id: item.usuario_id,
+                        producto_id: item.producto_id || null,
+                        categoria_id: item.categoria_id || '00000000-0000-0000-0000-000000000001',
+                        created_at: item.created_at,
+                        updated_at: new Date().toISOString()
+                        // ❌ NO INCLUIR: is_temp_id
+                    };
                     
                     // Intentar upsert en Supabase
                     const { data, error } = await supabase
@@ -80,70 +112,47 @@ export async function procesarColaSincronizacionEntradas() {
                             const tiempoEspera = Math.pow(2, intentoActual) * 1000;
                             console.log(`⏳ Reintentando en ${tiempoEspera}ms...`);
                             await new Promise(resolve => setTimeout(resolve, tiempoEspera));
-                            continue;
                         } else {
-                            throw new Error(`Upsert fallido después de ${maxReintentos} intentos: ${error.message}`);
+                            console.error(`❌ Upsert fallido después de ${maxReintentos} intentos para entrada ${item.id}: ${error.message}`);
                         }
-                    }
-
-                    // Actualizar IndexedDB con el ID permanente
-                    if (data && data[0]) {
-                        console.log(`✅ Entrada sincronizada en Supabase con ID:`, data[0].id);
+                    } else {
+                        console.log(`✅ Entrada sincronizada en Supabase:`, data);
+                        sincronizado = true;
+                        
+                        // Actualizar IndexedDB: marcar como sincronizada (quitar is_temp_id)
                         const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
                         const objectStore = transaction.objectStore("registro_entradas");
-
-                        // Eliminar el registro temporal
+                        
+                        // Actualizar el registro existente
+                        const itemActualizado = { ...item, is_temp_id: false, updated_at: new Date().toISOString() };
                         await new Promise((resolve, reject) => {
-                            const deleteRequest = objectStore.delete(item.id);
-                            deleteRequest.onsuccess = () => {
-                                console.log(`🗑️ Registro temporal eliminado`);
+                            const putRequest = objectStore.put(itemActualizado);
+                            putRequest.onsuccess = () => {
+                                console.log(`✨ Registro actualizado en IndexedDB (sincronizado)`);
                                 resolve();
                             };
-                            deleteRequest.onerror = () => reject(deleteRequest.error);
-                        });
-
-                        // Agregar el registro actualizado
-                        const itemActualizado = { ...item, id: data[0].id, is_temp_id: false };
-                        await new Promise((resolve, reject) => {
-                            const addRequest = objectStore.add(itemActualizado);
-                            addRequest.onsuccess = () => {
-                                console.log(`✨ Registro actualizado en IndexedDB`);
-                                resolve();
-                            };
-                            addRequest.onerror = () => reject(addRequest.error);
+                            putRequest.onerror = () => reject(putRequest.error);
                         });
                     }
-
-                    localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
-                    break; // Salir del loop de reintentos si fue exitoso
-                    
                 } catch (error) {
-                    console.error(`❌ Error procesando entrada (intento ${intentoActual + 1}):`, error);
+                    console.error(`❌ Error procesando entrada ${item.id} (intento ${intentoActual + 1}):`, error);
                     intentoActual++;
                     
-                    if (intentoActual < maxReintentos) {
-                        const tiempoEspera = Math.pow(2, intentoActual) * 1000;
-                        console.log(`⏳ Reintentando en ${tiempoEspera}ms...`);
-                        await new Promise(resolve => setTimeout(resolve, tiempoEspera));
-                    } else {
-                        // Reinsertar el elemento al principio de la cola si falló todos los intentos
-                        console.warn(`🔄 Elemento devuelto a la cola después de ${maxReintentos} intentos`);
-                        syncQueueEntradas.unshift(item);
-                        reintentos++;
-                        break;
+                    if (intentoActual >= maxReintentos) {
+                        console.warn(`🔄 Entrada ${item.id} falló después de ${maxReintentos} intentos`);
                     }
                 }
             }
         }
 
-        localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
-        
-        if (syncQueueEntradas.length === 0) {
+        // Verificar si quedan entradas no sincronizadas
+        const entradasPendientes = await obtenerEntradasNoSincronizadas();
+        if (entradasPendientes.length === 0) {
             console.log("✅ Sincronización de entradas completada");
             mostrarMensaje("Sincronización de entradas completada", "success");
         } else {
-            console.warn(`⚠️ Cola de sincronización aún contiene ${syncQueueEntradas.length} elementos`);
-            mostrarMensaje(`${syncQueueEntradas.length} entrada(s) pendiente(s) de sincronizar`, "warning");
+            console.warn(`⚠️ Aún quedan ${entradasPendientes.length} entrada(s) pendiente(s) de sincronizar`);
+            mostrarMensaje(`${entradasPendientes.length} entrada(s) pendiente(s) de sincronizar`, "warning");
         }
     } catch (error) {
         console.error('❌ Error en procesarColaSincronizacionEntradas:', error);

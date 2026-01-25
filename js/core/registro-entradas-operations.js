@@ -283,6 +283,18 @@ export async function registrarEntrada() {
 // Función para actualizar la tabla de entradas
 export async function actualizarTablaEntradas(filtros = {}) {
     try {
+        // Si no se pasan filtros específicos (solo filtros vacíos o undefined), filtrar por fecha del día actual
+        const tieneFiltrosEspecificos = Object.keys(filtros).some(key =>
+            filtros[key] !== undefined && filtros[key] !== null && filtros[key] !== ''
+        );
+
+        if (!tieneFiltrosEspecificos) {
+            const hoy = new Date();
+            const fechaHoy = hoy.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+            filtros.fechaDesde = fechaHoy;
+            filtros.fechaHasta = fechaHoy;
+        }
+
         console.log("Actualizando tabla de entradas con filtros:", filtros);
         const entradas = await cargarEntradasEnTabla(filtros) || [];
         console.log("Entradas cargadas:", entradas);

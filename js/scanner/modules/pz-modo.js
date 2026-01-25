@@ -639,7 +639,7 @@ function iniciarEscaneoProducto(productosVirtuales, indice) {
 function actualizarPanelEscaneo(producto, indice, total) {
     console.log(`🔄 Actualizando panel de escaneo: Producto #${indice + 1}/${total}`, producto);
     
-    // Actualizar información del producto virtual
+    // Buscar elementos del panel
     const scanProductoNumero = document.getElementById('scanProductoNumero');
     const scanProductoCantidad = document.getElementById('scanProductoCantidad');
     const scanProductoCaducidad = document.getElementById('scanProductoCaducidad');
@@ -652,10 +652,45 @@ function actualizarPanelEscaneo(producto, indice, total) {
         scanProgreso: !!scanProgreso
     });
 
-    if (scanProductoNumero) scanProductoNumero.textContent = indice + 1;
-    if (scanProductoCantidad) scanProductoCantidad.textContent = `${producto.cantidad} ${producto.unidad}`;
-    if (scanProductoCaducidad) scanProductoCaducidad.textContent = producto.caducidad || 'S/E';
-    if (scanProgreso) scanProgreso.textContent = `${indice + 1}/${total}`;
+    // Actualizar directamente sin reintentos si encontramos los elementos
+    if (scanProductoNumero) {
+        scanProductoNumero.textContent = String(indice + 1);
+        scanProductoNumero.style.color = '#1e3a8a';
+    }
+    if (scanProductoCantidad) {
+        scanProductoCantidad.textContent = `${producto.cantidad} ${producto.unidad}`;
+        scanProductoCantidad.style.color = '#1e3a8a';
+    }
+    if (scanProductoCaducidad) {
+        scanProductoCaducidad.textContent = producto.caducidad || 'S/E';
+        scanProductoCaducidad.style.color = '#1e3a8a';
+    }
+    if (scanProgreso) {
+        scanProgreso.textContent = `${indice + 1}/${total}`;
+        scanProgreso.style.color = '#1e3a8a';
+    }
+
+    // Si falta alguno, reintentar una sola vez después de 50ms
+    if (!scanProductoNumero || !scanProductoCantidad || !scanProductoCaducidad || !scanProgreso) {
+        console.warn('⚠️ Faltaron elementos, reintentando en 50ms...');
+        setTimeout(() => {
+            const elementos = {
+                scanProductoNumero: document.getElementById('scanProductoNumero'),
+                scanProductoCantidad: document.getElementById('scanProductoCantidad'),
+                scanProductoCaducidad: document.getElementById('scanProductoCaducidad'),
+                scanProgreso: document.getElementById('scanProgreso')
+            };
+            
+            if (elementos.scanProductoNumero) elementos.scanProductoNumero.textContent = String(indice + 1);
+            if (elementos.scanProductoCantidad) elementos.scanProductoCantidad.textContent = `${producto.cantidad} ${producto.unidad}`;
+            if (elementos.scanProductoCaducidad) elementos.scanProductoCaducidad.textContent = producto.caducidad || 'S/E';
+            if (elementos.scanProgreso) elementos.scanProgreso.textContent = `${indice + 1}/${total}`;
+            
+            console.log('✅ Panel actualizado en reintento');
+        }, 50);
+    } else {
+        console.log('✅ Panel actualizado exitosamente');
+    }
 
     // Limpiar resultado anterior
     const tarjetaProductoEscaneado = document.getElementById('tarjetaProductoEscaneado');

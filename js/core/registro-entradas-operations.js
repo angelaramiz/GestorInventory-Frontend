@@ -76,6 +76,33 @@ export async function buscarProductoParaEntrada(termino, tipoBusqueda = 'codigo'
     }
 }
 
+// Función para obtener el stock actual del producto desde el inventario
+async function obtenerStockActual(codigoProducto) {
+    try {
+        const { dbInventario } = await import('../db/db-operations.js');
+        if (!dbInventario) {
+            return 0;
+        }
+
+        const transaction = dbInventario.transaction(["inventario"], "readonly");
+        const objectStore = transaction.objectStore("inventario");
+        const index = objectStore.index("codigo");
+
+        return new Promise((resolve) => {
+            const request = index.getAll(codigoProducto);
+            request.onsuccess = () => {
+                const items = request.result || [];
+                const totalStock = items.reduce((suma, item) => suma + (item.cantidad || 0), 0);
+                resolve(totalStock);
+            };
+            request.onerror = () => resolve(0);
+        });
+    } catch (error) {
+        console.warn("Error al obtener stock actual:", error);
+        return 0;
+    }
+}
+
 // Función para mostrar los datos del producto encontrado
 export function mostrarDatosProductoEntrada(producto) {
     if (!producto) {
@@ -102,7 +129,7 @@ export function mostrarDatosProductoEntrada(producto) {
         }
     });
 
-    // Limpiar campos de entrada específicos
+    // Limpiar campos de entrada específicos pero mantener lote si existe
     const camposEntrada = ['cantidadEntrada', 'fechaEntrada', 'comentariosEntrada'];
     camposEntrada.forEach(campoId => {
         const elemento = document.getElementById(campoId);
@@ -111,10 +138,28 @@ export function mostrarDatosProductoEntrada(producto) {
         }
     });
 
+    // Limpiar lote
+    const loteInput = document.getElementById('loteEntrada');
+    if (loteInput) {
+        loteInput.value = '';
+    }
+
     // Establecer fecha actual por defecto
     const fechaEntrada = document.getElementById('fechaEntrada');
     if (fechaEntrada) {
         fechaEntrada.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Mostrar stock actual
+    const stockActualDiv = document.getElementById('stockActual');
+    if (stockActualDiv) {
+        stockActualDiv.innerHTML = '<span class="text-gray-400">Cargando...</span>';
+        obtenerStockActual(producto.codigo).then(stock => {
+            if (stockActualDiv) {
+                stockActualDiv.textContent = stock.toFixed(2);
+                stockActualDiv.className = stock > 0 ? 'text-2xl font-bold text-blue-600' : 'text-2xl font-bold text-red-600';
+            }
+        });
     }
 
     // Enfocar en el campo de cantidad
@@ -154,23 +199,48 @@ export function limpiarFormularioEntrada() {
 export async function registrarEntrada() {
     try {
         if (!productoSeleccionadoEntrada) {
-            mostrarAlertaBurbuja("Primero debe buscar y seleccionar un producto", "warning");
+            mostrarAlertaBurbuja("Primero debe buscar y seleccionar un producto usando los campos de búsqueda (código, nombre o marca)", "warning");
+            return false;
+        }
+
+        // Validar que el usuario esté autenticado
+        const usuarioId = localStorage.getItem('usuario_id');
+        if (!usuarioId) {
+            mostrarAlertaBurbuja("Error: Usuario no autenticado. Por favor inicie sesión nuevamente", "error");
             return false;
         }
 
         // Obtener datos del formulario
         const cantidad = document.getElementById('cantidadEntrada')?.value?.trim();
         const fechaEntrada = document.getElementById('fechaEntrada')?.value;
+        const lote = document.getElementById('loteEntrada')?.value?.trim() || '';
         const comentarios = document.getElementById('comentariosEntrada')?.value?.trim() || '';
 
         // Validaciones
         if (!cantidad || isNaN(cantidad) || parseFloat(cantidad) <= 0) {
-            mostrarAlertaBurbuja("Ingrese una cantidad válida", "error");
+            mostrarAlertaBurbuja("Ingrese una cantidad válida (mayor a 0)", "error");
+            return false;
+        }
+
+        // Validar que la cantidad no sea excesivamente pequeña
+        const cantidadNumerica = parseFloat(cantidad);
+        if (cantidadNumerica > 999999) {
+            mostrarAlertaBurbuja("La cantidad excede el límite permitido (máximo 999.999)", "error");
             return false;
         }
 
         if (!fechaEntrada) {
             mostrarAlertaBurbuja("Seleccione una fecha de entrada", "error");
+            return false;
+        }
+
+        // Validar que la fecha no sea futura
+        const fechaSeleccionada = new Date(fechaEntrada);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        
+        if (fechaSeleccionada > hoy) {
+            mostrarAlertaBurbuja("La fecha de entrada no puede ser posterior a hoy", "warning");
             return false;
         }
 
@@ -181,10 +251,12 @@ export async function registrarEntrada() {
             marca: productoSeleccionadoEntrada.marca,
             categoria: productoSeleccionadoEntrada.categoria,
             unidad: productoSeleccionadoEntrada.unidad,
-            cantidad: parseFloat(cantidad),
+            cantidad: cantidadNumerica,
             fecha_entrada: fechaEntrada,
+            lote: lote,
             comentarios: comentarios,
-            producto_id: productoSeleccionadoEntrada.id || null
+            producto_id: productoSeleccionadoEntrada.id || null,
+            usuario_id: usuarioId
         };
 
         // Registrar la entrada
@@ -501,16 +573,22 @@ async function buscarProducto(tipo) {
     const termino = terminos[tipo];
     if (!termino) {
         const tipoDisplay = tipo === 'codigoCorto' ? 'código corto' : tipo;
-        mostrarAlertaBurbuja(`Ingrese un ${tipoDisplay} para buscar`, "warning");
+        mostrarAlertaBurbuja(`⚠️ Por favor ingrese un ${tipoDisplay} para buscar`, "warning");
         return;
     }
 
     try {
+        console.log(`🔍 Buscando producto por ${tipo}:`, termino);
         const tipoBusqueda = tipo === 'codigoCorto' ? 'codigo' : tipo;
         const producto = await buscarProductoParaEntrada(termino, tipoBusqueda);
-        mostrarDatosProductoEntrada(producto);
+        
+        if (producto) {
+            mostrarDatosProductoEntrada(producto);
+        } else {
+            mostrarAlertaBurbuja(`❌ No se encontró producto con ese ${tipo}. Verifique el dato ingresado.`, "warning");
+        }
     } catch (error) {
-        console.error(`Error al buscar producto por ${tipo}:`, error);
-        mostrarAlertaBurbuja("Error al buscar producto", "error");
+        console.error(`❌ Error al buscar producto por ${tipo}:`, error);
+        mostrarAlertaBurbuja(`Error en la búsqueda: ${error.message || 'error desconocido'}`, "error");
     }
 }

@@ -21,41 +21,121 @@
     <!-- Cargar Supabase como script tradicional -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.40.0/dist/umd/supabase.js"></script>
     
-    <!-- CSS para ocultar controles de HTML5QrCode en móvil -->
+    <!-- CSS para optimizar controles de HTML5QrCode en móvil -->
     <style>
-        /* En móvil: ocultar solo los controles, mantener el video visible */
+        /* En móvil: mejorar espaciado de controles */
         @media (max-width: 640px) {
             #qr-scanner {
-                max-height: 160px !important;
-                overflow: hidden !important;
+                display: block;
+                width: 100%;
+                height: 350px;
+                max-height: 55vh;
+                overflow: hidden;
+                background-color: #000;
+                box-sizing: border-box;
+                padding: 0;
+                margin: 0;
             }
             
-            /* Ocultar botones y controles específicos */
-            #qr-scanner button {
+            /* Región de escaneo - ocupar 100% del espacio */
+            #qr-scanner #qr-scanner__scan_region {
+                width: 100%;
+                height: 100%;
+                display: block;
+                position: relative;
+                overflow: hidden;
+                padding: 0;
+                margin: 0;
+            }
+            
+            /* Video debe llenar EXACTAMENTE el espacio */
+            #qr-scanner video {
+                width: 100% !important;
+                height: 100% !important;
+                display: block !important;
+                object-fit: cover !important;
+                object-position: center !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+            }
+            
+            /* Canvas también debe ocupar todo el espacio */
+            #qr-scanner canvas {
                 display: none !important;
             }
             
-            /* Ocultar el div del "Powered by ScanApp" y similares */
+            /* Elemento genérico .html5-qrcode-element */
+            #qr-scanner .html5-qrcode-element {
+                display: none !important;
+            }
+            
+            /* *** OCULTAR TODOS LOS CONTROLES DE HTML5QRCODE *** */
+            
+            /* Dashboard y sus contenedores */
+            #qr-scanner #qr-scanner__dashboard,
+            #qr-scanner #qr-scanner__dashboard_section,
+            #qr-scanner #qr-scanner__dashboard_section_csr {
+                display: none !important;
+            }
+            
+            /* Ocultar TODOS los botones */
+            #qr-scanner button,
+            #html5-qrcode-button-camera-start,
+            #html5-qrcode-button-camera-stop,
+            #html5-qrcode-button-file-selection {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            /* Ocultar inputs y selectores */
+            #qr-scanner input[type="range"],
+            #qr-scanner input[type="file"],
+            #qr-scanner select,
+            #html5-qrcode-input-range-zoom,
+            #html5-qrcode-select-camera,
+            #html5-qrcode-private-filescan-input {
+                display: none !important;
+            }
+            
+            /* Ocultar divs con controles */
             #qr-scanner div[style*="position: absolute"] {
                 display: none !important;
             }
             
-            /* Ocultar zoom slider */
-            #qr-scanner .html5-qrcode-zoom-slider {
+            /* Ocultar mensaje del header */
+            #qr-scanner #qr-scanner__header_message {
                 display: none !important;
             }
             
-            /* Mostrar el contenedor de video */
-            #qr-scanner .html5-qrcode-element {
-                display: block !important;
-                max-height: 160px !important;
-                overflow: hidden !important;
+            /* Ocultar mensaje de pausa */
+            #qr-scanner div[style*="Scanner paused"] {
+                display: none !important;
             }
             
-            /* Asegurar que el video es visible */
-            #qr-scanner video {
-                max-height: 160px !important;
-                object-fit: contain !important;
+            /* Ocultar info icon */
+            #qr-scanner img[alt="Info icon"] {
+                display: none !important;
+            }
+            
+            /* Ocultar spans con controles */
+            #qr-scanner span {
+                display: none !important;
+            }
+            
+            /* Ocultar torch button */
+            #qr-scanner [data-toggle-torch] {
+                display: none !important;
+            }
+            
+            /* Forzar que los textos del panel sean visibles */
+            #scanProductoNumero,
+            #scanProductoCantidad,
+            #scanProductoCaducidad,
+            #scanProgreso {
+                color: #1e3a8a !important;
+                font-weight: bold !important;
+                min-height: 24px;
             }
         }
     </style>
@@ -483,7 +563,7 @@
             <div id="modalEscanerPZ" style="display: none;" class="fixed inset-0 bg-black bg-opacity-50 z-9998 overflow-y-auto">
                 <div class="relative w-full max-w-4xl mx-auto my-8 bg-white rounded-lg shadow-2xl">
                     <!-- Header -->
-                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 flex justify-between items-center rounded-t-lg">
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 flex justify-between items-center rounded-t-lg">                    rmdir /s /q "C:\Users\angel\Desktop\Proyectos\GestorInventory-Frontend(main)\temp-html5-qrcode"
                         <h2 class="text-2xl font-bold">🔍 Escanear Productos</h2>
                         <button id="cerrarModalEscanerPZ" class="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-full transition">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

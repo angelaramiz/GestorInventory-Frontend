@@ -27,15 +27,23 @@ self.addEventListener("install", event => {
             .open(CACHE_NAME)
             .then(cache => {
                 console.log("📦 Service Worker: Cacheando archivos principales");
-                return cache.addAll(
-                    ASSETS.map(asset => new Request(asset, { mode: "no-cors" }))
+                // Usar addAll con manejo de errores individual
+                return Promise.all(
+                    ASSETS.map(asset => {
+                        return cache.add(new Request(asset, { mode: "no-cors" }))
+                            .catch(error => {
+                                console.warn(`⚠️ Service Worker: No se pudo cachear ${asset}:`, error.message);
+                                // Continuar sin fallar
+                                return Promise.resolve();
+                            });
+                    })
                 );
             })
             .then(() => {
-                console.log("✅ Service Worker: Archivos cacheados exitosamente");
+                console.log("✅ Service Worker: Proceso de caché completado");
             })
             .catch(error => {
-                console.error("❌ Service Worker: Error al cachear archivos:", error);
+                console.error("❌ Service Worker: Error general al cachear:", error);
             })
     );
     self.skipWaiting();

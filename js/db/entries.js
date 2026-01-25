@@ -9,16 +9,24 @@ import { mostrarMensaje } from '../utils/logs.js';
 let syncQueueEntradas = JSON.parse(localStorage.getItem('syncQueueEntradas') || '[]');
 
 export function agregarAColaSincronizacionEntradas(data) {
-    // Las entradas no requieren area_id específico
-    const dataSupabase = { ...data };
-    dataSupabase.area_id = null; // Asegurar que sea null
-
-    // Agregar timestamps si no existen
-    const now = new Date().toISOString();
-    if (!dataSupabase.created_at) {
-        dataSupabase.created_at = now;
-    }
-    dataSupabase.updated_at = now;
+    // Preparar solo los campos que existen en la tabla de Supabase
+    const dataSupabase = {
+        id: data.id,
+        codigo: data.codigo,
+        nombre: data.nombre,
+        marca: data.marca || '',
+        categoria: data.categoria || '',
+        unidad: data.unidad || '',
+        cantidad: data.cantidad,
+        fecha_entrada: data.fecha_entrada,
+        comentarios: data.comentarios || '',
+        usuario_id: data.usuario_id,
+        producto_id: data.producto_id || null,
+        categoria_id: data.categoria_id || '00000000-0000-0000-0000-000000000001',
+        created_at: data.created_at,
+        updated_at: new Date().toISOString()
+        // ❌ NO INCLUIR: area_id, lote, numero_factura, is_temp_id
+    };
 
     syncQueueEntradas.push(dataSupabase);
     localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
@@ -30,7 +38,10 @@ export function agregarAColaSincronizacionEntradas(data) {
 
 // Procesar la cola de sincronización de entradas con sincronización bidireccional
 export async function procesarColaSincronizacionEntradas() {
-    if (!navigator.onLine) return;
+    if (!navigator.onLine) {
+        console.warn("No hay conexión a internet, sincronización pospuesta");
+        return;
+    }
 
     try {
         const supabase = await getSupabase();
@@ -39,56 +50,103 @@ export async function procesarColaSincronizacionEntradas() {
             return;
         }
 
-        while (syncQueueEntradas.length > 0) {
+        const maxReintentos = 3;
+        let reintentos = 0;
+
+        while (syncQueueEntradas.length > 0 && reintentos < maxReintentos) {
             const item = syncQueueEntradas.shift();
-            try {
-                // Intentar upsert en Supabase
-                const { data, error } = await supabase
-                    .from('registro_entradas')
-                    .upsert(item, { onConflict: 'id' })
-                    .select();
+            let intentoActual = 0;
 
-                if (error) {
-                    console.error('Error subiendo entrada a Supabase:', error);
-                    // Reinsertar el elemento si falla
-                    syncQueueEntradas.unshift(item);
-                    break;
+            // Reintentar hasta 3 veces por elemento
+            while (intentoActual < maxReintentos) {
+                try {
+                    console.log(`📤 Enviando entrada a Supabase (intento ${intentoActual + 1}/${maxReintentos}):`, item);
+                    
+                    // itemParaSupabase ya contiene solo los campos válidos de la tabla
+                    const itemParaSupabase = item;
+                    
+                    // Intentar upsert en Supabase
+                    const { data, error } = await supabase
+                        .from('registro_entradas')
+                        .upsert(itemParaSupabase, { onConflict: 'id' })
+                        .select();
+
+                    if (error) {
+                        console.error(`⚠️ Error en intento ${intentoActual + 1}:`, error.message);
+                        intentoActual++;
+                        
+                        if (intentoActual < maxReintentos) {
+                            // Esperar un tiempo antes de reintentar (exponencial)
+                            const tiempoEspera = Math.pow(2, intentoActual) * 1000;
+                            console.log(`⏳ Reintentando en ${tiempoEspera}ms...`);
+                            await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+                            continue;
+                        } else {
+                            throw new Error(`Upsert fallido después de ${maxReintentos} intentos: ${error.message}`);
+                        }
+                    }
+
+                    // Actualizar IndexedDB con el ID permanente
+                    if (data && data[0]) {
+                        console.log(`✅ Entrada sincronizada en Supabase con ID:`, data[0].id);
+                        const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
+                        const objectStore = transaction.objectStore("registro_entradas");
+
+                        // Eliminar el registro temporal
+                        await new Promise((resolve, reject) => {
+                            const deleteRequest = objectStore.delete(item.id);
+                            deleteRequest.onsuccess = () => {
+                                console.log(`🗑️ Registro temporal eliminado`);
+                                resolve();
+                            };
+                            deleteRequest.onerror = () => reject(deleteRequest.error);
+                        });
+
+                        // Agregar el registro actualizado
+                        const itemActualizado = { ...item, id: data[0].id, is_temp_id: false };
+                        await new Promise((resolve, reject) => {
+                            const addRequest = objectStore.add(itemActualizado);
+                            addRequest.onsuccess = () => {
+                                console.log(`✨ Registro actualizado en IndexedDB`);
+                                resolve();
+                            };
+                            addRequest.onerror = () => reject(addRequest.error);
+                        });
+                    }
+
+                    localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
+                    break; // Salir del loop de reintentos si fue exitoso
+                    
+                } catch (error) {
+                    console.error(`❌ Error procesando entrada (intento ${intentoActual + 1}):`, error);
+                    intentoActual++;
+                    
+                    if (intentoActual < maxReintentos) {
+                        const tiempoEspera = Math.pow(2, intentoActual) * 1000;
+                        console.log(`⏳ Reintentando en ${tiempoEspera}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, tiempoEspera));
+                    } else {
+                        // Reinsertar el elemento al principio de la cola si falló todos los intentos
+                        console.warn(`🔄 Elemento devuelto a la cola después de ${maxReintentos} intentos`);
+                        syncQueueEntradas.unshift(item);
+                        reintentos++;
+                        break;
+                    }
                 }
-
-                // Actualizar IndexedDB con el ID permanente
-                if (data && data[0]) {
-                    const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
-                    const objectStore = transaction.objectStore("registro_entradas");
-
-                    // Eliminar el registro temporal
-                    await new Promise((resolve, reject) => {
-                        const deleteRequest = objectStore.delete(item.id);
-                        deleteRequest.onsuccess = () => resolve();
-                        deleteRequest.onerror = () => reject(deleteRequest.error);
-                    });
-
-                    // Agregar el registro actualizado
-                    const itemActualizado = { ...item, id: data[0].id, is_temp_id: false };
-                    await new Promise((resolve, reject) => {
-                        const addRequest = objectStore.add(itemActualizado);
-                        addRequest.onsuccess = () => resolve();
-                        addRequest.onerror = () => reject(addRequest.error);
-                    });
-                }
-
-                localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
-            } catch (error) {
-                console.error('Error procesando entrada:', error);
-                syncQueueEntradas.unshift(item);
-                break;
             }
         }
 
+        localStorage.setItem('syncQueueEntradas', JSON.stringify(syncQueueEntradas));
+        
         if (syncQueueEntradas.length === 0) {
+            console.log("✅ Sincronización de entradas completada");
             mostrarMensaje("Sincronización de entradas completada", "success");
+        } else {
+            console.warn(`⚠️ Cola de sincronización aún contiene ${syncQueueEntradas.length} elementos`);
+            mostrarMensaje(`${syncQueueEntradas.length} entrada(s) pendiente(s) de sincronizar`, "warning");
         }
     } catch (error) {
-        console.error('Error en procesarColaSincronizacionEntradas:', error);
+        console.error('❌ Error en procesarColaSincronizacionEntradas:', error);
     }
 }
 
@@ -145,15 +203,33 @@ export async function sincronizarEntradasDesdeSupabase() {
 // Función para agregar una entrada al registro
 export async function agregarRegistroEntrada(entradaData) {
     try {
-        // Preparar los datos de la entrada (sin area_id para entradas)
+        // Validar datos mínimos requeridos
+        if (!entradaData.codigo || !entradaData.nombre || !entradaData.cantidad) {
+            throw new Error("Faltan datos requeridos para la entrada (código, nombre, cantidad)");
+        }
+
+        // Preparar los datos de la entrada
         const entrada = {
-            ...entradaData,
-            area_id: null, // Las entradas no están asociadas a áreas específicas
+            codigo: entradaData.codigo,
+            nombre: entradaData.nombre,
+            marca: entradaData.marca || '',
+            categoria: entradaData.categoria || '',
+            unidad: entradaData.unidad || '',
+            cantidad: entradaData.cantidad,
             fecha_entrada: entradaData.fecha_entrada || new Date().toISOString().split('T')[0],
+            comentarios: entradaData.comentarios || '',
+            usuario_id: entradaData.usuario_id || localStorage.getItem('usuario_id'),
             created_at: new Date().toISOString(),
-            usuario_id: localStorage.getItem('usuario_id'),
-            is_temp_id: true // Marcar como temporal hasta que se sincronice
+            updated_at: new Date().toISOString(),
+            producto_id: entradaData.producto_id || null,
+            categoria_id: entradaData.categoria_id || '00000000-0000-0000-0000-000000000001',
+            is_temp_id: true // Solo para IndexedDB, no se envía a Supabase
         };
+
+        // Validar que el usuario esté disponible
+        if (!entrada.usuario_id) {
+            throw new Error("No se puede registrar entrada sin usuario autenticado");
+        }
 
         // Guardar en IndexedDB
         const transaction = dbEntradas.transaction(["registro_entradas"], "readwrite");
@@ -163,19 +239,28 @@ export async function agregarRegistroEntrada(entradaData) {
 
         return new Promise((resolve, reject) => {
             request.onsuccess = function (event) {
-                console.log("Entrada agregada localmente con ID:", event.target.result);
+                const entradaId = event.target.result;
+                console.log("✅ Entrada agregada localmente con ID:", entradaId);
+                console.log("📝 Datos guardados:", {
+                    id: entradaId,
+                    codigo: entrada.codigo,
+                    nombre: entrada.nombre,
+                    cantidad: entrada.cantidad,
+                    fecha: entrada.fecha_entrada
+                });
+                
                 // Agregar a la cola de sincronización
-                agregarAColaSincronizacionEntradas({ ...entrada, id: event.target.result });
-                resolve(event.target.result);
+                agregarAColaSincronizacionEntradas({ ...entrada, id: entradaId });
+                resolve(entradaId);
             };
             request.onerror = function (event) {
-                console.error("Error al agregar entrada:", event.target.error);
-                reject(event.target.error);
+                console.error("❌ Error al agregar entrada:", event.target.error);
+                reject(new Error(`No se pudo guardar la entrada: ${event.target.error}`));
             };
         });
 
     } catch (error) {
-        console.error("Error en agregarRegistroEntrada:", error);
+        console.error("❌ Error en agregarRegistroEntrada:", error);
         throw error;
     }
 }

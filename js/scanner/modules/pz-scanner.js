@@ -49,11 +49,23 @@ export async function inicializarEscaner() {
 
             console.log(`📐 Dimensiones del contenedor: ${rect.width}x${rect.height}`);
 
-            // Calcular qrbox dinámicamente (70% del contenedor más pequeño, máx 160px para móvil)
-            const minDimension = Math.min(rect.width, rect.height);
-            const maxQrbox = window.innerWidth < 768 ? 160 : 250; // 160px en móvil, 250px en desktop
-            const qrboxSize = Math.min(Math.floor(minDimension * 0.7), maxQrbox);
-            console.log(`📦 Tamaño qrbox calculado: ${qrboxSize}px (máx permitido: ${maxQrbox}px, contenedor: ${rect.height}px)`);
+            // Calcular qrbox de forma conservadora y CUADRADA
+            // En móvil: más pequeño para caber en pantalla
+            // En desktop: más grande pero proporcional
+            const isMobile = window.innerWidth < 768;
+            let qrboxSize;
+            
+            if (isMobile) {
+                // Móvil: usar el 40% de la altura (350px) = ~140px
+                qrboxSize = Math.floor(rect.height * 0.40);
+                qrboxSize = Math.max(Math.min(qrboxSize, 150), 100); // Entre 100-150px
+            } else {
+                // Desktop: usar el 35% de la altura (500-600px típico en div) = ~175px
+                qrboxSize = Math.floor(rect.height * 0.35);
+                qrboxSize = Math.max(Math.min(qrboxSize, 200), 150); // Entre 150-200px
+            }
+            
+            console.log(`📦 Tamaño qrbox (cuadrado): ${qrboxSize}px (móvil: ${isMobile}, contenedor: ${rect.height}px alto, ${rect.width}px ancho)`);
 
             scanner = new Html5QrcodeScanner('qr-scanner', {
                 fps: 15,
@@ -65,12 +77,113 @@ export async function inicializarEscaner() {
             });
 
             console.log('✅ Escáner HTML5QrCode inicializado');
+            
+            // Aplicar estilos forzados al video después de inicializar
+            aplicarEstilosaVideoScanner();
+            
             resolve(true);
         } catch (error) {
             console.error('❌ Error inicializando escáner:', error);
             reject(error);
         }
     });
+}
+
+/**
+ * Aplica estilos forzados al video del scanner para que ocupe 100% del espacio
+ */
+function aplicarEstilosaVideoScanner() {
+    setTimeout(() => {
+        const container = document.getElementById('qr-scanner');
+        if (!container) return;
+        
+        // Asegurar estilos del contenedor
+        container.style.display = 'block';
+        container.style.width = '100%';
+        container.style.height = '350px';
+        container.style.overflow = 'hidden';
+        container.style.padding = '0';
+        container.style.margin = '0';
+        container.style.boxSizing = 'border-box';
+        
+        // Ocultar el contenedor header de HTML5QrCode (text-align: left; margin: 0px)
+        const headerContainer = container.querySelector('div[style*="text-align: left"]');
+        if (headerContainer) {
+            headerContainer.style.display = 'none';
+            console.log('✅ Contenedor header ocultado');
+        }
+        
+        // Región de escaneo
+        const scanRegion = container.querySelector('#qr-scanner__scan_region');
+        if (scanRegion) {
+            scanRegion.style.width = '100%';
+            scanRegion.style.height = '100%';
+            scanRegion.style.display = 'block';
+            scanRegion.style.overflow = 'hidden';
+            scanRegion.style.padding = '0';
+            scanRegion.style.margin = '0';
+            scanRegion.style.position = 'relative';
+            scanRegion.style.minHeight = '100%';
+        }
+        
+        // Video
+        const video = container.querySelector('video');
+        if (video) {
+            video.style.width = '100%';
+            video.style.height = '100%';
+            video.style.maxWidth = '100%';
+            video.style.maxHeight = '100%';
+            video.style.display = 'block';
+            video.style.objectFit = 'cover';
+            video.style.objectPosition = 'center';
+            video.style.margin = '0';
+            video.style.padding = '0';
+            video.style.border = 'none';
+            console.log('✅ Estilos aplicados al video');
+        }
+        
+        // Canvas
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.display = 'none';
+        }
+        
+        // Mostrar y asegurar que el QR box visual (esquinas blancas) esté visible
+        const shadedRegion = container.querySelector('#qr-shaded-region');
+        if (shadedRegion) {
+            shadedRegion.style.display = 'block';
+            shadedRegion.style.position = 'absolute';
+            shadedRegion.style.inset = '0';
+            shadedRegion.style.visibility = 'visible';
+            console.log('✅ Área visual de escaneo visible');
+        }
+        
+        // Ocultar TODOS los controles (EXCEPTO qr-shaded-region y sus hijos)
+        const controls = container.querySelectorAll('button, input[type="range"], input[type="file"], select, span:not(.html5-qrcode-element)');
+        controls.forEach(ctrl => {
+            ctrl.style.display = 'none';
+        });
+        
+        // Ocultar divs posicionados absolutamente EXCEPTO qr-shaded-region
+        const allDivs = container.querySelectorAll('div[style*="position: absolute"]');
+        allDivs.forEach(el => {
+            if (el.id !== 'qr-shaded-region') {
+                el.style.display = 'none';
+            }
+        });
+        
+        // Ocultar dashboard
+        const dashboard = container.querySelector('#qr-scanner__dashboard');
+        if (dashboard) dashboard.style.display = 'none';
+        
+        // Ocultar header message
+        const headerMsg = container.querySelector('#qr-scanner__header_message');
+        if (headerMsg) headerMsg.style.display = 'none';
+        
+        console.log('✅ Todos los estilos aplicados - Área visual visible');
+    }, 200);
 }
 
 /**
@@ -196,11 +309,26 @@ export function iniciarEscaneo(productoVirtual, callbacks = {}) {
 export function detenerEscaneo() {
     if (scanner) {
         try {
-            scanner.clear();
+            // Usar stop() primero si está disponible
+            if (scanner.getState && scanner.getState() > 0) {
+                scanner.stop().then(() => {
+                    try {
+                        scanner.clear();
+                        console.log('✅ Escaneo detenido correctamente');
+                    } catch (e) {
+                        console.warn('Advertencia al limpiar escáner:', e);
+                    }
+                }).catch(err => {
+                    console.warn('Error al parar escáner:', err);
+                });
+            } else {
+                scanner.clear();
+                console.log('✅ Escaneo detenido');
+            }
             estadoEscaneo.activo = false;
-            console.log('✅ Escaneo detenido');
         } catch (error) {
             console.warn('Advertencia al detener escáner:', error);
+            estadoEscaneo.activo = false;
         }
     }
 }

@@ -32,8 +32,8 @@ export async function buscarProductoParaEntrada(termino, tipoBusqueda = 'codigo'
 
             switch (tipoBusqueda) {
                 case 'codigo':
-                    const index = objectStore.index("codigo");
-                    request = index.get(termino);
+                    // Para código usamos get() directamente ya que es el keyPath
+                    request = objectStore.get(termino);
                     break;
                 case 'nombre':
                     const indexNombre = objectStore.index("nombre");
@@ -77,29 +77,98 @@ export async function buscarProductoParaEntrada(termino, tipoBusqueda = 'codigo'
     }
 }
 
-// Función para obtener el stock actual del producto desde el inventario
+// Función para actualizar el inventario cuando se registra una entrada
+// Función de diagnóstico para verificar entradas registradas
+window.diagnosticarEntradas = async function(codigoProducto = null) {
+    console.log("🔍 === DIAGNÓSTICO DE ENTRADAS ===");
+
+    try {
+        // Verificar base de datos de entradas
+        const { dbEntradas } = await import('../db/db-operations.js');
+        console.log("📊 Base de datos de entradas:", dbEntradas ? "✅ Disponible" : "❌ No disponible");
+
+        if (!dbEntradas) return;
+
+        // Contar total de registros de entradas
+        const transaction = dbEntradas.transaction(["registro_entradas"], "readonly");
+        const objectStore = transaction.objectStore("registro_entradas");
+
+        const totalEntradas = await new Promise((resolve) => {
+            const request = objectStore.count();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => resolve(0);
+        });
+        console.log("📈 Total de entradas registradas:", totalEntradas);
+
+        // Si se especifica un código, buscar entradas para ese código
+        if (codigoProducto) {
+            console.log(`🔍 Buscando entradas para código: ${codigoProducto}`);
+            const entradasProducto = await new Promise((resolve) => {
+                const request = objectStore.getAll();
+                request.onsuccess = () => {
+                    const entradas = request.result || [];
+                    return resolve(entradas.filter(e => e.codigo === codigoProducto));
+                };
+                request.onerror = () => resolve([]);
+            });
+
+            console.log(`📋 Entradas encontradas para ${codigoProducto}:`, entradasProducto);
+
+            const cantidadTotalEntrada = entradasProducto.reduce((suma, entrada) => suma + (entrada.cantidad || 0), 0);
+            console.log(`📊 Cantidad total de entrada para ${codigoProducto}: ${cantidadTotalEntrada}`);
+        } else {
+            // Mostrar algunas entradas de ejemplo
+            const algunasEntradas = await new Promise((resolve) => {
+                const request = objectStore.getAll();
+                request.onsuccess = () => resolve((request.result || []).slice(0, 5));
+                request.onerror = () => resolve([]);
+            });
+            console.log("📋 Primeras 5 entradas registradas:", algunasEntradas);
+        }
+
+    } catch (error) {
+        console.error("❌ Error en diagnóstico de entradas:", error);
+    }
+
+    console.log("🔍 === FIN DIAGNÓSTICO ENTRADAS ===");
+};
+
+// Función para obtener el stock actual del producto desde el historial de entradas
 async function obtenerStockActual(codigoProducto) {
     try {
-        const { dbInventario } = await import('../db/db-operations.js');
-        if (!dbInventario) {
+        console.log(`🔍 Buscando cantidad total de entradas para producto: ${codigoProducto}`);
+        const { dbEntradas } = await import('../db/db-operations.js');
+        if (!dbEntradas) {
+            console.warn("❌ Base de datos de entradas no disponible");
             return 0;
         }
 
-        const transaction = dbInventario.transaction(["inventario"], "readonly");
-        const objectStore = transaction.objectStore("inventario");
-        const index = objectStore.index("codigo");
+        console.log("✅ Base de datos de entradas disponible");
+        const transaction = dbEntradas.transaction(["registro_entradas"], "readonly");
+        const objectStore = transaction.objectStore("registro_entradas");
 
         return new Promise((resolve) => {
-            const request = index.getAll(codigoProducto);
+            const request = objectStore.getAll();
             request.onsuccess = () => {
-                const items = request.result || [];
-                const totalStock = items.reduce((suma, item) => suma + (item.cantidad || 0), 0);
+                const entradas = request.result || [];
+                console.log(`📊 Total de entradas en la base de datos:`, entradas.length);
+                
+                // Filtrar entradas del mismo código
+                const entradasProducto = entradas.filter(e => e.codigo === codigoProducto);
+                console.log(`📋 Entradas encontradas para ${codigoProducto}:`, entradasProducto.length);
+                
+                // Sumar cantidades
+                const totalStock = entradasProducto.reduce((suma, entrada) => suma + (entrada.cantidad || 0), 0);
+                console.log(`📈 Cantidad total registrada para ${codigoProducto}: ${totalStock}`);
                 resolve(totalStock);
             };
-            request.onerror = () => resolve(0);
+            request.onerror = (error) => {
+                console.error(`❌ Error al obtener entradas:`, error);
+                resolve(0);
+            };
         });
     } catch (error) {
-        console.warn("Error al obtener stock actual:", error);
+        console.warn("❌ Error al obtener stock actual:", error);
         return 0;
     }
 }
@@ -157,8 +226,17 @@ export function mostrarDatosProductoEntrada(producto) {
         stockActualDiv.innerHTML = '<span class="text-gray-400">Cargando...</span>';
         obtenerStockActual(producto.codigo).then(stock => {
             if (stockActualDiv) {
-                stockActualDiv.textContent = stock.toFixed(2);
-                stockActualDiv.className = stock > 0 ? 'text-2xl font-bold text-blue-600' : 'text-2xl font-bold text-red-600';
+                // Establecer el atributo data-stock y llamar a updateStockDisplay()
+                stockActualDiv.setAttribute('data-stock', Math.round(stock));
+                
+                // Llamar a la función updateStockDisplay si existe en el contexto global
+                if (typeof window.updateStockDisplay === 'function') {
+                    window.updateStockDisplay();
+                } else {
+                    // Fallback si updateStockDisplay no está disponible
+                    stockActualDiv.textContent = stock.toFixed(2);
+                    stockActualDiv.className = stock > 0 ? 'text-2xl font-bold text-blue-600' : 'text-2xl font-bold text-red-600';
+                }
             }
         });
     }
@@ -264,13 +342,20 @@ export async function registrarEntrada() {
         const entradaRegistrada = await agregarRegistroEntrada(entradaData);
 
         if (entradaRegistrada) {
+            console.log(`✅ Entrada registrada con ID: ${entradaRegistrada}`);
             mostrarAlertaBurbuja("Entrada registrada correctamente", "success");
             limpiarFormularioEntrada();
 
+            // NOTE: No actualizamos la tabla 'inventario' porque es un sistema separado
+            // El "stock actual" mostrado durante el registro de entradas viene del historial
+            // de entradas (registro_entradas), no del inventario
+            
             // Recargar tabla de entradas si existe
             await actualizarTablaEntradas();
 
             return true;
+        } else {
+            console.warn(`⚠️ No se registró la entrada correctamente`);
         }
 
     } catch (error) {
@@ -455,10 +540,26 @@ export async function generarReporte() {
             marca: document.getElementById('filtroMarca')?.value?.trim() || ''
         };
 
-        await generarReporteEntradas(filtros);
+        await generarReporteEntradas(filtros, 'csv');
     } catch (error) {
         console.error("Error al generar reporte:", error);
         mostrarAlertaBurbuja("Error al generar reporte", "error");
+    }
+}
+
+// Función para generar reporte en PDF
+export async function generarReportePDF() {
+    try {
+        const filtros = {
+            codigo: document.getElementById('filtroCodigo')?.value?.trim() || '',
+            nombre: document.getElementById('filtroNombre')?.value?.trim() || '',
+            marca: document.getElementById('filtroMarca')?.value?.trim() || ''
+        };
+
+        await generarReporteEntradas(filtros, 'pdf');
+    } catch (error) {
+        console.error("Error al generar reporte PDF:", error);
+        mostrarAlertaBurbuja("Error al generar reporte PDF", "error");
     }
 }
 
@@ -484,6 +585,13 @@ export async function inicializarRegistroEntradas() {
 
         // Configurar event listeners
         configurarEventListeners();
+
+        // Exponer funciones de diagnóstico globalmente
+        window.diagnosticarInventario = diagnosticarInventario;
+        window.diagnosticarEntradas = diagnosticarEntradas;
+        console.log("✅ Funciones de diagnóstico disponibles:");
+        console.log("   diagnosticarInventario(codigoProducto)");
+        console.log("   diagnosticarEntradas(codigoProducto)");
 
         console.log("Página de registro de entradas inicializada correctamente");
 
@@ -544,6 +652,7 @@ function configurarEventListeners() {
     // Botones de sincronización y reporte
     const btnSincronizar = document.getElementById('sincronizarEntradas');
     const btnGenerarReporte = document.getElementById('generarReporte');
+    const btnGenerarReportePDF = document.getElementById('generarReportePDF');
 
     if (btnSincronizar) {
         btnSincronizar.addEventListener('click', sincronizarEntradas);
@@ -551,6 +660,10 @@ function configurarEventListeners() {
 
     if (btnGenerarReporte) {
         btnGenerarReporte.addEventListener('click', generarReporte);
+    }
+
+    if (btnGenerarReportePDF) {
+        btnGenerarReportePDF.addEventListener('click', generarReportePDF);
     }
 
     // Enter en campos de búsqueda
@@ -608,4 +721,118 @@ async function buscarProducto(tipo) {
         console.error(`❌ Error al buscar producto por ${tipo}:`, error);
         mostrarAlertaBurbuja(`Error en la búsqueda: ${error.message || 'error desconocido'}`, "error");
     }
+}
+
+// ============================================================
+// FUNCIONES DE DIAGNÓSTICO
+// ============================================================
+
+async function diagnosticarInventario(codigoProducto = null) {
+    console.log("🔍 === DIAGNÓSTICO DE INVENTARIO ===");
+
+    try {
+        // Verificar base de datos de inventario
+        const { dbInventario } = await import('../db/db-operations.js');
+        console.log("📊 Base de datos de inventario:", dbInventario ? "✅ Disponible" : "❌ No disponible");
+
+        if (!dbInventario) return;
+
+        // Verificar área_id
+        const areaId = localStorage.getItem('area_id');
+        console.log("🏢 Área ID:", areaId || "❌ No configurado");
+
+        // Contar total de registros en inventario
+        const transaction = dbInventario.transaction(["inventario"], "readonly");
+        const objectStore = transaction.objectStore("inventario");
+
+        const totalRegistros = await new Promise((resolve) => {
+            const request = objectStore.count();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => resolve(0);
+        });
+        console.log("📈 Total de registros en inventario:", totalRegistros);
+
+        // Si se especifica un código, buscar registros para ese código
+        if (codigoProducto) {
+            console.log(`🔍 Buscando registros para código: ${codigoProducto}`);
+            const index = objectStore.index("codigo");
+            const registrosProducto = await new Promise((resolve) => {
+                const request = index.getAll(codigoProducto);
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = () => resolve([]);
+            });
+
+            console.log(`📋 Registros encontrados para ${codigoProducto}:`, registrosProducto);
+
+            const stockTotal = registrosProducto.reduce((suma, item) => suma + (item.cantidad || 0), 0);
+            console.log(`📊 Stock total calculado para ${codigoProducto}: ${stockTotal}`);
+        } else {
+            // Mostrar algunos registros de ejemplo
+            const algunosRegistros = await new Promise((resolve) => {
+                const request = objectStore.getAll();
+                request.onsuccess = () => resolve((request.result || []).slice(0, 5));
+                request.onerror = () => resolve([]);
+            });
+            console.log("📋 Primeros 5 registros de inventario:", algunosRegistros);
+        }
+
+    } catch (error) {
+        console.error("❌ Error en diagnóstico:", error);
+    }
+
+    console.log("🔍 === FIN DIAGNÓSTICO ===");
+}
+
+async function diagnosticarEntradas(codigoProducto = null) {
+    console.log("🔍 === DIAGNÓSTICO DE ENTRADAS ===");
+
+    try {
+        // Verificar base de datos de entradas
+        const { dbEntradas } = await import('../db/db-operations.js');
+        console.log("📊 Base de datos de entradas:", dbEntradas ? "✅ Disponible" : "❌ No disponible");
+
+        if (!dbEntradas) return;
+
+        // Contar total de registros de entradas
+        const transaction = dbEntradas.transaction(["registro_entradas"], "readonly");
+        const objectStore = transaction.objectStore("registro_entradas");
+
+        const totalEntradas = await new Promise((resolve) => {
+            const request = objectStore.count();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => resolve(0);
+        });
+        console.log("📈 Total de entradas registradas:", totalEntradas);
+
+        // Si se especifica un código, buscar entradas para ese código
+        if (codigoProducto) {
+            console.log(`🔍 Buscando entradas para código: ${codigoProducto}`);
+            const entradasProducto = await new Promise((resolve) => {
+                const request = objectStore.getAll();
+                request.onsuccess = () => {
+                    const entradas = request.result || [];
+                    return resolve(entradas.filter(e => e.codigo === codigoProducto));
+                };
+                request.onerror = () => resolve([]);
+            });
+
+            console.log(`📋 Entradas encontradas para ${codigoProducto}:`, entradasProducto);
+
+            const cantidadTotalEntrada = entradasProducto.reduce((suma, entrada) => suma + (entrada.cantidad || 0), 0);
+            console.log(`📊 Cantidad total de entrada para ${codigoProducto}: ${cantidadTotalEntrada}`);
+        } else {
+            // Mostrar algunas entradas de ejemplo
+            const algunasEntradas = await new Promise((resolve) => {
+                const request = objectStore.getAll();
+                request.onsuccess = () => resolve((request.result || []).slice(0, 5));
+                request.onerror = () => resolve([]);
+            });
+            console.log("📋 Primeras 5 entradas registradas:", algunasEntradas);
+        }
+
+    } catch (error) {
+        console.error("❌ Error en diagnóstico de entradas:", error);
+    }
+
+    console.log("🔍 === FIN DIAGNÓSTICO ENTRADAS ===");
 }

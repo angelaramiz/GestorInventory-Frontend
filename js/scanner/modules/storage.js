@@ -54,12 +54,20 @@ export async function guardarInventarioLotesAvanzado() {
             // Generar comentarios detallados
             const comentarios = generarComentariosDetallados(grupo, ubicacionNombre, fechaEscaneo);
 
+            // Validar y obtener unidad - en modo PZ avanzado debe ser 'Pz'
+            let unidadGuardar = grupo.productoPrimario.unidad || 'Pz';
+            
+            // Si la unidad está vacía, undefined o contiene '?unidad', usar 'Pz'
+            if (!unidadGuardar || unidadGuardar.includes('?') || unidadGuardar.trim() === '') {
+                unidadGuardar = 'Pz';
+            }
+
             // Crear entrada de inventario para el producto primario
             const inventarioData = {
                 codigo: grupo.productoPrimario.codigo,
                 nombre: grupo.productoPrimario.nombre,
                 marca: grupo.productoPrimario.marca,
-                unidad: grupo.productoPrimario.unidad,
+                unidad: unidadGuardar,
                 categoria: grupo.productoPrimario.categoria,
                 peso: grupo.pesoTotal,
                 precio_kilo: grupo.subproductos[0].precioKilo, // Usar precio del primer subproducto

@@ -376,8 +376,8 @@ async function eliminarEntradaDeSupabase(entradaId) {
     }
 }
 
-// Función para generar reporte de entradas
-export async function generarReporteEntradas(filtros = {}) {
+// Función para generar reporte de entradas (CSV y PDF)
+export async function generarReporteEntradas(filtros = {}, formato = 'csv') {
     try {
         if (!dbEntradas) {
             console.error("Base de datos de entradas no inicializada");
@@ -399,28 +399,10 @@ export async function generarReporteEntradas(filtros = {}) {
                 entradas = entradas.filter(e => e.fecha_entrada <= filtros.fechaHasta);
             }
 
-            // Generar CSV
-            let csv = "Fecha,Nombre,Cantidad,Unidad,Proveedor,Número Factura,Comentarios\n";
-            entradas.forEach(entrada => {
-                csv += `"${entrada.fecha_entrada}","${entrada.nombre}","${entrada.cantidad}","${entrada.unidad}","${entrada.proveedor || ''}","${entrada.numero_factura || ''}","${entrada.comentarios || ''}"\n`;
-            });
-
-            // Descargar CSV
-            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement("a");
-            if (link.download !== undefined) {
-                const url = URL.createObjectURL(blob);
-                const fecha = new Date().toLocaleDateString('es-PE', { year: 'numeric', month: '2-digit', day: '2-digit' }).replaceAll('/', '-');
-                const nombreArchivo = `reporte_entradas_${fecha}.csv`;
-
-                link.setAttribute("href", url);
-                link.setAttribute("download", nombreArchivo);
-                link.style.visibility = "hidden";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                mostrarMensaje("Reporte de entradas generado correctamente", "success");
+            if (formato === 'csv') {
+                generarCSV(entradas);
+            } else if (formato === 'pdf') {
+                generarPDF(entradas);
             }
         };
 
@@ -431,6 +413,195 @@ export async function generarReporteEntradas(filtros = {}) {
     } catch (error) {
         console.error("Error en generarReporteEntradas:", error);
         mostrarMensaje("Error al generar reporte", "error");
+    }
+}
+
+// Función para generar CSV con columnas correctas
+function generarCSV(entradas) {
+    try {
+        // Columnas: Fecha, Código, Nombre, Marca, Cantidad, Unidad, Lote, Categoría, Comentarios
+        let csv = "Fecha,Código,Nombre,Marca,Cantidad,Unidad,Lote,Categoría,Comentarios\n";
+        
+        entradas.forEach(entrada => {
+            const fila = [
+                entrada.fecha_entrada || '',
+                entrada.codigo || '',
+                entrada.nombre || '',
+                entrada.marca || '',
+                entrada.cantidad || '0',
+                entrada.unidad || '',
+                entrada.lote || '',
+                entrada.categoria || '',
+                entrada.comentarios || ''
+            ];
+            
+            // Escapar comillas y envolver en comillas
+            const filaCsv = fila.map(campo => `"${String(campo).replace(/"/g, '""')}"`).join(',');
+            csv += filaCsv + '\n';
+        });
+
+        // Descargar CSV
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            const fecha = new Date().toLocaleDateString('es-PE', { year: 'numeric', month: '2-digit', day: '2-digit' }).replaceAll('/', '-');
+            const nombreArchivo = `reporte_entradas_${fecha}.csv`;
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", nombreArchivo);
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            mostrarMensaje("Reporte CSV generado correctamente", "success");
+        }
+    } catch (error) {
+        console.error("Error generando CSV:", error);
+        mostrarMensaje("Error al generar CSV", "error");
+    }
+}
+
+// Función para generar PDF
+function generarPDF(entradas) {
+    try {
+        // Importar jsPDF dinámicamente
+        const script = document.createElement('script');
+        script.src = '/librerías/jspdf.umd.min.js';
+        script.onload = function() {
+            if (typeof window.jspdf === 'undefined') {
+                console.error("jsPDF no se cargó correctamente");
+                mostrarMensaje("Error: No se pudo cargar la librería PDF", "error");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const fecha = new Date().toLocaleDateString('es-PE');
+            const titulo = `Reporte de Entradas - ${fecha}`;
+            
+            // Configurar estilos
+            doc.setFontSize(16);
+            doc.text(titulo, 15, 15);
+            
+            doc.setFontSize(10);
+            doc.text(`Total de registros: ${entradas.length}`, 15, 25);
+
+            // Configurar tabla
+            const columnas = ['Fecha', 'Código', 'Nombre', 'Marca', 'Cantidad', 'Unidad', 'Lote', 'Categoría'];
+            const filas = entradas.map(entrada => [
+                entrada.fecha_entrada || '',
+                entrada.codigo || '',
+                entrada.nombre || '',
+                entrada.marca || '',
+                entrada.cantidad || '0',
+                entrada.unidad || '',
+                entrada.lote || '',
+                entrada.categoria || ''
+            ]);
+
+            // Usar autoTable si está disponible, sino crear tabla manual
+            if (typeof doc.autoTable === 'function') {
+                doc.autoTable({
+                    head: [columnas],
+                    body: filas,
+                    startY: 32,
+                    theme: 'striped',
+                    headerStyles: {
+                        fillColor: [41, 128, 185],
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold'
+                    },
+                    bodyStyles: {
+                        textColor: [0, 0, 0]
+                    },
+                    alternateRowStyles: {
+                        fillColor: [245, 245, 245]
+                    },
+                    margin: { top: 32, right: 10, bottom: 10, left: 10 },
+                    columnStyles: {
+                        0: { cellWidth: 20 },  // Fecha
+                        1: { cellWidth: 22 },  // Código
+                        2: { cellWidth: 35 },  // Nombre
+                        3: { cellWidth: 25 },  // Marca
+                        4: { cellWidth: 18 },  // Cantidad
+                        5: { cellWidth: 15 },  // Unidad
+                        6: { cellWidth: 18 },  // Lote
+                        7: { cellWidth: 25 }   // Categoría
+                    }
+                });
+            } else {
+                // Tabla manual simple si autoTable no está disponible
+                let y = 32;
+                const rowHeight = 8;
+                
+                // Encabezado
+                doc.setFillColor(41, 128, 185);
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                columnas.forEach((col, i) => {
+                    doc.text(col, 15 + (i * 30), y);
+                });
+                
+                y += rowHeight;
+                doc.setTextColor(0, 0, 0);
+                doc.setFillColor(245, 245, 245);
+                
+                // Filas
+                filas.forEach((fila, idx) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 15;
+                    }
+                    
+                    if (idx % 2 === 0) {
+                        doc.rect(15, y - 6, 280, rowHeight, 'F');
+                    }
+                    
+                    fila.forEach((celda, i) => {
+                        doc.text(String(celda).substring(0, 20), 15 + (i * 30), y);
+                    });
+                    
+                    y += rowHeight;
+                });
+            }
+
+            // Agregar pie de página
+            const totalPages = doc.internal.pages.length;
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.text(
+                    `Página ${i} de ${totalPages}`,
+                    doc.internal.pageSize.getWidth() / 2,
+                    doc.internal.pageSize.getHeight() - 10,
+                    { align: 'center' }
+                );
+            }
+
+            // Descargar PDF
+            const nombreArchivo = `reporte_entradas_${new Date().toLocaleDateString('es-PE', { year: 'numeric', month: '2-digit', day: '2-digit' }).replaceAll('/', '-')}.pdf`;
+            doc.save(nombreArchivo);
+            
+            mostrarMensaje("Reporte PDF generado correctamente", "success");
+        };
+        
+        script.onerror = function() {
+            console.error("Error cargando jsPDF");
+            mostrarMensaje("Error al cargar la librería PDF", "error");
+        };
+        
+        document.head.appendChild(script);
+
+    } catch (error) {
+        console.error("Error generando PDF:", error);
+        mostrarMensaje("Error al generar PDF", "error");
     }
 }
 

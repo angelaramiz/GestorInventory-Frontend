@@ -633,8 +633,8 @@ async function buscarProductoEnDB(codigo) {
 
         const transaction = db.transaction(["productos"], "readonly");
         const objectStore = transaction.objectStore("productos");
-        const index = objectStore.index("codigo");
-        const request = index.get(codigo);
+        // Usar get() directamente ya que "codigo" es el keyPath
+        const request = objectStore.get(codigo);
 
         request.onsuccess = function(event) {
             resolve(event.target.result);

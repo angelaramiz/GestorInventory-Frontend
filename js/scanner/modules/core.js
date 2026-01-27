@@ -212,13 +212,19 @@ export function guardarInfoProducto() {
         codigo: producto.codigo,
         nombre: producto.nombre,
         marca: producto.marca,
-        unidad: producto.unidad,
+        unidad: producto.unidad || 'Pz',
         categoria: producto.categoria,
         peso: pesoCalculado,
         precioPorcion: datosExtraidos.precioPorcion,
         precioKilo: precioKilo,
         tipo: tipo,
-        productoPrimario: productoPrimario,
+        productoPrimario: productoPrimario ? {
+            codigo: productoPrimario.codigo,
+            nombre: productoPrimario.nombre,
+            marca: productoPrimario.marca,
+            unidad: productoPrimario.unidad || 'Pz',
+            categoria: productoPrimario.categoria
+        } : null,
         timestamp: new Date().toISOString()
     };
 
@@ -269,13 +275,19 @@ function procesarProductoExistente(producto, datosExtraidos, productoExistente) 
         codigo: producto.codigo,
         nombre: producto.nombre,
         marca: producto.marca,
-        unidad: producto.unidad,
+        unidad: producto.unidad || 'Pz',
         categoria: producto.categoria,
         peso: pesoCalculado,
         precioPorcion: datosExtraidos.precioPorcion,
         precioKilo: precioKilo,
         tipo: productoExistente.tipo || 'primario', // Usar tipo existente o primario por defecto
-        productoPrimario: productoExistente.productoPrimario || null,
+        productoPrimario: productoExistente.productoPrimario ? {
+            codigo: productoExistente.productoPrimario.codigo,
+            nombre: productoExistente.productoPrimario.nombre,
+            marca: productoExistente.productoPrimario.marca,
+            unidad: productoExistente.productoPrimario.unidad || 'Pz',
+            categoria: productoExistente.productoPrimario.categoria
+        } : null,
         timestamp: new Date().toISOString()
     };
 

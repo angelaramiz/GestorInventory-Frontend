@@ -1,8 +1,8 @@
 {
-  "version": "1.0.2",
+  "version": "1.1.0",
   "name": "GestorInventory-Frontend",
-  "description": "Configuración inicial del sistema de versionado",
-  "buildDate": "2026-03-08T02:55:21.158Z",
-  "commitHash": "4e16a4c",
+  "description": "Integracion completa del sistema de versionado: version-checker en todas las paginas, footer de version, API Express y conexion con Supabase",
+  "buildDate": "2026-03-08T03:15:10.021Z",
+  "commitHash": "1bd3076",
   "environment": "production"
 }

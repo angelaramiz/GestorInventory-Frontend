@@ -125,7 +125,7 @@ class VersionChecker {
     document.body.appendChild(banner);
 
     document.getElementById('vc-reload').addEventListener('click', () => {
-      localStorage.setItem('app_version', remoteVersion);
+      localStorage.setItem('app_version', version);
       banner.remove();
       if ('caches' in window) {
         caches.keys().then(names => names.forEach(n => caches.delete(n)));

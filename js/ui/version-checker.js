@@ -20,10 +20,21 @@ class VersionChecker {
     this._lastKnownVersion = null;
     this._intervalId = null;
     this._notificationShown = false;
+    this.clientVersion = localStorage.getItem('app_version') || null;
   }
 
   _log(...args) {
     if (this.options.debug) console.log('[VersionChecker]', ...args);
+  }
+
+  _compareVersions(v1, v2) {
+    const p1 = v1.split('.').map(Number);
+    const p2 = v2.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+      if ((p1[i] || 0) < (p2[i] || 0)) return -1;
+      if ((p1[i] || 0) > (p2[i] || 0)) return 1;
+    }
+    return 0;
   }
 
   async _fetchVersion() {
@@ -42,12 +53,17 @@ class VersionChecker {
 
       if (!this._lastKnownVersion) {
         this._lastKnownVersion = remoteVersion;
+        this.clientVersion = this.clientVersion || remoteVersion;
+        localStorage.setItem('app_version', this.clientVersion);
         this._log(`Versión inicial detectada: ${remoteVersion}`);
+        this._log(`Versión cliente: ${this.clientVersion}`);
         return;
       }
 
-      if (remoteVersion !== this._lastKnownVersion && !this._notificationShown) {
-        this._log(`Nueva versión detectada: ${this._lastKnownVersion} → ${remoteVersion}`);
+      const hasUpdate = this._compareVersions(this.clientVersion || this._lastKnownVersion, remoteVersion) < 0;
+
+      if (hasUpdate && !this._notificationShown) {
+        this._log(`Nueva versión detectada: ${this.clientVersion} → ${remoteVersion}`);
         this._notificationShown = true;
         if (this.options.showNotification) {
           this._showUpdateBanner(remoteVersion, data.description || '');
@@ -109,7 +125,11 @@ class VersionChecker {
     document.body.appendChild(banner);
 
     document.getElementById('vc-reload').addEventListener('click', () => {
+      localStorage.setItem('app_version', remoteVersion);
       banner.remove();
+      if ('caches' in window) {
+        caches.keys().then(names => names.forEach(n => caches.delete(n)));
+      }
       window.location.reload(true);
     });
 
@@ -123,6 +143,8 @@ class VersionChecker {
   }
 
   start() {
+    this._log('VersionChecker initialized');
+    this._log('Current client version:', this.clientVersion || 'unknown');
     this._log('Iniciando verificador de versiones...');
     this._check(); // Verificación inicial
     this._intervalId = setInterval(() => this._check(), this.options.checkInterval);

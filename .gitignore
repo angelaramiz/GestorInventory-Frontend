@@ -4,6 +4,7 @@
 version-system/.env
 version-system/node_modules/
 version-system/bump-version.js
+package.json
 
 # Documentación de desarrollo y archivos temporales
 docs-desarrollo/

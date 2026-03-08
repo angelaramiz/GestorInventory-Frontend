@@ -1,8 +1,8 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.2",
   "name": "GestorInventory-Frontend",
-  "description": "Integracion completa del sistema de versionado: version-checker en todas las paginas, footer de version, API Express y conexion con Supabase",
-  "buildDate": "2026-03-08T03:15:10.021Z",
-  "commitHash": "1bd3076",
+  "description": "correcion ",
+  "buildDate": "2026-03-08T03:23:11.745Z",
+  "commitHash": "cfe177e",
   "environment": "production"
 }

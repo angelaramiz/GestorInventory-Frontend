@@ -1,8 +1,8 @@
 {
-  "version": "1.1.6",
+  "version": "1.1.7",
   "name": "GestorInventory-Frontend",
-  "description": "prueba4 ",
-  "buildDate": "2026-03-08T06:13:14.895Z",
-  "commitHash": "d133c02",
+  "description": "agregar footer a las demas rutas ",
+  "buildDate": "2026-03-08T06:54:36.671Z",
+  "commitHash": "ecb73df",
   "environment": "production"
 }

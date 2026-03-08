@@ -163,10 +163,15 @@ if (typeof window !== 'undefined') {
   window.addEventListener('DOMContentLoaded', () => {
     const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
+    // Calcular ruta a version.json desde cualquier nivel de profundidad
+    const depth = (location.pathname.match(/\//g) || []).length - 1;
+    const prefix = depth > 1 ? '../'.repeat(depth - 1) : './';
+    const versionFileUrl = prefix + 'version.json';
+
     window.versionChecker = new VersionChecker({
       // En localhost usa la API; en producción usa el archivo estático
       apiEndpoint: isLocalhost ? 'http://localhost:3000/api/version/check' : null,
-      versionFileUrl: './version.json',
+      versionFileUrl: versionFileUrl,
       checkInterval: 5 * 60 * 1000,
       autoReload: true,
       showNotification: true,

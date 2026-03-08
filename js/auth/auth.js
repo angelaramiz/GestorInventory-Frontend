@@ -8,11 +8,7 @@ import { backendStatusMonitor } from '../utils/backend-status.js';
 let supabase = null;
 let supabaseInitializing = false; // Flag para evitar inicializaciones múltiples
 
-// Configuración de respaldo para cuando no se pueda conectar al servidor
-const SUPABASE_CONFIG_BACKUP = {
-    supabaseUrl: 'https://mkzyehqtvaopsfjrcgvq.supabase.co',
-    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1renplaHF0dmFvcHNmanJjZ3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODMyMzE0NjQsImV4cCI6MTk5ODgwNzQ2NH0.Sa8HFh2901UiRwuCrY6dNonSs6iml5GxCACGHxILPas'
-};
+// Sin configuración de respaldo: las credenciales solo se obtienen del backend.
 
 // Función para obtener createClient de forma segura
 function getCreateClientFn() {
@@ -89,13 +85,12 @@ async function inicializeSupabase() {
                 console.warn('⚠️ No se pudo obtener config del servidor, usando respaldo:', fetchError.message);
             }
         } else {
-            console.warn('⚠️ Backend no disponible, usando configuración de respaldo directamente');
+            console.warn('⚠️ Backend no disponible, no se puede obtener configuración de Supabase');
         }
 
-        // Si no se obtuvo del servidor, usar configuración de respaldo
+        // Si no se obtuvo del servidor, no se puede continuar
         if (!config) {
-            config = SUPABASE_CONFIG_BACKUP;
-            console.log('⚠️ Usando configuración de respaldo');
+            throw new Error('No se pudo obtener la configuración de Supabase. Verifica tu conexión a internet.');
         }
 
         // Validar que tenemos URL y KEY

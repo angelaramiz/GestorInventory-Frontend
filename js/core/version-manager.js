@@ -5,21 +5,17 @@
  */
 
 const VERSION_FILE_URL = './version.json';
-const SUPABASE_URL = 'https://otoxbmdzhqtrdvigoxfn.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90b3hibWR6aHF0cmR2aWdveGZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzNTQxMjQsImV4cCI6MjA1NDkzMDEyNH0.tFb2VQ-Y-3nfBmELpeVTch20oHUvDDAknHTaWQhd0kk';
 
 class VersionManager {
   constructor() {
-    this._supabase = null;
     this._currentVersion = null;
   }
 
-  _getSupabase() {
-    if (this._supabase) return this._supabase;
-    const createClientFn = window.supabase?.createClient || window.createClient;
-    if (!createClientFn) throw new Error('Cliente Supabase no disponible');
-    this._supabase = createClientFn(SUPABASE_URL, SUPABASE_ANON_KEY);
-    return this._supabase;
+  // Reutiliza el cliente Supabase inicializado por auth.js (credenciales del backend)
+  async _getSupabase() {
+    if (window.getSupabase) return window.getSupabase();
+    if (window.supabase) return window.supabase;
+    throw new Error('Cliente Supabase no disponible');
   }
 
   /**
@@ -46,7 +42,7 @@ class VersionManager {
    */
   async getVersionHistory(limit = 10) {
     try {
-      const client = this._getSupabase();
+      const client = await this._getSupabase();
       const { data, error } = await client
         .from('version_history')
         .select('id, version, name, description, build_date, commit_hash, created_at')

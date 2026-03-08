@@ -1,8 +1,8 @@
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "name": "GestorInventory-Frontend",
-  "description": "prueba3 ",
-  "buildDate": "2026-03-08T03:37:09.595Z",
-  "commitHash": "784eb20",
+  "description": "prueba4 ",
+  "buildDate": "2026-03-08T06:13:14.895Z",
+  "commitHash": "d133c02",
   "environment": "production"
 }

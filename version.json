@@ -1,0 +1,8 @@
+{
+  "version": "1.0.2",
+  "name": "GestorInventory-Frontend",
+  "description": "Configuración inicial del sistema de versionado",
+  "buildDate": "2026-03-08T02:55:21.158Z",
+  "commitHash": "4e16a4c",
+  "environment": "production"
+}

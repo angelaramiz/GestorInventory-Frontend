@@ -1,5 +1,10 @@
 .vscode
 
+# Sistema de versionado - archivos sensibles
+version-system/.env
+version-system/node_modules/
+version-system/bump-version.js
+
 # Documentación de desarrollo y archivos temporales
 docs-desarrollo/
 test/

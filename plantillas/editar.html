@@ -394,6 +394,18 @@
 
         });
     </script>
+
+    <!-- Footer de versión -->
+    <footer id="version-footer" style="position:fixed;bottom:0;left:0;width:100%;background:rgba(0,0,0,0.06);text-align:center;padding:3px 0;font-size:11px;color:#6b7280;z-index:100;pointer-events:none;">
+      <span id="current-version">...</span>
+    </footer>
+    <script>
+      fetch('../version.json?t=' + Date.now())
+        .then(r => r.json())
+        .then(d => { document.getElementById('current-version').textContent = 'v' + d.version; })
+        .catch(() => {});
+    </script>
+    <script src="../js/ui/version-checker.js"></script>
 </body>
 
 </html>
